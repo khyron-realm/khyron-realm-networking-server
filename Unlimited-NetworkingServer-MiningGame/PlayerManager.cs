@@ -29,13 +29,20 @@ namespace Unlimited_NetworkingServer_MiningGame
             ushort level = dc.getPlayerLevel();
             ushort experience = dc.getPlayerExperience();
             ushort energy = dc.getPlayerEnergy();
-            
+
             Player newPlayer = new Player(id, name, level, experience, energy);
+            players.Add(e.Client, newPlayer);
+
+            using DarkRiftWriter newPlayerWriter = DarkRiftWriter.Create();
+            newPlayerWriter.Write(newPlayer);
+
+            using Message newPlayerMessage = Message.Create(Tags.PlayerConnectTag, newPlayerWriter);
+            e.Client.SendMessage(newPlayerMessage, SendMode.Reliable);
         }
 
         void ClientDisconnected(object sender, ClientDisconnectedEventArgs e)
         {
-            
+            players.Remove(e.Client);
         }
     
         
