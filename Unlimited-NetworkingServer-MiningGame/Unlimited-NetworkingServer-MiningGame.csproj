@@ -5,4 +5,13 @@
         <RootNamespace>Unlimited_NetworkingServer_MiningGame</RootNamespace>
     </PropertyGroup>
 
+    <ItemGroup>
+      <Reference Include="DarkRift, Version=2.9.1.0, Culture=neutral, PublicKeyToken=null">
+        <HintPath>bin\Debug\netcoreapp3.1\DarkRift.dll</HintPath>
+      </Reference>
+      <Reference Include="DarkRift.Server, Version=2.9.1.0, Culture=neutral, PublicKeyToken=null">
+        <HintPath>bin\Debug\netcoreapp3.1\DarkRift.Server.dll</HintPath>
+      </Reference>
+    </ItemGroup>
+
 </Project>
