@@ -1,0 +1,7 @@
+/Users/alex_grigoras/Documents/Unlimited-NetworkingServer-MiningGame/Unlimited-NetworkingServer-MiningGame/bin/Debug/Unlimited_NetworkingServer_MiningGame.dll
+/Users/alex_grigoras/Documents/Unlimited-NetworkingServer-MiningGame/Unlimited-NetworkingServer-MiningGame/bin/Debug/Unlimited_NetworkingServer_MiningGame.pdb
+/Users/alex_grigoras/Documents/Unlimited-NetworkingServer-MiningGame/Unlimited-NetworkingServer-MiningGame/obj/Debug/Unlimited-NetworkingServer-MiningGame.csproj.AssemblyReference.cache
+/Users/alex_grigoras/Documents/Unlimited-NetworkingServer-MiningGame/Unlimited-NetworkingServer-MiningGame/obj/Debug/Unlimited-NetworkingServer-MiningGame.csproj.CoreCompileInputs.cache
+/Users/alex_grigoras/Documents/Unlimited-NetworkingServer-MiningGame/Unlimited-NetworkingServer-MiningGame/obj/Debug/Unlimited-NetworkingServer-MiningGame.csproj.CopyComplete
+/Users/alex_grigoras/Documents/Unlimited-NetworkingServer-MiningGame/Unlimited-NetworkingServer-MiningGame/obj/Debug/Unlimited_NetworkingServer_MiningGame.dll
+/Users/alex_grigoras/Documents/Unlimited-NetworkingServer-MiningGame/Unlimited-NetworkingServer-MiningGame/obj/Debug/Unlimited_NetworkingServer_MiningGame.pdb

@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net.Security;
 using DarkRift;
 using DarkRift.Server;
 
@@ -33,11 +32,15 @@ namespace Unlimited_NetworkingServer_MiningGame
             Player newPlayer = new Player(id, name, level, experience, energy);
             players.Add(e.Client, newPlayer);
 
-            using DarkRiftWriter newPlayerWriter = DarkRiftWriter.Create();
-            newPlayerWriter.Write(newPlayer);
+            // Write player data and tell other connected clients about this player
+            using (DarkRiftWriter newPlayerWriter = DarkRiftWriter.Create())
+            {
+                newPlayerWriter.Write(newPlayer);
 
-            using Message newPlayerMessage = Message.Create(Tags.PlayerConnectTag, newPlayerWriter);
-            e.Client.SendMessage(newPlayerMessage, SendMode.Reliable);
+                using (Message newPlayerMessage = Message.Create(Tags.PlayerConnectTag, newPlayerWriter)) {
+                    e.Client.SendMessage(newPlayerMessage, SendMode.Reliable);
+                }
+            }
         }
 
         void ClientDisconnected(object sender, ClientDisconnectedEventArgs e)
