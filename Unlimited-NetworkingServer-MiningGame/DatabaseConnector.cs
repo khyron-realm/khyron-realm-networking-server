@@ -8,27 +8,27 @@ namespace Unlimited_NetworkingServer_MiningGame
 
         public string GetPlayerId()
         {
-            return "";
+            return "125";
         }
         
         public string getPlayerName()
         {
-            return "";
+            return "32";
         }
         
         public ushort getPlayerLevel()
         {
-            return 0;
+            return 17;
         }
         
         public ushort getPlayerExperience()
         {
-            return 0;
+            return 100;
         }
         
         public ushort getPlayerEnergy()
         {
-            return 0;
+            return 3;
         }
     }
 }
