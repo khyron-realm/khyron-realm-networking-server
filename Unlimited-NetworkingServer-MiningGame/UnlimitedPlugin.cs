@@ -6,14 +6,14 @@ using DarkRift.Server;
 
 namespace Unlimited_NetworkingServer_MiningGame
 {
-    public class PlayerManager : Plugin
+    public class UnlimitedPlugin : Plugin
     {
         public override Version Version => new Version(1, 0, 0);
         public override bool ThreadSafe => false;
 
         private Dictionary<IClient, Player> players = new Dictionary<IClient, Player>();
 
-        public PlayerManager(PluginLoadData pluginLoadData) : base(pluginLoadData)
+        public UnlimitedPlugin(PluginLoadData pluginLoadData) : base(pluginLoadData)
         {
             ClientManager.ClientConnected += ClientConnected;
             ClientManager.ClientDisconnected += ClientDisconnected;
