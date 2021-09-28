@@ -4,39 +4,39 @@ namespace Unlimited_NetworkingServer_MiningGame
 {
     public class Player: IDarkRiftSerializable
     {
-        public string id { get; set; }
-        public string name { get; set; }
+        public string Id { get; set; }
+        public string Name { get; set; }
         
-        public ushort level { get; set; }
-        public ushort experience { get; set; }
-        public ushort energy { get; set; }
+        public ushort Level { get; set; }
+        public ushort Experience { get; set; }
+        public ushort Energy { get; set; }
         
         public Player(string id, string name, ushort level, ushort experience, ushort energy)
         {
-            this.id = id;
-            this.name = name;
+            this.Id = id;
+            this.Name = name;
             
-            this.level = level;
-            this.experience = experience;
-            this.energy = energy;
+            this.Level = level;
+            this.Experience = experience;
+            this.Energy = energy;
         }
 
         public void Deserialize(DeserializeEvent e)
         {
-            id = e.Reader.ReadString();
-            name = e.Reader.ReadString();
-            level = e.Reader.ReadUInt16();
-            experience = e.Reader.ReadUInt16();
-            energy = e.Reader.ReadUInt16();
+            Id = e.Reader.ReadString();
+            Name = e.Reader.ReadString();
+            Level = e.Reader.ReadUInt16();
+            Experience = e.Reader.ReadUInt16();
+            Energy = e.Reader.ReadUInt16();
         }
 
         public void Serialize(SerializeEvent e)
         {
-            e.Writer.Write(id);
-            e.Writer.Write(name);
-            e.Writer.Write(level);
-            e.Writer.Write(experience);
-            e.Writer.Write(energy);
+            e.Writer.Write(Id);
+            e.Writer.Write(Name);
+            e.Writer.Write(Level);
+            e.Writer.Write(Experience);
+            e.Writer.Write(Energy);
         }
     }
 }

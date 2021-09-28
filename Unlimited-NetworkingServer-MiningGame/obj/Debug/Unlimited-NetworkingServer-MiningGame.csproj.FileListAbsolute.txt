@@ -12,3 +12,14 @@
 /Users/alex_grigoras/Documents/GitHub/Unlimited-NetworkingServer-MiningGame/Unlimited-NetworkingServer-MiningGame/obj/Debug/Unlimited-NetworkingServer-MiningGame.csproj.CopyComplete
 /Users/alex_grigoras/Documents/GitHub/Unlimited-NetworkingServer-MiningGame/Unlimited-NetworkingServer-MiningGame/obj/Debug/Unlimited_NetworkingServer_MiningGame.dll
 /Users/alex_grigoras/Documents/GitHub/Unlimited-NetworkingServer-MiningGame/Unlimited-NetworkingServer-MiningGame/obj/Debug/Unlimited_NetworkingServer_MiningGame.pdb
+/Users/alex_grigoras/Documents/GitHub/Unlimited-NetworkingServer-MiningGame/Unlimited-NetworkingServer-MiningGame/bin/Debug/BCrypt.Net.dll
+/Users/alex_grigoras/Documents/GitHub/Unlimited-NetworkingServer-MiningGame/Unlimited-NetworkingServer-MiningGame/bin/Debug/System.Xml.Linq.dll
+/Users/alex_grigoras/Documents/GitHub/Unlimited-NetworkingServer-MiningGame/Unlimited-NetworkingServer-MiningGame/bin/Debug/System.Runtime.Serialization.dll
+/Users/alex_grigoras/Documents/GitHub/Unlimited-NetworkingServer-MiningGame/Unlimited-NetworkingServer-MiningGame/bin/Debug/System.Configuration.dll
+/Users/alex_grigoras/Documents/GitHub/Unlimited-NetworkingServer-MiningGame/Unlimited-NetworkingServer-MiningGame/bin/Debug/System.Security.dll
+/Users/alex_grigoras/Documents/GitHub/Unlimited-NetworkingServer-MiningGame/Unlimited-NetworkingServer-MiningGame/bin/Debug/BCrypt.Net.pdb
+/Users/alex_grigoras/Documents/GitHub/Unlimited-NetworkingServer-MiningGame/Unlimited-NetworkingServer-MiningGame/bin/Debug/BCrypt.Net.xml
+/Users/alex_grigoras/Documents/GitHub/Unlimited-NetworkingServer-MiningGame/Unlimited-NetworkingServer-MiningGame/bin/Debug/System.Xml.Linq.xml
+/Users/alex_grigoras/Documents/GitHub/Unlimited-NetworkingServer-MiningGame/Unlimited-NetworkingServer-MiningGame/bin/Debug/System.Runtime.Serialization.xml
+/Users/alex_grigoras/Documents/GitHub/Unlimited-NetworkingServer-MiningGame/Unlimited-NetworkingServer-MiningGame/bin/Debug/System.Configuration.xml
+/Users/alex_grigoras/Documents/GitHub/Unlimited-NetworkingServer-MiningGame/Unlimited-NetworkingServer-MiningGame/bin/Debug/System.Security.xml

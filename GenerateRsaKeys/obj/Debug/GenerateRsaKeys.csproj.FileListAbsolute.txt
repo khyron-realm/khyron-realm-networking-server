@@ -1,0 +1,6 @@
+/Users/alex_grigoras/Documents/GitHub/Unlimited-NetworkingServer-MiningGame/GenerateRsaKeys/bin/Debug/GenerateRsaKeys.exe
+/Users/alex_grigoras/Documents/GitHub/Unlimited-NetworkingServer-MiningGame/GenerateRsaKeys/bin/Debug/GenerateRsaKeys.pdb
+/Users/alex_grigoras/Documents/GitHub/Unlimited-NetworkingServer-MiningGame/GenerateRsaKeys/obj/Debug/GenerateRsaKeys.csproj.AssemblyReference.cache
+/Users/alex_grigoras/Documents/GitHub/Unlimited-NetworkingServer-MiningGame/GenerateRsaKeys/obj/Debug/GenerateRsaKeys.csproj.CoreCompileInputs.cache
+/Users/alex_grigoras/Documents/GitHub/Unlimited-NetworkingServer-MiningGame/GenerateRsaKeys/obj/Debug/GenerateRsaKeys.exe
+/Users/alex_grigoras/Documents/GitHub/Unlimited-NetworkingServer-MiningGame/GenerateRsaKeys/obj/Debug/GenerateRsaKeys.pdb
