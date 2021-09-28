@@ -98,9 +98,13 @@ See the [open issues](https://github.com/target-software/Unlimited-NetworkingSer
 < PROJECT ROOT >
     |
     |-- DatabaseConnector.cs                    # Database connection for reading/writing data
+    |-- Encryption.cs                           # Decryption method
+    |-- Login.cs                                # User authentication methods
     |-- Player.cs                               # Player data class
-    |-- PlayerManager.cs                        # Manager for connecting players
-    |-- Tags                                    # Tags for network messages
+    |-- Tags.cs                                 # Tags for network messages
+    |-- UnlimitedPlayerPlugin.cs                # Manager for connecting players
+    |
+    |-- packages.config                         # Configuration for needed packages
     |
     |-- Bin / Debug /                           # Server plugin build (dll)
     |    | Unlimited-NetworkingServer-MiningGame.dll
