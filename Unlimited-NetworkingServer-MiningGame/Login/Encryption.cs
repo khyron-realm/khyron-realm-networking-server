@@ -3,7 +3,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Xml;
 
-namespace Unlimited_NetworkingServer_MiningGame
+namespace Unlimited_NetworkingServer_MiningGame.Login
 {
     internal class Encryption
     {

@@ -1,6 +1,6 @@
 using DarkRift;
 
-namespace Unlimited_NetworkingServer_MiningGame
+namespace Unlimited_NetworkingServer_MiningGame.Game
 {
     public class Player: IDarkRiftSerializable
     {

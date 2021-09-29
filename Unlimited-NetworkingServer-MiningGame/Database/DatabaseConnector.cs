@@ -1,4 +1,4 @@
-namespace Unlimited_NetworkingServer_MiningGame
+namespace Unlimited_NetworkingServer_MiningGame.Database
 {
     public class DatabaseConnector
     {

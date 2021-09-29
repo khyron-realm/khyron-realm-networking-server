@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using DarkRift;
 using DarkRift.Server;
+using Unlimited_NetworkingServer_MiningGame.Database;
+using Unlimited_NetworkingServer_MiningGame.Tags;
+using Unlimited_NetworkingServer_MiningGame.Login;
 
-namespace Unlimited_NetworkingServer_MiningGame
+namespace Unlimited_NetworkingServer_MiningGame.Game
 {
     public class UnlimitedPlayerPlugin : Plugin
     {
@@ -12,6 +14,8 @@ namespace Unlimited_NetworkingServer_MiningGame
         public override bool ThreadSafe => false;
 
         public Dictionary<IClient, Player> onlinePlayers = new Dictionary<IClient, Player>();
+
+        private Login.Login _loginPlugin;
 
         public UnlimitedPlayerPlugin(PluginLoadData pluginLoadData) : base(pluginLoadData)
         {
@@ -23,6 +27,12 @@ namespace Unlimited_NetworkingServer_MiningGame
         {
             //
             // To Be Made - Login plugin verification
+            
+            // If player isn't logged in, return error 1
+            if (!_loginPlugin.PlayerLoggedIn(e.Client, GameTags.RequestFailed, "Player not logged in."))
+            {
+                return;
+            }
 
             DatabaseConnector dc = new DatabaseConnector();
 
@@ -40,7 +50,7 @@ namespace Unlimited_NetworkingServer_MiningGame
             {
                 newPlayerWriter.Write(newPlayer);
 
-                using (Message newPlayerMessage = Message.Create(Tags.PlayerConnectTag, newPlayerWriter)) 
+                using (Message newPlayerMessage = Message.Create(GameTags.PlayerConnectTag, newPlayerWriter)) 
                 {
                     e.Client.SendMessage(newPlayerMessage, SendMode.Reliable);
                 }
@@ -56,8 +66,24 @@ namespace Unlimited_NetworkingServer_MiningGame
 
         void OnMessageReceived(object sender, MessageReceivedEventArgs e)
         {
-            
-        }
+            using (var message = e.GetMessage())
+            {
+                // Check if message is meant for this plugin
+                if (message.Tag >= Tags.Tags.TagsPerPlugin * (Tags.Tags.Game + 1))
+                {
+                    return;
+                }
 
+                var client = e.Client;
+
+                switch (message.Tag)
+                {
+                    case 0:
+                    {
+                        break;
+                    }
+                }
+            }
+        }
     }
 }
