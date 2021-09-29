@@ -97,17 +97,23 @@ See the [open issues](https://github.com/target-software/Unlimited-NetworkingSer
 ```bash
 < PROJECT ROOT >
     |
-    |-- DatabaseConnector.cs                    # Database connection for reading/writing data
-    |-- Encryption.cs                           # Decryption method
-    |-- Login.cs                                # User authentication methods
-    |-- Player.cs                               # Player data class
-    |-- Tags.cs                                 # Tags for network messages
-    |-- UnlimitedPlayerPlugin.cs                # Manager for connecting players
+    |-- Database
+    |    | -- DatabaseConnector.cs              # Database connection for reading/writing data
+    |-- Game
+    |    |-- Player.cs                          # Player data class
+    |    |-- UnlimitedPlayerPlugin.cs           # Manager for connecting players
+    |-- Login
+    |    |-- Encryption.cs                      # Decryption method
+    |    |-- Login.cs                           # User authentication methods
+    |-- Tags
+    |    |-- Tags.cs                            # Tags structure
+    |    |-- GameTags.cs                        # Tags for game messages
+    |    |-- LoginTags.cs                       # Tags for login messages
     |
     |-- packages.config                         # Configuration for needed packages
     |
     |-- Bin / Debug /                           # Server plugin build (dll)
-    |    | Unlimited-NetworkingServer-MiningGame.dll
+    |    | -- Unlimited-NetworkingServer-MiningGame.dll
     |
     |-- README.MD                               # Readme file
     |
