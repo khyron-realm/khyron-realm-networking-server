@@ -121,7 +121,6 @@
         </Reference>
     </ItemGroup>
     <ItemGroup>
-        <Compile Include="Database\DatabaseConnector.cs" />
         <Compile Include="Database\DatabaseProxy.cs" />
         <Compile Include="Database\IDataLayer.cs" />
         <Compile Include="Database\IUser.cs" />

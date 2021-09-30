@@ -34,13 +34,11 @@ namespace Unlimited_NetworkingServer_MiningGame.Game
                 return;
             }
 
-            DatabaseConnector dc = new DatabaseConnector();
-
-            string id = dc.GetPlayerId();
-            string name = dc.getPlayerName();
-            ushort level = dc.getPlayerLevel();
-            ushort experience = dc.getPlayerExperience();
-            ushort energy = dc.getPlayerEnergy();
+            string id = " ";
+            string name = " ";
+            ushort level = 0;
+            ushort experience = 0;
+            ushort energy = 0;
 
             Player newPlayer = new Player(id, name, level, experience, energy);
             onlinePlayers.Add(e.Client, newPlayer);
