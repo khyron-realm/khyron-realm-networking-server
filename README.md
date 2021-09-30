@@ -42,7 +42,7 @@
     <li><a href="#roadmap">Roadmap</a></li>
     <li><a href="#project-structure">Project Structure</a></li>
     <li><a href="#necessary-libraries">Necessary Libraries</a></li>
-    <li><a href="#license">License</a></li>
+    <li><a href="#references">References</a></li>
   </ol>
 </details>
 
@@ -127,12 +127,8 @@ See the [open issues](https://github.com/target-software/Unlimited-NetworkingSer
 1. [Darkrift DLLs](https://assetstore.unity.com/packages/tools/network/darkrift-networking-2-95309)
 
 
-<!-- LICENSE -->
-## License
+<!-- REFERENCES -->
+## References
 
-Project Template adapted from [Othneil Drew](https://github.com/othneildrew) / [Best-README-Template](https://github.com/othneildrew/Best-README-Template).
-
-
-<!-- MARKDOWN LINKS & IMAGES -->
-<!-- https://www.markdownguide.org/basic-syntax/#reference-style-links -->
-[product-screenshot]: images/screenshot.png
+1. Darkrift example [Darkrift2_Boilerplate](https://github.com/mwage/DarkRift2_Boilerplate)
+1. Project Template adapted from [Othneil Drew](https://github.com/othneildrew) / [Best-README-Template](https://github.com/othneildrew/Best-README-Template).
