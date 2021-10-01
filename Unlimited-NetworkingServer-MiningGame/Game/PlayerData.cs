@@ -2,23 +2,21 @@ using DarkRift;
 
 namespace Unlimited_NetworkingServer_MiningGame.Game
 {
-    public class Player: IDarkRiftSerializable
+    public class PlayerData: IDarkRiftSerializable
     {
         public string Id { get; set; }
         public string Name { get; set; }
-        
         public ushort Level { get; set; }
         public ushort Experience { get; set; }
         public ushort Energy { get; set; }
         
-        public Player(string id, string name, ushort level, ushort experience, ushort energy)
+        public PlayerData(string id, string name, ushort level, ushort experience, ushort energy)
         {
-            this.Id = id;
-            this.Name = name;
-            
-            this.Level = level;
-            this.Experience = experience;
-            this.Energy = energy;
+            Id = id;
+            Name = name;
+            Level = level;
+            Experience = experience;
+            Energy = energy;
         }
 
         public void Deserialize(DeserializeEvent e)

@@ -4,6 +4,7 @@ using System.Net;
 using System.Xml.Linq;
 using DarkRift;
 using DarkRift.Server;
+using MongoDB.Bson;
 using MongoDB.Driver;
 using Unlimited_NetworkingServer_MiningGame.Database;
 
@@ -12,8 +13,7 @@ namespace Unlimited_NetworkingServer_MiningGame.MongoDbConnector
     public class MongoDbConnector : Plugin
     {
         public override Version Version => new Version(1, 0, 0);
-        public override bool ThreadSafe => false;
-
+        public override bool ThreadSafe => true;
         public override Command[] Commands => new Command[]
         {
             new Command("LoadMongo", "Loads MongoDB Database", "", LoadDbCommand)
@@ -46,7 +46,7 @@ namespace Unlimited_NetworkingServer_MiningGame.MongoDbConnector
 
             ClientManager.ClientConnected += OnPlayerConnected;
         }
-
+        
         private void LoadConfig(out string connectionString, out string database)
         {
             XDocument document;
@@ -56,7 +56,7 @@ namespace Unlimited_NetworkingServer_MiningGame.MongoDbConnector
                 document = new XDocument(
                     new XDeclaration("1.0", "utf-8", "yes"),
                     new XComment("Enter your connection data here: "),
-                    new XElement("MongoDB", 
+                    new XElement("MongoDB",
                         new XAttribute("ConnectionString", "mongodb://localhost:27017"),
                         new XAttribute("Database", "test"))
                 );
@@ -64,7 +64,8 @@ namespace Unlimited_NetworkingServer_MiningGame.MongoDbConnector
                 try
                 {
                     document.Save(ConfigPath);
-                    Logger.Info("Created /Plugins/MongoDbConnector.xml. Adjust the connection string and restart the server");
+                    Logger.Info(
+                        "Created /Plugins/MongoDbConnector.xml. Adjust the connection string and restart the server");
                     connectionString = "mongodb://localhost:27017";
                     database = "test";
                 }
@@ -109,9 +110,50 @@ namespace Unlimited_NetworkingServer_MiningGame.MongoDbConnector
 
         private void GetCollections()
         {
-            Users = _mongoDatabase.GetCollection<User>("users");
+            Users = _mongoDatabase.GetCollection<User>("Users");
+        }
+        
+        ///
+        private void GetUser()
+        {
+            string username = "ghita";
+            var result = Users.Find(u => u.Username == username).FirstOrDefault();
+            Logger.Info(result.Username);
+            Logger.Info(result.Password);
         }
 
+        private void LoginUser()
+        {
+            string username = "ghita";
+            string password = "12345";
+            
+            _database.DataLayer.GetUser(username, user =>
+            {
+                if (user != null && password == user.Password)
+                {
+                    Logger.Info("Successful login");
+                }
+                else
+                {
+                    Logger.Info("User couldn't log in!");
+                }
+            });
+        }
+
+        private void AddUser()
+        {
+            string username = "dorelus";
+            string password = "12345";
+            
+            _database = PluginManager.GetPluginByType<DatabaseProxy>();
+            
+            _database.DataLayer.AddNewUser(username, password, () =>
+            {
+                Logger.Info("New user + " + username);
+            });
+        }
+        ///
+        
         #region Commands
 
         public void LoadDbCommand(object sender, CommandEventArgs e)

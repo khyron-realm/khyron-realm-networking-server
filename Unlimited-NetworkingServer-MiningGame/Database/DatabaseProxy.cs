@@ -7,9 +7,9 @@ namespace Unlimited_NetworkingServer_MiningGame.Database
     public class DatabaseProxy : Plugin
     {
         public override Version Version => new Version(1, 0, 0);
-        public override bool ThreadSafe => false;
+        public override bool ThreadSafe => true;
         
-        public IDataLayer DataLayer { get; private set; }
+        public IDataLayer DataLayer { get; set; }
 
         private static readonly object InitializeLock = new object();
         
@@ -32,6 +32,8 @@ namespace Unlimited_NetworkingServer_MiningGame.Database
                 {
                     Logger.Info($"Selected Database: {dataLayer.Name}");
                 }
+                
+                DataLayer = dataLayer;
             }
         }
 

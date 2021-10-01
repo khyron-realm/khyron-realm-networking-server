@@ -124,7 +124,7 @@
         <Compile Include="Database\DatabaseProxy.cs" />
         <Compile Include="Database\IDataLayer.cs" />
         <Compile Include="Database\IUser.cs" />
-        <Compile Include="Game\Player.cs" />
+        <Compile Include="Game\PlayerData.cs" />
         <Compile Include="Game\UnlimitedPlayerPlugin.cs" />
         <Compile Include="Login\Encryption.cs" />
         <Compile Include="Login\Login.cs" />

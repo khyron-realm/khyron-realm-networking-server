@@ -1,5 +1,5 @@
 using System;
-using System.Collections.Generic;
+using System.Collections.Concurrent;
 using System.IO;
 using DarkRift;
 using DarkRift.Server;
@@ -10,29 +10,19 @@ namespace Unlimited_NetworkingServer_MiningGame.Login
 {
     public class Login : Plugin
     {
-        public override Version Version => new Version(1, 0, 0);
-        public override bool ThreadSafe => true;
-
-        private Dictionary<string, IClient> _clients = new Dictionary<string, IClient>();
-        private Dictionary<IClient, string> _usersLoggedIn = new Dictionary<IClient, string>();
-
-        public override Command[] Commands => new Command[]
-        {
-            new Command("AllowAddUser", "Allow users to be added to the Database", "AllowAddUser [on/off]", AllowAddUser),
-            new Command("AddUser", "Adds a User to the Database", "AddUser -username -password", AddUserCommand),
-            new Command("DellUser", "Deletes a User from the Database", "DellUser -username", DellUserCommand),
-            new Command("OnlineUsers", "Logs the number of online users", "OnlineUsers", OnlineUsersCommand),
-            new Command("LoggedInUsers", "Logs the number of logged in users", "LoggedInUsers", OnlineUsersCommand),
-            new Command("LPDebug", "Enables the debug logs for the Login Plugin", "LPDebug [on/off]", LpDebugCommand)
-        };
-        
         private const string PrivateKeyPath = @"Plugins/PrivateKey.xml";
         private static readonly object InitializeLock = new object();
+
+        private readonly ConcurrentDictionary<string, IClient> _clients = new ConcurrentDictionary<string, IClient>();
+
+        private readonly ConcurrentDictionary<IClient, string> _usersLoggedIn =
+            new ConcurrentDictionary<IClient, string>();
+
         private bool _allowAddUser = true;
         private DatabaseProxy _database;
         private bool _debug = true;
         private string _privateKey;
-        
+
         public Login(PluginLoadData pluginLoadData) : base(pluginLoadData)
         {
             LoadRsaKey();
@@ -40,6 +30,20 @@ namespace Unlimited_NetworkingServer_MiningGame.Login
             ClientManager.ClientConnected += OnPlayerConnected;
             ClientManager.ClientDisconnected += OnPlayerDisconnected;
         }
+
+        public override Version Version => new Version(1, 0, 0);
+        public override bool ThreadSafe => true;
+
+        public override Command[] Commands => new[]
+        {
+            new Command("AllowAddUser", "Allow users to be added to the Database", "AllowAddUser [on/off]",
+                AllowAddUser),
+            new Command("AddUser", "Adds a User to the Database", "AddUser -username -password", AddUserCommand),
+            new Command("DellUser", "Deletes a User from the Database", "DellUser -username", DellUserCommand),
+            new Command("OnlineUsers", "Logs the number of online users", "OnlineUsers", OnlineUsersCommand),
+            new Command("LoggedInUsers", "Logs the number of logged in users", "LoggedInUsers", LoggedInUsersCommand),
+            new Command("LPDebug", "Enables the debug logs for the Login Plugin", "LPDebug [on/off]", LpDebugCommand)
+        };
 
         private void LoadRsaKey()
         {
@@ -56,15 +60,10 @@ namespace Unlimited_NetworkingServer_MiningGame.Login
         private void OnPlayerConnected(object sender, ClientConnectedEventArgs e)
         {
             if (_database == null)
-            {
                 lock (InitializeLock)
                 {
-                    if (_database == null)
-                    {
-                        _database = PluginManager.GetPluginByType<DatabaseProxy>();
-                    }
+                    if (_database == null) _database = PluginManager.GetPluginByType<DatabaseProxy>();
                 }
-            }
 
             _usersLoggedIn[e.Client] = null;
 
@@ -75,13 +74,9 @@ namespace Unlimited_NetworkingServer_MiningGame.Login
         {
             if (_usersLoggedIn.ContainsKey(e.Client))
             {
-                var username = _usersLoggedIn[e.Client];
-                _usersLoggedIn.Remove(e.Client);
+                _usersLoggedIn.TryRemove(e.Client, out var username);
 
-                if (username != null)
-                {
-                    _clients.Remove(username);
-                }
+                if (username != null) _clients.TryRemove(username, out _);
             }
         }
 
@@ -100,15 +95,13 @@ namespace Unlimited_NetworkingServer_MiningGame.Login
                     {
                         // If users is already logged in
                         if (_usersLoggedIn[client] != null)
-                        {
                             using (var msg = Message.CreateEmpty(LoginTags.LoginSuccess))
                             {
                                 client.SendMessage(msg, SendMode.Reliable);
                             }
-                        }
 
-                        string username = "";
-                        string password = "";
+                        var username = "";
+                        var password = "";
 
                         using (var reader = message.GetReader())
                         {
@@ -154,18 +147,12 @@ namespace Unlimited_NetworkingServer_MiningGame.Login
                                         client.SendMessage(msg, SendMode.Reliable);
                                     }
 
-                                    if (_debug)
-                                    {
-                                        Logger.Info("Successful login: " + client.ID + ").");
-                                    }
+                                    if (_debug) Logger.Info("Successful login: " + client.ID + ").");
                                 }
                                 else
                                 {
-                                    if (_debug)
-                                    {
-                                        Logger.Info("User " + client.ID + " couldn't log in!");
-                                    }
-                            
+                                    if (_debug) Logger.Info("User " + client.ID + " couldn't log in!");
+
                                     // Return error 1 for wrong username/password combination
                                     using (var writer = DarkRiftWriter.Create())
                                     {
@@ -176,7 +163,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Login
                                             client.SendMessage(msg, SendMode.Reliable);
                                         }
                                     }
-                                }  
+                                }
                             });
                         }
                         catch (Exception ex)
@@ -193,21 +180,15 @@ namespace Unlimited_NetworkingServer_MiningGame.Login
                         var username = _usersLoggedIn[client];
                         _usersLoggedIn[client] = null;
 
-                        if (username != null)
-                        {
-                            _clients.Remove(username);
-                        }
+                        if (username != null) _clients.TryRemove(username, out _);
 
-                        if (_debug)
-                        {
-                            Logger.Info("User " + client.ID + " logged out!");
-                        }
+                        if (_debug) Logger.Info("User " + client.ID + " logged out!");
 
                         using (var msg = Message.CreateEmpty(LoginTags.LoginSuccess))
                         {
                             client.SendMessage(msg, SendMode.Reliable);
                         }
-                        
+
                         break;
                     }
 
@@ -215,8 +196,8 @@ namespace Unlimited_NetworkingServer_MiningGame.Login
                     {
                         if (!_allowAddUser) return;
 
-                        string username = "";
-                        string password = " ";
+                        var username = "";
+                        var password = " ";
 
                         using (var reader = message.GetReader())
                         {
@@ -224,7 +205,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Login
                             {
                                 username = reader.ReadString();
                                 password = BCrypt.Net.BCrypt.HashPassword(
-                                    Encryption.Decrypt(reader.ReadBytes(), _privateKey), 
+                                    Encryption.Decrypt(reader.ReadBytes(), _privateKey),
                                     10);
                             }
                             catch (Exception ex)
@@ -233,7 +214,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Login
                                 InvalidData(client, LoginTags.AddUserFailed, ex, "Failed to add user");
                             }
                         }
-                        
+
                         try
                         {
                             _database.DataLayer.UsernameAvailable(username, isAvailable =>
@@ -242,10 +223,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Login
                                 {
                                     _database.DataLayer.AddNewUser(username, password, () =>
                                     {
-                                        if (_debug)
-                                        {
-                                            Logger.Info("New user + " + username);
-                                        }
+                                        if (_debug) Logger.Info("New user: " + username);
 
                                         using (var msg = Message.CreateEmpty(LoginTags.AddUserSuccess))
                                         {
@@ -255,10 +233,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Login
                                 }
                                 else
                                 {
-                                    if (_debug)
-                                    {
-                                        Logger.Info("User " + client.ID + " failed to sign up!");
-                                    }
+                                    if (_debug) Logger.Info("User " + client.ID + " failed to sign up!");
 
                                     // Return error 1 for wrong username/password combination
                                     using (var writer = DarkRiftWriter.Create())
@@ -310,13 +285,11 @@ namespace Unlimited_NetworkingServer_MiningGame.Login
                 }
             }
         }
-        
+
         private void AddUserCommand(object sender, CommandEventArgs e)
         {
-            if (_database == null)
-            {
-                _database = PluginManager.GetPluginByType<DatabaseProxy>();
-            }
+            Logger.Info("Loading db");
+            if (_database == null) _database = PluginManager.GetPluginByType<DatabaseProxy>();
 
             if (e.Arguments.Length != 2)
             {
@@ -327,18 +300,18 @@ namespace Unlimited_NetworkingServer_MiningGame.Login
             var username = e.Arguments[0];
             var password = BCrypt.Net.BCrypt.HashPassword(e.Arguments[1], 10);
 
+            Logger.Info("Loaded database");
+
             try
             {
                 _database.DataLayer.UsernameAvailable(username, isAvailable =>
                 {
                     if (isAvailable)
                     {
+                        Logger.Info("Checking username");
                         _database.DataLayer.AddNewUser(username, password, () =>
                         {
-                            if (_debug)
-                            {
-                                Logger.Info("New user " + username);
-                            }
+                            if (_debug) Logger.Info("New user: " + username);
                         });
                     }
                     else
@@ -355,11 +328,8 @@ namespace Unlimited_NetworkingServer_MiningGame.Login
 
         private void DellUserCommand(object sender, CommandEventArgs e)
         {
-            if (_database == null)
-            {
-                _database = PluginManager.GetPluginByType<DatabaseProxy>();
-            }
-            
+            if (_database == null) _database = PluginManager.GetPluginByType<DatabaseProxy>();
+
             if (e.Arguments.Length != 2)
             {
                 Logger.Warning("Invalid arguments. Enter [AddUser -username -password].");
@@ -372,10 +342,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Login
             {
                 _database.DataLayer.DeleteUser(username, () =>
                 {
-                    if (_debug)
-                    {
-                        Logger.Info("Removed user: " + username);
-                    }
+                    if (_debug) Logger.Info("Removed user: " + username);
                 });
             }
             catch (Exception ex)
@@ -386,7 +353,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Login
 
         private void OnlineUsersCommand(object sender, CommandEventArgs e)
         {
-            Logger.Info(ClientManager.GetAllClients().Length + " users online in");
+            Logger.Info(ClientManager.GetAllClients().Length + " users online");
         }
 
         private void LoggedInUsersCommand(object sender, CommandEventArgs e)
@@ -424,10 +391,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Login
 
         public bool PlayerLoggedIn(IClient client, ushort tag, string error)
         {
-            if (_usersLoggedIn[client] != null)
-            {
-                return true;
-            }
+            if (_usersLoggedIn[client] != null) return true;
 
             using (var writer = DarkRiftWriter.Create())
             {
@@ -438,7 +402,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Login
                     client.SendMessage(msg, SendMode.Reliable);
                 }
             }
-            
+
             Logger.Warning(error + " Player wasn't logged in.");
             return false;
         }
@@ -454,10 +418,10 @@ namespace Unlimited_NetworkingServer_MiningGame.Login
                     client.SendMessage(msg, SendMode.Reliable);
                 }
             }
-            
+
             Logger.Warning(error + " Invalid data received: " + e.Message + "-" + e.StackTrace);
         }
-        
+
         #endregion
     }
 }

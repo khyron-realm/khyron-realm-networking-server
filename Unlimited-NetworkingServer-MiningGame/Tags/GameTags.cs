@@ -9,5 +9,9 @@ namespace Unlimited_NetworkingServer_MiningGame.Tags
         public const ushort PlayerInformationTag = 2 + Shift;
 
         public const ushort RequestFailed = 3 + Shift;
+        
+        public const ushort PlayerDataTag = 4 + Shift;
+
+        
     }
 }
