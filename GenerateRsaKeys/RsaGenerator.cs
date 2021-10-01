@@ -5,7 +5,7 @@ using System.Security.Cryptography;
 
 namespace GenerateRsaKeys
 {
-    internal class Program
+    internal class RsaGenerator
     {
         private const string PrivateKeyPath = @"PrivateKey.xml";
         private const string PublicKeyPath = @"PublicKey.xml";
@@ -17,7 +17,10 @@ namespace GenerateRsaKeys
             Console.ReadLine();
         }
 
-        public static void GenerateKeys()
+        /// <summary>
+        /// Generate public and private RSA keys and writes them in selected files
+        /// </summary>
+        private static void GenerateKeys()
         {
             if (File.Exists(PrivateKeyPath))
             {
