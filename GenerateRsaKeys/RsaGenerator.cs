@@ -1,6 +1,5 @@
 ﻿using System;
 using System.IO;
-using System.Security.AccessControl;
 using System.Security.Cryptography;
 
 namespace GenerateRsaKeys
@@ -9,7 +8,7 @@ namespace GenerateRsaKeys
     {
         private const string PrivateKeyPath = @"PrivateKey.xml";
         private const string PublicKeyPath = @"PublicKey.xml";
-        
+
         public static void Main(string[] args)
         {
             GenerateKeys();
@@ -18,7 +17,7 @@ namespace GenerateRsaKeys
         }
 
         /// <summary>
-        /// Generate public and private RSA keys and writes them in selected files
+        ///     Generate public and private RSA keys and writes them in selected files
         /// </summary>
         private static void GenerateKeys()
         {
@@ -33,16 +32,16 @@ namespace GenerateRsaKeys
                 File.Delete(PublicKeyPath);
                 Console.WriteLine("Deleting the old public key file");
             }
-            
+
             Console.WriteLine("Generating keys ...");
 
             using (var rsa = new RSACryptoServiceProvider(4096))
             {
                 rsa.PersistKeyInCsp = false;
-                
+
                 var publicKey = rsa.ToXmlString(false);
                 var privateKey = rsa.ToXmlString(true);
-                
+
                 File.WriteAllText(PublicKeyPath, publicKey);
                 File.WriteAllText(PrivateKeyPath, privateKey);
             }

@@ -1,10 +1,7 @@
 using System;
 using System.IO;
-using System.Net;
 using System.Xml.Linq;
-using DarkRift;
 using DarkRift.Server;
-using MongoDB.Bson;
 using MongoDB.Driver;
 using Unlimited_NetworkingServer_MiningGame.Database;
 
@@ -12,15 +9,6 @@ namespace Unlimited_NetworkingServer_MiningGame.MongoDbConnector
 {
     public class MongoDbConnector : Plugin
     {
-        public override Version Version => new Version(1, 0, 0);
-        public override bool ThreadSafe => true;
-        public override Command[] Commands => new Command[]
-        {
-            new Command("LoadMongo", "Loads MongoDB Database", "", LoadDbCommand)
-        };
-
-        public IMongoCollection<User> Users { get; private set; }
-
         private const string ConfigPath = @"Plugins/MongoDbConnector.xml";
         private static readonly object InitializeLock = new object();
         private readonly IDataLayer _dataLayer;
@@ -46,7 +34,22 @@ namespace Unlimited_NetworkingServer_MiningGame.MongoDbConnector
 
             ClientManager.ClientConnected += OnPlayerConnected;
         }
-        
+
+        public override Version Version => new Version(1, 0, 0);
+        public override bool ThreadSafe => true;
+
+        public override Command[] Commands => new[]
+        {
+            new Command("LoadMongo", "Loads MongoDB Database", "", LoadDbCommand)
+        };
+
+        public IMongoCollection<User> Users { get; private set; }
+
+        /// <summary>
+        ///     Create or load the config document for setting the database connection
+        /// </summary>
+        /// <param name="connectionString">The connection string for accessing the database</param>
+        /// <param name="database">The database name</param>
         private void LoadConfig(out string connectionString, out string database)
         {
             XDocument document;
@@ -93,10 +96,14 @@ namespace Unlimited_NetworkingServer_MiningGame.MongoDbConnector
             }
         }
 
+        /// <summary>
+        ///     Handler for player connection that initializes the database connection
+        /// </summary>
+        /// <param name="sender">The sender object</param>
+        /// <param name="e">The client object</param>
         private void OnPlayerConnected(object sender, ClientConnectedEventArgs e)
         {
             if (_database == null)
-            {
                 lock (InitializeLock)
                 {
                     if (_database == null)
@@ -105,70 +112,31 @@ namespace Unlimited_NetworkingServer_MiningGame.MongoDbConnector
                         _database.SetDatabase(_dataLayer);
                     }
                 }
-            }
         }
 
+        /// <summary>
+        ///     Initializes the database collections
+        /// </summary>
         private void GetCollections()
         {
             Users = _mongoDatabase.GetCollection<User>("Users");
         }
-        
-        ///
-        private void GetUser()
-        {
-            string username = "ghita";
-            var result = Users.Find(u => u.Username == username).FirstOrDefault();
-            Logger.Info(result.Username);
-            Logger.Info(result.Password);
-        }
 
-        private void LoginUser()
-        {
-            string username = "ghita";
-            string password = "12345";
-            
-            _database.DataLayer.GetUser(username, user =>
-            {
-                if (user != null && password == user.Password)
-                {
-                    Logger.Info("Successful login");
-                }
-                else
-                {
-                    Logger.Info("User couldn't log in!");
-                }
-            });
-        }
-
-        private void AddUser()
-        {
-            string username = "dorelus";
-            string password = "12345";
-            
-            _database = PluginManager.GetPluginByType<DatabaseProxy>();
-            
-            _database.DataLayer.AddNewUser(username, password, () =>
-            {
-                Logger.Info("New user + " + username);
-            });
-        }
-        ///
-        
         #region Commands
 
+        /// <summary>
+        ///     Command for loading the MongoDB database
+        /// </summary>
+        /// <param name="sender">The sender object</param>
+        /// <param name="e">The client object</param>
         public void LoadDbCommand(object sender, CommandEventArgs e)
         {
             if (_database == null)
-            {
                 lock (InitializeLock)
                 {
-                    if (_database == null)
-                    {
-                        _database = PluginManager.GetPluginByType<DatabaseProxy>();
-                    }
+                    if (_database == null) _database = PluginManager.GetPluginByType<DatabaseProxy>();
                 }
-            }
-            
+
             _database.SetDatabase(_dataLayer);
         }
 

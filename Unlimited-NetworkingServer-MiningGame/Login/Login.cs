@@ -37,7 +37,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Login
         public override Command[] Commands => new[]
         {
             new Command("AllowAddUser", "Allow users to be added to the Database", "AllowAddUser [on/off]",
-                AllowAddUser),
+                AllowAddUserCommand),
             new Command("AddUser", "Adds a User to the Database", "AddUser -username -password", AddUserCommand),
             new Command("DellUser", "Deletes a User from the Database", "DellUser -username", DellUserCommand),
             new Command("OnlineUsers", "Logs the number of online users", "OnlineUsers", OnlineUsersCommand),
@@ -45,6 +45,9 @@ namespace Unlimited_NetworkingServer_MiningGame.Login
             new Command("LPDebug", "Enables the debug logs for the Login Plugin", "LPDebug [on/off]", LpDebugCommand)
         };
 
+        /// <summary>
+        ///     Loads the RSA private key string
+        /// </summary>
         private void LoadRsaKey()
         {
             try
@@ -57,6 +60,11 @@ namespace Unlimited_NetworkingServer_MiningGame.Login
             }
         }
 
+        /// <summary>
+        ///     Player connected handler that initializes the database and updates the logged in users
+        /// </summary>
+        /// <param name="sender">The sender object</param>
+        /// <param name="e">The client object</param>
         private void OnPlayerConnected(object sender, ClientConnectedEventArgs e)
         {
             if (_database == null)
@@ -70,6 +78,11 @@ namespace Unlimited_NetworkingServer_MiningGame.Login
             e.Client.MessageReceived += OnMessageReceived;
         }
 
+        /// <summary>
+        ///     Player disconnected handler that updates the users online and logged in
+        /// </summary>
+        /// <param name="sender">The sender object</param>
+        /// <param name="e">The client object</param>
         private void OnPlayerDisconnected(object sender, ClientDisconnectedEventArgs e)
         {
             if (_usersLoggedIn.ContainsKey(e.Client))
@@ -80,6 +93,11 @@ namespace Unlimited_NetworkingServer_MiningGame.Login
             }
         }
 
+        /// <summary>
+        ///     Message received handler that receives each message and executes the necessary actions
+        /// </summary>
+        /// <param name="sender">The sender object</param>
+        /// <param name="e">The client object</param>
         private void OnMessageReceived(object sender, MessageReceivedEventArgs e)
         {
             using (var message = e.GetMessage())
@@ -262,7 +280,12 @@ namespace Unlimited_NetworkingServer_MiningGame.Login
 
         #region Commands
 
-        private void AllowAddUser(object sender, CommandEventArgs e)
+        /// <summary>
+        ///     Command for allowing new users to be added in the database
+        /// </summary>
+        /// <param name="sender">The sender object</param>
+        /// <param name="e">The client object</param>
+        private void AllowAddUserCommand(object sender, CommandEventArgs e)
         {
             switch (e.Arguments[0])
             {
@@ -286,6 +309,11 @@ namespace Unlimited_NetworkingServer_MiningGame.Login
             }
         }
 
+        /// <summary>
+        ///     Command for adding a new user in the database
+        /// </summary>
+        /// <param name="sender">The sender object</param>
+        /// <param name="e">The client object</param>
         private void AddUserCommand(object sender, CommandEventArgs e)
         {
             Logger.Info("Loading db");
@@ -326,6 +354,11 @@ namespace Unlimited_NetworkingServer_MiningGame.Login
             }
         }
 
+        /// <summary>
+        ///     Command for deleting a user from the database
+        /// </summary>
+        /// <param name="sender">The sender object</param>
+        /// <param name="e">The client object</param>
         private void DellUserCommand(object sender, CommandEventArgs e)
         {
             if (_database == null) _database = PluginManager.GetPluginByType<DatabaseProxy>();
@@ -351,16 +384,31 @@ namespace Unlimited_NetworkingServer_MiningGame.Login
             }
         }
 
+        /// <summary>
+        ///     Command for showing the online users
+        /// </summary>
+        /// <param name="sender">The sender object</param>
+        /// <param name="e">The client object</param>
         private void OnlineUsersCommand(object sender, CommandEventArgs e)
         {
             Logger.Info(ClientManager.GetAllClients().Length + " users online");
         }
 
+        /// <summary>
+        ///     Command for showing the users logged in
+        /// </summary>
+        /// <param name="sender">The sender object</param>
+        /// <param name="e">The client object</param>
         private void LoggedInUsersCommand(object sender, CommandEventArgs e)
         {
             Logger.Info(_clients.Count + " users logged in");
         }
 
+        /// <summary>
+        ///     Command for setting the debug mode on/off
+        /// </summary>
+        /// <param name="sender">The sender object</param>
+        /// <param name="e">The client object</param>
         private void LpDebugCommand(object sender, CommandEventArgs e)
         {
             switch (e.Arguments[0])
@@ -389,6 +437,13 @@ namespace Unlimited_NetworkingServer_MiningGame.Login
 
         #region ErrorHandling
 
+        /// <summary>
+        ///     Send not logged in error to the user
+        /// </summary>
+        /// <param name="client">The client where the error occured</param>
+        /// <param name="tag">The error tag</param>
+        /// <param name="error">The error description</param>
+        /// <returns>A bool with true for user logged in and false for user not logged in</returns>
         public bool PlayerLoggedIn(IClient client, ushort tag, string error)
         {
             if (_usersLoggedIn[client] != null) return true;
@@ -407,6 +462,13 @@ namespace Unlimited_NetworkingServer_MiningGame.Login
             return false;
         }
 
+        /// <summary>
+        ///     Sends an invalid data received to user
+        /// </summary>
+        /// <param name="client">The client where the error occured</param>
+        /// <param name="tag">The error tag</param>
+        /// <param name="e">The exception that occured</param>
+        /// <param name="error">The error description</param>
         public void InvalidData(IClient client, ushort tag, Exception e, string error)
         {
             using (var writer = DarkRiftWriter.Create())

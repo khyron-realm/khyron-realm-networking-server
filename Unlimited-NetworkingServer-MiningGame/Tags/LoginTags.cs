@@ -3,7 +3,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Tags
     public static class LoginTags
     {
         private const ushort Shift = Tags.Login * Tags.TagsPerPlugin;
-        
+
         public const ushort LoginUser = 0 + Shift;
         public const ushort LogoutUser = 1 + Shift;
         public const ushort AddUser = 2 + Shift;
