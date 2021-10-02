@@ -4,6 +4,9 @@ using DarkRift.Server;
 
 namespace Unlimited_NetworkingServer_MiningGame.Database
 {
+    /// <summary>
+    ///     Database proxy for setting the database
+    /// </summary>
     public class DatabaseProxy : Plugin
     {
         private static readonly object InitializeLock = new object();

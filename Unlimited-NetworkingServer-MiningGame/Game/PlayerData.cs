@@ -2,14 +2,11 @@ using DarkRift;
 
 namespace Unlimited_NetworkingServer_MiningGame.Game
 {
-    public class PlayerData: IDarkRiftSerializable
+    /// <summary>
+    ///     Stores the player data
+    /// </summary>
+    public class PlayerData : IDarkRiftSerializable
     {
-        public string Id { get; set; }
-        public string Name { get; set; }
-        public ushort Level { get; set; }
-        public ushort Experience { get; set; }
-        public ushort Energy { get; set; }
-        
         public PlayerData(string id, string name, ushort level, ushort experience, ushort energy)
         {
             Id = id;
@@ -19,6 +16,16 @@ namespace Unlimited_NetworkingServer_MiningGame.Game
             Energy = energy;
         }
 
+        public string Id { get; set; }
+        public string Name { get; set; }
+        public ushort Level { get; set; }
+        public ushort Experience { get; set; }
+        public ushort Energy { get; set; }
+
+        /// <summary>
+        ///     Deserialization method for player data
+        /// </summary>
+        /// <param name="e">Deserialize event</param>
         public void Deserialize(DeserializeEvent e)
         {
             Id = e.Reader.ReadString();
@@ -28,6 +35,10 @@ namespace Unlimited_NetworkingServer_MiningGame.Game
             Energy = e.Reader.ReadUInt16();
         }
 
+        /// <summary>
+        ///     Serialization method for player data
+        /// </summary>
+        /// <param name="e">Serialize event</param>
         public void Serialize(SerializeEvent e)
         {
             e.Writer.Write(Id);

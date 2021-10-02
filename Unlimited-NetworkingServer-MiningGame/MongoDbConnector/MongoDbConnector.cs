@@ -7,6 +7,9 @@ using Unlimited_NetworkingServer_MiningGame.Database;
 
 namespace Unlimited_NetworkingServer_MiningGame.MongoDbConnector
 {
+    /// <summary>
+    ///     MongoDB connection that sets up the MongoDB connection
+    /// </summary>
     public class MongoDbConnector : Plugin
     {
         private const string ConfigPath = @"Plugins/MongoDbConnector.xml";

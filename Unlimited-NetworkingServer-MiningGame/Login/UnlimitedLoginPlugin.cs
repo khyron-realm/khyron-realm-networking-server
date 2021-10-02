@@ -8,7 +8,10 @@ using Unlimited_NetworkingServer_MiningGame.Tags;
 
 namespace Unlimited_NetworkingServer_MiningGame.Login
 {
-    public class Login : Plugin
+    /// <summary>
+    ///     Login Manager for handling authentication
+    /// </summary>
+    public class UnlimitedLoginPlugin : Plugin
     {
         private const string PrivateKeyPath = @"Plugins/PrivateKey.xml";
         private static readonly object InitializeLock = new object();
@@ -23,7 +26,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Login
         private bool _debug = true;
         private string _privateKey;
 
-        public Login(PluginLoadData pluginLoadData) : base(pluginLoadData)
+        public UnlimitedLoginPlugin(PluginLoadData pluginLoadData) : base(pluginLoadData)
         {
             LoadRsaKey();
 

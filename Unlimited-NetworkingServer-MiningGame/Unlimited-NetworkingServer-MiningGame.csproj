@@ -127,7 +127,7 @@
         <Compile Include="Game\PlayerData.cs" />
         <Compile Include="Game\UnlimitedPlayerPlugin.cs" />
         <Compile Include="Login\Encryption.cs" />
-        <Compile Include="Login\Login.cs" />
+        <Compile Include="Login\UnlimitedLoginPlugin.cs" />
         <Compile Include="MongoDbConnector\DataLayer.cs" />
         <Compile Include="MongoDbConnector\MongoDbConnector.cs" />
         <Compile Include="MongoDbConnector\User.cs" />

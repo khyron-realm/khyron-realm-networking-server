@@ -2,15 +2,19 @@
 using System.Collections.Generic;
 using DarkRift;
 using DarkRift.Server;
+using Unlimited_NetworkingServer_MiningGame.Login;
 using Unlimited_NetworkingServer_MiningGame.Tags;
 
 namespace Unlimited_NetworkingServer_MiningGame.Game
 {
+    /// <summary>
+    ///     Player manager that handles the game messages
+    /// </summary>
     public class UnlimitedPlayerPlugin : Plugin
     {
         private static readonly object InitializeLock = new object();
 
-        private Login.Login _loginPlugin;
+        private UnlimitedLoginPlugin _unlimitedLoginPluginPlugin;
 
         public Dictionary<IClient, PlayerData> onlinePlayers = new Dictionary<IClient, PlayerData>();
 
@@ -30,10 +34,11 @@ namespace Unlimited_NetworkingServer_MiningGame.Game
         /// <param name="e">The client object</param>
         private void ClientConnected(object sender, ClientConnectedEventArgs e)
         {
-            if (_loginPlugin == null)
+            if (_unlimitedLoginPluginPlugin == null)
                 lock (InitializeLock)
                 {
-                    if (_loginPlugin == null) _loginPlugin = PluginManager.GetPluginByType<Login.Login>();
+                    if (_unlimitedLoginPluginPlugin == null)
+                        _unlimitedLoginPluginPlugin = PluginManager.GetPluginByType<UnlimitedLoginPlugin>();
                 }
 
             using (var msg = Message.CreateEmpty(GameTags.PlayerConnectTag))
@@ -68,7 +73,8 @@ namespace Unlimited_NetworkingServer_MiningGame.Game
                     return;
 
                 // If player isn't logged in, return error 1
-                if (!_loginPlugin.PlayerLoggedIn(e.Client, GameTags.RequestFailed, "Player not logged in."))
+                if (!_unlimitedLoginPluginPlugin.PlayerLoggedIn(e.Client, GameTags.RequestFailed,
+                    "Player not logged in."))
                     return;
 
                 switch (message.Tag)

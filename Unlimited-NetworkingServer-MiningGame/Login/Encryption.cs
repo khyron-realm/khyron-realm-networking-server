@@ -5,6 +5,9 @@ using System.Xml;
 
 namespace Unlimited_NetworkingServer_MiningGame.Login
 {
+    /// <summary>
+    ///     RSA class for decrypting objects
+    /// </summary>
     internal static class Encryption
     {
         /// <summary>
@@ -12,7 +15,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Login
         /// </summary>
         /// <param name="input">Input byte stream</param>
         /// <param name="key">Private decryption key</param>
-        /// <returns></returns>
+        /// <returns>The decrypted string</returns>
         public static string Decrypt(byte[] input, string key)
         {
             byte[] decrypted;

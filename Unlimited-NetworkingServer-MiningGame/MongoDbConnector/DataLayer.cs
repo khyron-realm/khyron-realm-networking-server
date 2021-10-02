@@ -4,6 +4,9 @@ using Unlimited_NetworkingServer_MiningGame.Database;
 
 namespace Unlimited_NetworkingServer_MiningGame.MongoDbConnector
 {
+    /// <summary>
+    ///     Data layer class that contains implementations for database operations
+    /// </summary>
     internal class DataLayer : IDataLayer
     {
         private readonly MongoDbConnector _database;

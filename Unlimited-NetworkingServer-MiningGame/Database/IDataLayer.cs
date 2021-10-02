@@ -2,6 +2,9 @@ using System;
 
 namespace Unlimited_NetworkingServer_MiningGame.Database
 {
+    /// <summary>
+    ///     Data layer interface that contains declarations for database operations
+    /// </summary>
     public interface IDataLayer
     {
         string Name { get; }
