@@ -16,10 +16,9 @@ namespace Unlimited_NetworkingServer_MiningGame.Login
         private const string PrivateKeyPath = @"Plugins/PrivateKey.xml";
         private static readonly object InitializeLock = new object();
 
-        private readonly ConcurrentDictionary<string, IClient> _clients = new ConcurrentDictionary<string, IClient>();
+        private ConcurrentDictionary<string, IClient> _clients = new ConcurrentDictionary<string, IClient>();
 
-        private readonly ConcurrentDictionary<IClient, string> _usersLoggedIn =
-            new ConcurrentDictionary<IClient, string>();
+        private ConcurrentDictionary<IClient, string> _usersLoggedIn = new ConcurrentDictionary<IClient, string>();
 
         private bool _allowAddUser = true;
         private DatabaseProxy _database;
@@ -472,7 +471,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Login
         /// <param name="tag">The error tag</param>
         /// <param name="e">The exception that occured</param>
         /// <param name="error">The error description</param>
-        public void InvalidData(IClient client, ushort tag, Exception e, string error)
+        private void InvalidData(IClient client, ushort tag, Exception e, string error)
         {
             using (var writer = DarkRiftWriter.Create())
             {
