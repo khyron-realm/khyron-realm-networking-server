@@ -4,11 +4,24 @@ namespace Unlimited_NetworkingServer_MiningGame.Game
 {
     public class Robot : IDarkRiftSerializable
     {
-        public ushort Id { get; set; }
+        public byte Id { get; set; }
         public string Name { get; set; }
-        public ushort Energy { get; set; }
-        public ushort Propulsion { get; set; }
-        public ushort Drill { get; set; }
+        public byte Propulsion { get; set; }
+        public byte Drill { get; set; }
+        public byte Health { get; set; }
+        public byte Count { get; set; }
+
+        public Robot() { }
+        
+        public Robot(byte id, string name, byte propulsion, byte drill, byte health, byte count)
+        {
+            Id = id;
+            Name = name;
+            Propulsion = propulsion;
+            Drill = drill;
+            Health = health;
+            Count = count;
+        }   
 
         /// <summary>
         ///     Deserialization method for robot data
@@ -16,11 +29,12 @@ namespace Unlimited_NetworkingServer_MiningGame.Game
         /// <param name="e">Deserialize event</param>
         public void Deserialize(DeserializeEvent e)
         {
-            Id = e.Reader.ReadUInt16();
+            Id = e.Reader.ReadByte();
             Name = e.Reader.ReadString();
-            Energy = e.Reader.ReadUInt16();
-            Propulsion = e.Reader.ReadUInt16();
-            Drill = e.Reader.ReadUInt16();
+            Propulsion = e.Reader.ReadByte();
+            Drill = e.Reader.ReadByte();
+            Health = e.Reader.ReadByte();
+            Count = e.Reader.ReadByte();
         }
 
         /// <summary>
@@ -31,9 +45,10 @@ namespace Unlimited_NetworkingServer_MiningGame.Game
         {
             e.Writer.Write(Id);
             e.Writer.Write(Name);
-            e.Writer.Write(Energy);
             e.Writer.Write(Propulsion);
             e.Writer.Write(Drill);
+            e.Writer.Write(Health);
+            e.Writer.Write(Count);
         }
     }
 }

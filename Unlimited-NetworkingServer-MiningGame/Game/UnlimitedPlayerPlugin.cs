@@ -1,4 +1,5 @@
 ﻿using System;
+using System.ComponentModel;
 using DarkRift;
 using DarkRift.Server;
 using Unlimited_NetworkingServer_MiningGame.Login;
@@ -66,19 +67,78 @@ namespace Unlimited_NetworkingServer_MiningGame.Game
                 if (message.Tag >= Tags.Tags.TagsPerPlugin * (Tags.Tags.Game + 1))
                     return;
                 
+                var client = e.Client;
+                
                 /* TO BE ACTIVATED to check the authentication
                  
                 // If player isn't logged in, return error 1
-                if (!_loginPlugin.PlayerLoggedIn(e.Client, GameTags.RequestFailed,
-                    "Player not logged in."))
-                    return;
+                if (!_loginPlugin.PlayerLoggedIn(client, GameTags.RequestFailed, "Player not logged in.")) return;
                 */
                     
                 switch (message.Tag)
                 {
                     case GameTags.PlayerData:
                     {
-                        SendPlayerData(e);
+                        SendPlayerData(client);
+                        break;
+                    }
+
+                    case GameTags.ConversionStatus:
+                    {
+                        bool conversionStatus = true;
+                        DateTime remainingTime = DateTime.Now;
+                        
+                        // Check if there are any conversion in progress
+                        if (conversionStatus == true)
+                        {
+                            using (var newPlayerWriter = DarkRiftWriter.Create())
+                            {
+                                newPlayerWriter.Write(remainingTime.ToBinary());
+
+                                using (var newPlayerMessage = Message.Create(GameTags.PlayerData, newPlayerWriter))
+                                {
+                                    client.SendMessage(newPlayerMessage, SendMode.Reliable);
+                                }
+                            }
+                        }
+                        else
+                        {
+                            // Send conversion not available
+                            using (var msg = Message.CreateEmpty(GameTags.ConversionNotAvailable))
+                            {
+                                client.SendMessage(msg, SendMode.Reliable);
+                            }
+                        }
+
+
+                        break;
+                    }
+
+                    case GameTags.ConvertResources:
+                    {
+                        bool conversionResult = true;
+                        Logger.Info("Converting resources");
+                        
+                        // Check if resources are available
+                        if (conversionResult == true)
+                        {
+                            // Yes: Add resources to conversion
+                            
+                            // Send conversion accepted
+                            using (var msg = Message.CreateEmpty(GameTags.ConversionAccepted))
+                            {
+                                client.SendMessage(msg, SendMode.Reliable);
+                            }
+                        }
+                        else
+                        {
+                            // Send conversion rejected
+                            using (var msg = Message.CreateEmpty(GameTags.ConversionRejected))
+                            {
+                                client.SendMessage(msg, SendMode.Reliable);
+                            }
+                        }
+
                         break;
                     }
                 }
@@ -88,20 +148,24 @@ namespace Unlimited_NetworkingServer_MiningGame.Game
         /// <summary>
         ///     Sends player data to the client
         /// </summary>
-        /// <param name="e">The client connected event</param>
-        private void SendPlayerData(MessageReceivedEventArgs e)
+        /// <param name="client">The connected client</param>
+        private void SendPlayerData(IClient client)
         {
             // Retrieve data from database
             string id = "abc";
-            ushort level = 10;
+            byte level = 10;
             ushort experience = 2;
-            ushort energy = 7;
+            uint energy = 7;
 
             var silicon = new Resource(0, "silicon", 10, 100);
-            var lithium = new Resource(0, "lithium", 5, 50);
-            var titanium = new Resource(0, "titanium", 20, 300);
+            var lithium = new Resource(1, "lithium", 5, 50);
+            var titanium = new Resource(2, "titanium", 20, 300);
 
-            var newPlayerData = new PlayerData(id, level, experience, energy, silicon, lithium, titanium);
+            var worker = new Robot(0, "worker", 1, 1, 1, 1);
+            var probe = new Robot(1, "probe", 2, 2, 2, 2);
+            var crusher = new Robot(2, "crusher", 3, 3, 3, 3);
+
+            var newPlayerData = new PlayerData(id, level, experience, energy, silicon, lithium, titanium, worker, probe, crusher);
 
             // Send data to the client
             using (var newPlayerWriter = DarkRiftWriter.Create())
@@ -110,7 +174,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Game
 
                 using (var newPlayerMessage = Message.Create(GameTags.PlayerData, newPlayerWriter))
                 {
-                    e.Client.SendMessage(newPlayerMessage, SendMode.Reliable);
+                    client.SendMessage(newPlayerMessage, SendMode.Reliable);
                 }
             }
         }
