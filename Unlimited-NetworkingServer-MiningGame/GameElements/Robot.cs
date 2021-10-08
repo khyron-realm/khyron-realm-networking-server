@@ -1,7 +1,10 @@
 using DarkRift;
 
-namespace Unlimited_NetworkingServer_MiningGame.Game
+namespace Unlimited_NetworkingServer_MiningGame.GameElements
 {
+    /// <summary>
+    ///     Stores the resource data
+    /// </summary>
     public class Robot : IDarkRiftSerializable
     {
         public byte Id { get; set; }
@@ -21,7 +24,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Game
             Drill = drill;
             Health = health;
             Count = count;
-        }   
+        }
 
         /// <summary>
         ///     Deserialization method for robot data

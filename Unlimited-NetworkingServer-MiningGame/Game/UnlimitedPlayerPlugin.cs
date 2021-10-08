@@ -1,7 +1,8 @@
 ﻿using System;
-using System.ComponentModel;
+using System.Linq;
 using DarkRift;
 using DarkRift.Server;
+using Unlimited_NetworkingServer_MiningGame.GameElements;
 using Unlimited_NetworkingServer_MiningGame.Login;
 using Unlimited_NetworkingServer_MiningGame.Tags;
 
@@ -83,68 +84,29 @@ namespace Unlimited_NetworkingServer_MiningGame.Game
                         break;
                     }
 
-                    case GameTags.ConversionStatus:
+                    case GameTags.ConvertResources:
                     {
-                        bool conversionStatus = true;
-                        DateTime remainingTime = DateTime.Now;
-                        
-                        // Check if there are any conversion in progress
-                        if (conversionStatus == true)
-                        {
-                            using (var newPlayerWriter = DarkRiftWriter.Create())
-                            {
-                                newPlayerWriter.Write(remainingTime.ToBinary());
-
-                                using (var newPlayerMessage = Message.Create(GameTags.PlayerData, newPlayerWriter))
-                                {
-                                    client.SendMessage(newPlayerMessage, SendMode.Reliable);
-                                }
-                            }
-                        }
-                        else
-                        {
-                            // Send conversion not available
-                            using (var msg = Message.CreateEmpty(GameTags.ConversionNotAvailable))
-                            {
-                                client.SendMessage(msg, SendMode.Reliable);
-                            }
-                        }
-
-
+                        ConvertResources(client);
                         break;
                     }
 
-                    case GameTags.ConvertResources:
+                    case GameTags.UpgradeRobot:
                     {
-                        bool conversionResult = true;
-                        Logger.Info("Converting resources");
-                        
-                        // Check if resources are available
-                        if (conversionResult == true)
-                        {
-                            // Yes: Add resources to conversion
-                            
-                            // Send conversion accepted
-                            using (var msg = Message.CreateEmpty(GameTags.ConversionAccepted))
-                            {
-                                client.SendMessage(msg, SendMode.Reliable);
-                            }
-                        }
-                        else
-                        {
-                            // Send conversion rejected
-                            using (var msg = Message.CreateEmpty(GameTags.ConversionRejected))
-                            {
-                                client.SendMessage(msg, SendMode.Reliable);
-                            }
-                        }
+                        UpgradeRobot(client);
+                        break;
+                    }
 
+                    case GameTags.BuildRobot:
+                    {
+                        BuildRobot(client);
                         break;
                     }
                 }
             }
         }
 
+        #region ReceivedCalls
+        
         /// <summary>
         ///     Sends player data to the client
         /// </summary>
@@ -152,20 +114,49 @@ namespace Unlimited_NetworkingServer_MiningGame.Game
         private void SendPlayerData(IClient client)
         {
             // Retrieve data from database
+            
+            // Create player data
             string id = "abc";
             byte level = 10;
             ushort experience = 2;
             uint energy = 7;
 
-            var silicon = new Resource(0, "silicon", 10, 100);
-            var lithium = new Resource(1, "lithium", 5, 50);
-            var titanium = new Resource(2, "titanium", 20, 300);
+            byte nrRobots = 3;
+            byte nrResources = 3;
+            byte nrBuildTasks = 3;
 
-            var worker = new Robot(0, "worker", 1, 1, 1, 1);
-            var probe = new Robot(1, "probe", 2, 2, 2, 2);
-            var crusher = new Robot(2, "crusher", 3, 3, 3, 3);
+            // Create resources
+            Resource[] resources = new Resource[nrResources];
+            foreach (int iterator in Enumerable.Range(0, nrResources))
+            {
+                resources[iterator] = new Resource(0, "silicon", 10, 100);
+            }
 
-            var newPlayerData = new PlayerData(id, level, experience, energy, silicon, lithium, titanium, worker, probe, crusher);
+            // Create robots
+            Robot[] robots = new Robot[nrRobots];
+            foreach (int iterator in Enumerable.Range(0, nrRobots))
+            {
+                robots[iterator] = new Robot(0, "worker", 1, 1, 1, 1);
+            }
+            
+            // Create resource conversion task
+            var time = DateTime.Now.ToBinary();
+            BuildTask resourceConversion = new BuildTask(0, 0, 0, time);
+            
+            // Create robot upgrading tasks
+            time = DateTime.Now.ToBinary();
+            BuildTask robotUpgrading = new BuildTask(0, 0, 0, time);
+            
+            // Create robot building tasks
+            time = DateTime.Now.ToBinary();
+            BuildTask[] robotBuilding = new BuildTask[nrBuildTasks];
+            foreach (int iterator in Enumerable.Range(0, nrResources))
+            {
+                robotBuilding[iterator] = new BuildTask(0, 0, 0, time);
+            }
+
+            // Create player object
+            var newPlayerData = new PlayerData(id, level, experience, energy, resources, robots, resourceConversion, robotUpgrading, robotBuilding);
 
             // Send data to the client
             using (var newPlayerWriter = DarkRiftWriter.Create())
@@ -178,5 +169,58 @@ namespace Unlimited_NetworkingServer_MiningGame.Game
                 }
             }
         }
+        
+        /// <summary>
+        /// Convert the resources into energy
+        /// </summary>
+        /// <param name="client"></param>
+        private void ConvertResources(IClient client)
+        {
+            bool conversionResult = true;
+            Logger.Info("Converting resources");
+                        
+            // Check if resources are available
+            if (conversionResult == true)
+            {
+                // Yes: Add resources to conversion
+                            
+                // Send conversion accepted
+                using (var writer = DarkRiftWriter.Create())
+                {
+                    writer.Write(DateTime.Now.ToBinary());
+
+                    using (var msg = Message.Create(GameTags.ConversionAccepted, writer))
+                    {
+                        client.SendMessage(msg, SendMode.Reliable);
+                    }
+                }
+            }
+            else
+            {
+                // No: Send conversion rejected
+                using (var msg = Message.CreateEmpty(GameTags.ConversionRejected))
+                {
+                    client.SendMessage(msg, SendMode.Reliable);
+                }
+            }
+        }
+        
+        /// <summary>
+        /// Upgrade the robot part
+        /// </summary>
+        /// <param name="client"></param>
+        private void UpgradeRobot(IClient client)
+        {
+        }
+
+        /// <summary>
+        /// Build a new robot
+        /// </summary>
+        /// <param name="client"></param>
+        private void BuildRobot(IClient client)
+        {
+        }
+
+        #endregion
     }
 }

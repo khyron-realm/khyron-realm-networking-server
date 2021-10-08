@@ -1,7 +1,10 @@
 using DarkRift;
 
-namespace Unlimited_NetworkingServer_MiningGame.Game
+namespace Unlimited_NetworkingServer_MiningGame.GameElements
 {
+    /// <summary>
+    ///     Stores the resource data
+    /// </summary>
     public class Resource : IDarkRiftSerializable
     {
         public byte Id { get; set; }
