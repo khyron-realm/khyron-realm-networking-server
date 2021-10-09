@@ -1,7 +1,9 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Linq;
 using DarkRift;
 using DarkRift.Server;
+using Unlimited_NetworkingServer_MiningGame.Database;
 using Unlimited_NetworkingServer_MiningGame.GameElements;
 using Unlimited_NetworkingServer_MiningGame.Login;
 using Unlimited_NetworkingServer_MiningGame.Tags;
@@ -16,6 +18,8 @@ namespace Unlimited_NetworkingServer_MiningGame.Game
         private static readonly object InitializeLock = new object();
 
         private UnlimitedLoginPlugin _loginPlugin;
+        private DatabaseProxy _database;
+        private bool _debug = true;
 
         public UnlimitedPlayerPlugin(PluginLoadData pluginLoadData) : base(pluginLoadData)
         {
@@ -26,6 +30,11 @@ namespace Unlimited_NetworkingServer_MiningGame.Game
         public override Version Version => new Version(1, 0, 0);
         public override bool ThreadSafe => true;
 
+        private string GetPlayerUsername(IClient client)
+        {
+            return _loginPlugin.GetPlayerUsername(client);
+        }
+        
         /// <summary>
         ///     Player connected handler that initializes the database and sends connection confirmation to client
         /// </summary>
@@ -38,6 +47,11 @@ namespace Unlimited_NetworkingServer_MiningGame.Game
                 {
                     if (_loginPlugin == null)
                         _loginPlugin = PluginManager.GetPluginByType<UnlimitedLoginPlugin>();
+                }
+            if (_database == null)
+                lock (InitializeLock)
+                {
+                    if (_database == null) _database = PluginManager.GetPluginByType<DatabaseProxy>();
                 }
 
             using (var msg = Message.CreateEmpty(GameTags.PlayerConnected))
@@ -69,13 +83,11 @@ namespace Unlimited_NetworkingServer_MiningGame.Game
                     return;
                 
                 var client = e.Client;
-                
-                /* TO BE ACTIVATED to check the authentication
-                 
+
+                // TO BE ACTIVATED to check the authentication
                 // If player isn't logged in, return error 1
                 if (!_loginPlugin.PlayerLoggedIn(client, GameTags.RequestFailed, "Player not logged in.")) return;
-                */
-                    
+
                 switch (message.Tag)
                 {
                     case GameTags.PlayerData:
@@ -113,61 +125,43 @@ namespace Unlimited_NetworkingServer_MiningGame.Game
         /// <param name="client">The connected client</param>
         private void SendPlayerData(IClient client)
         {
+            Logger.Info("Getting player data");
+            string username = GetPlayerUsername(client);
+
             // Retrieve data from database
-            
-            // Create player data
-            string id = "abc";
-            byte level = 10;
-            ushort experience = 2;
-            uint energy = 7;
-
-            byte nrRobots = 3;
-            byte nrResources = 3;
-            byte nrBuildTasks = 3;
-
-            // Create resources
-            Resource[] resources = new Resource[nrResources];
-            foreach (int iterator in Enumerable.Range(0, nrResources))
+            _database.DataLayer.GetPlayerData(username, playerData =>
             {
-                resources[iterator] = new Resource(0, "silicon", 10, 100);
-            }
-
-            // Create robots
-            Robot[] robots = new Robot[nrRobots];
-            foreach (int iterator in Enumerable.Range(0, nrRobots))
-            {
-                robots[iterator] = new Robot(0, "worker", 1, 1, 1, 1);
-            }
-            
-            // Create resource conversion task
-            var time = DateTime.Now.ToBinary();
-            BuildTask resourceConversion = new BuildTask(0, 0, 0, time);
-            
-            // Create robot upgrading tasks
-            time = DateTime.Now.ToBinary();
-            BuildTask robotUpgrading = new BuildTask(0, 0, 0, time);
-            
-            // Create robot building tasks
-            time = DateTime.Now.ToBinary();
-            BuildTask[] robotBuilding = new BuildTask[nrBuildTasks];
-            foreach (int iterator in Enumerable.Range(0, nrResources))
-            {
-                robotBuilding[iterator] = new BuildTask(0, 0, 0, time);
-            }
-
-            // Create player object
-            var newPlayerData = new PlayerData(id, level, experience, energy, resources, robots, resourceConversion, robotUpgrading, robotBuilding);
-
-            // Send data to the client
-            using (var newPlayerWriter = DarkRiftWriter.Create())
-            {
-                newPlayerWriter.Write(newPlayerData);
-
-                using (var newPlayerMessage = Message.Create(GameTags.PlayerData, newPlayerWriter))
+                if (playerData != null)
                 {
-                    client.SendMessage(newPlayerMessage, SendMode.Reliable);
+                    // Send data to the client
+                    using (var newPlayerWriter = DarkRiftWriter.Create())
+                    {
+                        newPlayerWriter.Write(playerData);
+
+                        using (var newPlayerMessage = Message.Create(GameTags.PlayerData, newPlayerWriter))
+                        {
+                            client.SendMessage(newPlayerMessage, SendMode.Reliable);
+                        }
+                    }
                 }
-            }
+                else
+                {
+                    if (_debug) Logger.Info("Player data is not available for user " + username);
+                    
+                    // TO ADD - send error message to the user
+                }
+            });
+        }
+
+        private void UpdatePlayerLevel(byte level, IClient client)
+        {
+            string username = GetPlayerUsername(client);
+            Logger.Info("Updating username: " + username);
+
+            _database.DataLayer.UpdatePlayerLevel(username, level, () =>
+            {
+                Logger.Info("Updated player level");
+            });
         }
         
         /// <summary>
@@ -176,18 +170,31 @@ namespace Unlimited_NetworkingServer_MiningGame.Game
         /// <param name="client"></param>
         private void ConvertResources(IClient client)
         {
-            bool conversionResult = true;
             Logger.Info("Converting resources");
-                        
+            
+            string username = GetPlayerUsername(client);
+            uint energy = 10;
+            uint energyThreshold = 1;
+            _database.DataLayer.GetPlayerEnergy(username, playerEnergy =>
+            {
+                energy = playerEnergy;
+            });
+
+            var time = DateTime.Now.AddHours(1).ToBinary();
+
             // Check if resources are available
-            if (conversionResult == true)
+            if (energy >= energyThreshold)
             {
                 // Yes: Add resources to conversion
+                _database.DataLayer.AddResourceConversion(username, time, () =>
+                {
+                    Logger.Info("Converting resources to energy");
+                });
                             
                 // Send conversion accepted
                 using (var writer = DarkRiftWriter.Create())
                 {
-                    writer.Write(DateTime.Now.ToBinary());
+                    writer.Write(time);
 
                     using (var msg = Message.Create(GameTags.ConversionAccepted, writer))
                     {

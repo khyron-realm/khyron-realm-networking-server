@@ -1,6 +1,9 @@
 using System;
+using System.Linq;
 using MongoDB.Driver;
 using Unlimited_NetworkingServer_MiningGame.Database;
+using Unlimited_NetworkingServer_MiningGame.Game;
+using Unlimited_NetworkingServer_MiningGame.GameElements;
 
 namespace Unlimited_NetworkingServer_MiningGame.MongoDbConnector
 {
@@ -51,6 +54,92 @@ namespace Unlimited_NetworkingServer_MiningGame.MongoDbConnector
         #endregion
 
         #region Game
+        
+        
+        /// <inheritdoc />
+        public async void GetPlayerData(string username, Action<PlayerData> callback)
+        {
+            PlayerData playerData = await _database.Players.Find(u => u.Id == username).FirstOrDefaultAsync();
+            callback(playerData);
+        }
+
+        /// <inheritdoc />
+        public async void GetPlayerEnergy(string username, Action<uint> callback)
+        {
+            var energy = await _database.Players.Find(u => u.Id == username).Project(u => u.Energy).FirstOrDefaultAsync();
+            callback(energy);
+        }
+
+        /// <inheritdoc />
+        public async void InitializePlayerData(string username, Action callback)
+        {
+            // Get game elements
+            byte nrRobots = 3;
+            byte nrResources = 3;
+            byte nrBuildTasks = 3;
+            string[] resourceNames = {"Silicon", "Lithium", "Titanium"};
+            string[] robotNames = {"Worker", "Probe", "Crusher"};
+            
+            // Create player data
+            string id = username;
+            byte level = 1;
+            ushort experience = 1;
+            uint energy = 1000;
+
+            // Create resources
+            Resource[] resources = new Resource[nrResources];
+            foreach (int iterator in Enumerable.Range(0, nrResources))
+            {
+                resources[iterator] = new Resource((byte)iterator, resourceNames[iterator], 10, 10);
+            }
+
+            // Create robots
+            Robot[] robots = new Robot[nrRobots];
+            foreach (int iterator in Enumerable.Range(0, nrRobots))
+            {
+                robots[iterator] = new Robot((byte)iterator, robotNames[iterator], 1, 1, 1, 1);
+            }
+            
+            // Create resource conversion task
+            var time = DateTime.Now.ToBinary();
+            BuildTask resourceConversion = new BuildTask();
+            
+            // Create robot upgrading tasks
+            time = DateTime.Now.ToBinary();
+            BuildTask robotUpgrading = new BuildTask();
+
+            // Create robot building tasks
+            time = DateTime.Now.ToBinary();
+            BuildTask[] robotBuilding = new BuildTask[nrBuildTasks];
+            foreach (int iterator in Enumerable.Range(0, nrResources))
+            {
+                robotBuilding[iterator] = new BuildTask(0, 0, 0, time);
+            }
+
+            // Create player object
+            var newPlayerData = new PlayerData(id, level, experience, energy, resources, robots, resourceConversion, robotUpgrading, robotBuilding);
+            
+            await _database.Players.InsertOneAsync(newPlayerData);
+            callback();
+        }
+
+        /// <inheritdoc />
+        public async void UpdatePlayerLevel(string username, byte level, Action callback)
+        {
+            var filter = Builders<PlayerData>.Filter.Eq(u => u.Id, username);
+            var update = Builders<PlayerData>.Update.Set(u => u.Level, level);
+            await _database.Players.UpdateOneAsync(filter, update);
+            callback();
+        }
+
+        public async void AddResourceConversion(string username, long time, Action callback)
+        {
+            var conversion = new BuildTask(1, 2, 3, time);
+            var filter = Builders<PlayerData>.Filter.Eq(u => u.Id, username);
+            var update = Builders<PlayerData>.Update.Set(u => u.ResourceConversion, conversion);
+            await _database.Players.UpdateOneAsync(filter, update);
+            callback();
+        }
 
         #endregion
     }

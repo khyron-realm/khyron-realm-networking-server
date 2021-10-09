@@ -113,172 +113,226 @@ namespace Unlimited_NetworkingServer_MiningGame.Login
                 {
                     case LoginTags.LoginUser:
                     {
-                        // If users is already logged in
-                        if (_usersLoggedIn[client] != null)
-                            using (var msg = Message.CreateEmpty(LoginTags.LoginSuccess))
-                            {
-                                client.SendMessage(msg, SendMode.Reliable);
-                            }
-
-                        var username = "";
-                        var password = "";
-
-                        using (var reader = message.GetReader())
-                        {
-                            try
-                            {
-                                username = reader.ReadString();
-                                password = Encryption.Decrypt(reader.ReadBytes(), _privateKey);
-                            }
-                            catch (Exception exception)
-                            {
-                                // Return error 0 for Invalid Data Packages Received
-                                InvalidData(client, LoginTags.LoginFailed, exception, "Failed to log in!");
-                            }
-                        }
-
-                        if (_clients.ContainsKey(username))
-                        {
-                            // Username is already in use, return Error 3
-                            using (var writer = DarkRiftWriter.Create())
-                            {
-                                writer.Write((byte) 3);
-
-                                using (var msg = Message.Create(LoginTags.LoginFailed, writer))
-                                {
-                                    client.SendMessage(msg, SendMode.Reliable);
-                                }
-                            }
-
-                            return;
-                        }
-
-                        try
-                        {
-                            _database.DataLayer.GetUser(username, user =>
-                            {
-                                if (user != null && BCrypt.Net.BCrypt.Verify(password, user.Password))
-                                {
-                                    _usersLoggedIn[client] = username;
-                                    _clients[username] = client;
-
-                                    using (var msg = Message.CreateEmpty(LoginTags.LoginSuccess))
-                                    {
-                                        client.SendMessage(msg, SendMode.Reliable);
-                                    }
-
-                                    if (_debug) Logger.Info("Successful login: " + client.ID + ").");
-                                }
-                                else
-                                {
-                                    if (_debug) Logger.Info("User " + client.ID + " couldn't log in!");
-
-                                    // Return error 1 for wrong username/password combination
-                                    using (var writer = DarkRiftWriter.Create())
-                                    {
-                                        writer.Write((byte) 1);
-
-                                        using (var msg = Message.Create(LoginTags.LoginFailed, writer))
-                                        {
-                                            client.SendMessage(msg, SendMode.Reliable);
-                                        }
-                                    }
-                                }
-                            });
-                        }
-                        catch (Exception ex)
-                        {
-                            // Return error 2 for database error
-                            _database.DatabaseError(client, LoginTags.LoginFailed, ex);
-                        }
-
+                        LoginUser(client, message);
                         break;
                     }
 
                     case LoginTags.LogoutUser:
                     {
-                        var username = _usersLoggedIn[client];
-                        _usersLoggedIn[client] = null;
+                        LogoutUser(client);
+                        break;
+                    }
 
-                        if (username != null) _clients.TryRemove(username, out _);
+                    case LoginTags.AddUser:
+                    {
+                        AddUser(client, message);
+                        break;
+                    }
+                }
+            }
+        }
 
-                        if (_debug) Logger.Info("User " + client.ID + " logged out!");
+        #region ReceivedCalls
+
+        /// <summary>
+        ///     Checks the database to login the user
+        /// </summary>
+        /// <param name="client">The connected client</param>
+        /// <param name="message">The received message</param>
+        private void LoginUser(IClient client, Message message)
+        {
+            // If users is already logged in
+            if (_usersLoggedIn[client] != null)
+            {
+                using (var msg = Message.CreateEmpty(LoginTags.LoginSuccess))
+                {
+                    client.SendMessage(msg, SendMode.Reliable);
+                }
+
+                return;
+            }
+
+            var username = "";
+            var password = "";
+
+            using (var reader = message.GetReader())
+            {
+                try
+                {
+                    username = reader.ReadString();
+                    password = Encryption.Decrypt(reader.ReadBytes(), _privateKey);
+                }
+                catch (Exception exception)
+                {
+                    // Return error 0 for Invalid Data Packages Received
+                    InvalidData(client, LoginTags.LoginFailed, exception, "Failed to log in!");
+                }
+            }
+
+            if (_clients.ContainsKey(username))
+            {
+                // Username is already in use, return Error 3
+                using (var writer = DarkRiftWriter.Create())
+                {
+                    writer.Write((byte) 3);
+
+                    using (var msg = Message.Create(LoginTags.LoginFailed, writer))
+                    {
+                        client.SendMessage(msg, SendMode.Reliable);
+                    }
+                }
+
+                return;
+            }
+
+            try
+            {
+                _database.DataLayer.GetUser(username, user =>
+                {
+                    if (user != null && BCrypt.Net.BCrypt.Verify(password, user.Password))
+                    {
+                        _usersLoggedIn[client] = username;
+                        _clients[username] = client;
 
                         using (var msg = Message.CreateEmpty(LoginTags.LoginSuccess))
                         {
                             client.SendMessage(msg, SendMode.Reliable);
                         }
 
-                        break;
+                        if (_debug) Logger.Info("Successful login: " + client.ID + ").");
                     }
-
-                    case LoginTags.AddUser:
+                    else
                     {
-                        if (!_allowAddUser) return;
+                        if (_debug) Logger.Info("User " + client.ID + " couldn't log in!");
 
-                        var username = "";
-                        var password = " ";
-
-                        using (var reader = message.GetReader())
+                        // Return error 1 for wrong username/password combination
+                        using (var writer = DarkRiftWriter.Create())
                         {
-                            try
+                            writer.Write((byte) 1);
+
+                            using (var msg = Message.Create(LoginTags.LoginFailed, writer))
                             {
-                                username = reader.ReadString();
-                                password = BCrypt.Net.BCrypt.HashPassword(
-                                    Encryption.Decrypt(reader.ReadBytes(), _privateKey),
-                                    10);
-                            }
-                            catch (Exception ex)
-                            {
-                                // Return error 0 for invalid data packages received
-                                InvalidData(client, LoginTags.AddUserFailed, ex, "Failed to add user");
+                                client.SendMessage(msg, SendMode.Reliable);
                             }
                         }
-
-                        try
-                        {
-                            _database.DataLayer.UsernameAvailable(username, isAvailable =>
-                            {
-                                if (isAvailable)
-                                {
-                                    _database.DataLayer.AddNewUser(username, password, () =>
-                                    {
-                                        if (_debug) Logger.Info("New user: " + username);
-
-                                        using (var msg = Message.CreateEmpty(LoginTags.AddUserSuccess))
-                                        {
-                                            client.SendMessage(msg, SendMode.Reliable);
-                                        }
-                                    });
-                                }
-                                else
-                                {
-                                    if (_debug) Logger.Info("User " + client.ID + " failed to sign up!");
-
-                                    // Return error 1 for wrong username/password combination
-                                    using (var writer = DarkRiftWriter.Create())
-                                    {
-                                        writer.Write((byte) 1);
-
-                                        using (var msg = Message.Create(LoginTags.AddUserFailed, writer))
-                                        {
-                                            client.SendMessage(msg, SendMode.Reliable);
-                                        }
-                                    }
-                                }
-                            });
-                        }
-                        catch (Exception ex)
-                        {
-                            // Return error 2 for database errors
-                            _database.DatabaseError(client, LoginTags.AddUserFailed, ex);
-                        }
-
-                        break;
                     }
-                }
+                });
+            }
+            catch (Exception ex)
+            {
+                // Return error 2 for database error
+                _database.DatabaseError(client, LoginTags.LoginFailed, ex);
             }
         }
+
+        /// <summary>
+        ///     Logs the user out
+        /// </summary>
+        /// <param name="client">The connected client</param>
+        private void LogoutUser(IClient client)
+        {
+            var username = _usersLoggedIn[client];
+            _usersLoggedIn[client] = null;
+
+            if (username != null) _clients.TryRemove(username, out _);
+
+            if (_debug) Logger.Info("User " + client.ID + " logged out!");
+
+            using (var msg = Message.CreateEmpty(LoginTags.LoginSuccess))
+            {
+                client.SendMessage(msg, SendMode.Reliable);
+            }
+        }
+
+        /// <summary>
+        ///     Checks the database to add a user and initialize it's data
+        /// </summary>
+        /// <param name="client">The connected client</param>
+        /// <param name="message">The received message</param>
+        private void AddUser(IClient client, Message message)
+        {
+            if (!_allowAddUser) return;
+
+            var username = "";
+            var password = " ";
+
+            using (var reader = message.GetReader())
+            {
+                try
+                {
+                    username = reader.ReadString();
+                    password = BCrypt.Net.BCrypt.HashPassword(
+                        Encryption.Decrypt(reader.ReadBytes(), _privateKey),
+                        10);
+                }
+                catch (Exception ex)
+                {
+                    // Return error 0 for invalid data packages received
+                    InvalidData(client, LoginTags.AddUserFailed, ex, "Failed to add user");
+                }
+            }
+
+            try
+            {
+                _database.DataLayer.UsernameAvailable(username, isAvailable =>
+                {
+                    if (isAvailable)
+                    {
+                        _database.DataLayer.AddNewUser(username, password, () =>
+                        {
+                            if (_debug) Logger.Info("New user: " + username);
+
+                            using (var msg = Message.CreateEmpty(LoginTags.AddUserSuccess))
+                            {
+                                client.SendMessage(msg, SendMode.Reliable);
+                            }
+                            
+                            _database.DataLayer.InitializePlayerData(username, () =>
+                            {
+                                if(_debug) Logger.Info("Initialized data for user: " + username);
+                            });
+                        });
+                    }
+                    else
+                    {
+                        if (_debug) Logger.Info("User " + client.ID + " failed to sign up!");
+
+                        // Return error 1 for wrong username/password combination
+                        using (var writer = DarkRiftWriter.Create())
+                        {
+                            writer.Write((byte) 1);
+
+                            using (var msg = Message.Create(LoginTags.AddUserFailed, writer))
+                            {
+                                client.SendMessage(msg, SendMode.Reliable);
+                            }
+                        }
+                    }
+                });
+            }
+            catch (Exception ex)
+            {
+                // Return error 2 for database errors
+                _database.DatabaseError(client, LoginTags.AddUserFailed, ex);
+            }
+
+        }
+
+        #endregion
+        
+        #region Helpers
+
+        /// <summary>
+        /// Returns the player username
+        /// </summary>
+        /// <param name="client"></param>
+        /// <returns></returns>
+        public string GetPlayerUsername(IClient client)
+        {
+            return _usersLoggedIn[client];
+        }
+
+        #endregion
 
         #region Commands
 

@@ -1,4 +1,7 @@
 using System;
+using MongoDB.Driver;
+using Unlimited_NetworkingServer_MiningGame.GameElements;
+using Unlimited_NetworkingServer_MiningGame.MongoDbConnector;
 
 namespace Unlimited_NetworkingServer_MiningGame.Database
 {
@@ -43,6 +46,42 @@ namespace Unlimited_NetworkingServer_MiningGame.Database
         #endregion
 
         #region Game
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="username">The user name</param>
+        /// <param name="callback">Action executed</param>
+        void GetPlayerData(string username, Action<PlayerData> callback);
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="username"></param>
+        /// <param name="callback"></param>
+        void GetPlayerEnergy(string username, Action<uint> callback);
+        
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="username">The user name</param>
+        /// <param name="callback">Action executed</param>
+        void InitializePlayerData(string username, Action callback);
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="username"></param>
+        /// <param name="level"></param>
+        /// <param name="callback"></param>
+        void UpdatePlayerLevel(string username, byte level, Action callback);
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="username"></param>
+        /// <param name="callback"></param>
+        void AddResourceConversion(string username, long time, Action callback);
 
         #endregion
     }

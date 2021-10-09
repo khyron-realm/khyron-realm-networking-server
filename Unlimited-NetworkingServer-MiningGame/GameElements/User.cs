@@ -14,7 +14,8 @@ namespace Unlimited_NetworkingServer_MiningGame.MongoDbConnector
             Password = password;
         }
 
-        [BsonId] public string Username { get; }
+        [BsonId]
+        public string Username { get; }
 
         public string Password { get; }
     }

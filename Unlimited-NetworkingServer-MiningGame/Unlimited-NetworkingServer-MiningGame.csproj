@@ -127,13 +127,13 @@
         <Compile Include="GameElements\PlayerData.cs" />
         <Compile Include="GameElements\Resource.cs" />
         <Compile Include="GameElements\Robot.cs" />
+        <Compile Include="GameElements\User.cs" />
         <Compile Include="Game\BuildTask.cs" />
         <Compile Include="Game\UnlimitedPlayerPlugin.cs" />
         <Compile Include="Login\Encryption.cs" />
         <Compile Include="Login\UnlimitedLoginPlugin.cs" />
         <Compile Include="MongoDbConnector\DataLayer.cs" />
         <Compile Include="MongoDbConnector\MongoDbConnector.cs" />
-        <Compile Include="MongoDbConnector\User.cs" />
         <Compile Include="Tags\GameTags.cs" />
         <Compile Include="Tags\LoginTags.cs" />
         <Compile Include="Tags\Tags.cs" />
