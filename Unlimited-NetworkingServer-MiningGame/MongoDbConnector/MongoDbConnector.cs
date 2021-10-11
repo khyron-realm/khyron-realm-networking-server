@@ -48,7 +48,8 @@ namespace Unlimited_NetworkingServer_MiningGame.MongoDbConnector
         };
 
         public IMongoCollection<User> Users { get; private set; }
-        public IMongoCollection<PlayerData> Players { get; private set; }
+        public IMongoCollection<PlayerData> PlayerData { get; private set; }
+        public IMongoCollection<GameParameters> Parameters { get; set; }
 
         /// <summary>
         ///     Create or load the config document for setting the database connection
@@ -125,7 +126,8 @@ namespace Unlimited_NetworkingServer_MiningGame.MongoDbConnector
         private void GetCollections()
         {
             Users = _mongoDatabase.GetCollection<User>("Users");
-            Players = _mongoDatabase.GetCollection<PlayerData>("Players");
+            PlayerData = _mongoDatabase.GetCollection<PlayerData>("PlayerData");
+            Parameters = _mongoDatabase.GetCollection<GameParameters>("Parameters");
         }
 
         #region Commands
