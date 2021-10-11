@@ -58,7 +58,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Database
         /// 
         /// </summary>
         /// <param name="username"></param>
-        /// <param name="callback"></param>
+        /// <param name="callback">Action executed</param>
         void GetPlayerEnergy(string username, Action<uint> callback);
         
         /// <summary>
@@ -73,15 +73,39 @@ namespace Unlimited_NetworkingServer_MiningGame.Database
         /// </summary>
         /// <param name="username"></param>
         /// <param name="level"></param>
-        /// <param name="callback"></param>
+        /// <param name="callback">Action executed</param>
         void UpdatePlayerLevel(string username, byte level, Action callback);
 
         /// <summary>
         /// 
         /// </summary>
         /// <param name="username"></param>
-        /// <param name="callback"></param>
+        /// <param name="callback">Action executed</param>
         void AddResourceConversion(string username, long time, Action callback);
+        
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="username"></param>
+        /// <param name="callback">Action executed</param>
+        void RemoveResourceConversion(string username, Action callback);
+
+        #endregion
+
+        #region Parameters
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="parameters"></param>
+        /// <param name="callback">Action executed</param>
+        void AddGameParameters(GameParameters parameters, Action callback);
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="callback">Action executed</param>
+        void GetGameParameters(Action<GameParameters> callback);
 
         #endregion
     }

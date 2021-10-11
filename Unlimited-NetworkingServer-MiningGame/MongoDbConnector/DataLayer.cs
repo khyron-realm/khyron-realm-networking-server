@@ -134,11 +134,32 @@ namespace Unlimited_NetworkingServer_MiningGame.MongoDbConnector
 
         public async void AddResourceConversion(string username, long time, Action callback)
         {
-            var conversion = new BuildTask(1, 2, 3, time);
+            var conversion = new BuildTask(1, 0, 0, time);
             var filter = Builders<PlayerData>.Filter.Eq(u => u.Id, username);
             var update = Builders<PlayerData>.Update.Set(u => u.ResourceConversion, conversion);
             await _database.Players.UpdateOneAsync(filter, update);
             callback();
+        }
+
+        public async void RemoveResourceConversion(string username, Action callback)
+        {
+            var conversion = new BuildTask();
+            var filter = Builders<PlayerData>.Filter.Eq(u => u.Id, username);
+            var update = Builders<PlayerData>.Update.Set(u => u.ResourceConversion, conversion);
+            await _database.Players.UpdateOneAsync(filter, update);
+            callback();
+        }
+
+        public async void AddGameParameters(GameParameters parameters, Action callback)
+        {
+            await _database.Parameters.InsertOneAsync(parameters);
+            callback();
+        }
+
+        public async void GetGameParameters(Action<GameParameters> callback)
+        {
+            var parameters = await _database.Parameters.Find(p => p.Version > 0).FirstOrDefaultAsync();
+            callback(parameters);
         }
 
         #endregion
