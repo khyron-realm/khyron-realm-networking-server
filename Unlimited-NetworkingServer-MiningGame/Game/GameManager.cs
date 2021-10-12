@@ -62,9 +62,9 @@ namespace Unlimited_NetworkingServer_MiningGame.Game
 
             Robot[] robots =
             {
-                new Robot(0, "Worker", 0, 0, 0, 0),
-                new Robot(1, "Probe", 0, 0, 0, 0),
-                new Robot(2, "Crusher", 0, 0, 0, 0)
+                new Robot(0, "Worker", 1, 0, 0, 0, 0),
+                new Robot(1, "Probe", 1, 0, 0, 0, 0),
+                new Robot(2, "Crusher", 1, 0, 0, 0, 0)
             };
 
             _parameters = new GameParameters(

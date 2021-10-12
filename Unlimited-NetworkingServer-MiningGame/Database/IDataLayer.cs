@@ -112,18 +112,19 @@ namespace Unlimited_NetworkingServer_MiningGame.Database
         ///     Adds a building task for the robot id
         /// </summary>
         /// <param name="username">The user name</param>
+        /// <param name="queueNumber"></param>
         /// <param name="robotId">The robot type</param>
         /// <param name="time">The finalization time</param>
         /// <param name="callback">Action executed</param>
-        void AddRobotBuild(string username, byte robotId, long time, Action callback);
+        void AddRobotBuild(string username, byte queueNumber, byte robotId, long time, Action callback);
 
         /// <summary>
         ///     Cancels the robot building
         /// </summary>
         /// <param name="username">The user name</param>
-        /// <param name="robotNumber">The robot type</param>
+        /// <param name="queueNumber">The robot type</param>
         /// <param name="callback">Action executed</param>
-        void CancelRobotBuild(string username, byte robotNumber, Action callback);
+        void CancelRobotBuild(string username, byte queueNumber, Action callback);
         
         #endregion
 

@@ -97,7 +97,7 @@ namespace Unlimited_NetworkingServer_MiningGame.MongoDbConnector
             Robot[] robots = new Robot[nrRobots];
             foreach (int iterator in Enumerable.Range(0, nrRobots))
             {
-                robots[iterator] = new Robot((byte)iterator, robotNames[iterator], 1, 1, 1, 1);
+                robots[iterator] = new Robot((byte)iterator, robotNames[iterator], level, 1, 1, 1, 1);
             }
             
             // Create resource conversion task
@@ -170,9 +170,9 @@ namespace Unlimited_NetworkingServer_MiningGame.MongoDbConnector
         }
 
         /// <inheritdoc />
-        public async void AddRobotBuild(string username, byte robotId, long time, Action callback)
+        public async void AddRobotBuild(string username, byte queueNumber, byte robotId, long time, Action callback)
         {
-            var build = new BuildTask(1, robotId, 0, time);
+            var build = new BuildTask(queueNumber, robotId, 0, time);
             var filter = Builders<PlayerData>.Filter.Eq(u => u.Id, username);
             var update = Builders<PlayerData>.Update.Push(u => u.RobotBuilding, build);
             await _database.PlayerData.UpdateOneAsync(filter, update);
@@ -180,10 +180,10 @@ namespace Unlimited_NetworkingServer_MiningGame.MongoDbConnector
         }
 
         /// <inheritdoc />
-        public async void CancelRobotBuild(string username, byte robotNumber, Action callback)
+        public async void CancelRobotBuild(string username, byte queueNumber, Action callback)
         {
             var filter = Builders<PlayerData>.Filter.Eq(u => u.Id, username);
-            var update = Builders<PlayerData>.Update.PullFilter(u => u.RobotBuilding, f => f.ElementId == robotNumber);
+            var update = Builders<PlayerData>.Update.PullFilter(u => u.RobotBuilding, f => f.Id == queueNumber);
             await _database.PlayerData.UpdateOneAsync(filter, update);
             callback();
         }

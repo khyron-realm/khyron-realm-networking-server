@@ -357,11 +357,13 @@ namespace Unlimited_NetworkingServer_MiningGame.Game
             Logger.Info("Building robot part");
             
             // Receive robot id and robot part
+            byte queueNumber = 0;
             byte robotId = 0;
             using (var reader = message.GetReader())
             {
                 try
                 {
+                    queueNumber = reader.ReadByte();
                     robotId = reader.ReadByte();
                 }
                 catch (Exception exception)
@@ -389,7 +391,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Game
             if (energy >= energyThreshold)
             {
                 // Yes: Add a build robot task
-                _database.DataLayer.AddRobotBuild(username, robotId, time, () => { });
+                _database.DataLayer.AddRobotBuild(username, queueNumber, robotId, time, () => { });
                             
                 // Send build accepted
                 using (var writer = DarkRiftWriter.Create())
@@ -419,12 +421,12 @@ namespace Unlimited_NetworkingServer_MiningGame.Game
             string username = GetPlayerUsername(client);
             
             // Receive robot id and robot part
-            byte robotNumber = 0;
+            byte queueNumber = 0;
             using (var reader = message.GetReader())
             {
                 try
                 {
-                    robotNumber = reader.ReadByte();
+                    queueNumber = reader.ReadByte();
                 }
                 catch (Exception exception)
                 {
@@ -434,7 +436,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Game
             }
 
             // Add resources to conversion
-            _database.DataLayer.CancelRobotBuild(username, robotNumber,() => {});
+            _database.DataLayer.CancelRobotBuild(username, queueNumber,() => {});
             
             // Send cancel conversion accepted
             using (var msg = Message.CreateEmpty(GameTags.CancelBuildAccepted))
