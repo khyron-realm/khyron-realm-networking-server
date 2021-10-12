@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using MongoDB.Bson.Serialization;
 using MongoDB.Driver;
 using Unlimited_NetworkingServer_MiningGame.Database;
 using Unlimited_NetworkingServer_MiningGame.Game;
@@ -169,15 +170,22 @@ namespace Unlimited_NetworkingServer_MiningGame.MongoDbConnector
         }
 
         /// <inheritdoc />
-        public void AddRobotBuild(string username, byte robotId, long time, Action callback)
+        public async void AddRobotBuild(string username, byte robotId, long time, Action callback)
         {
-            ///
+            var build = new BuildTask(1, robotId, 0, time);
+            var filter = Builders<PlayerData>.Filter.Eq(u => u.Id, username);
+            var update = Builders<PlayerData>.Update.Push(u => u.RobotBuilding, build);
+            await _database.PlayerData.UpdateOneAsync(filter, update);
+            callback();
         }
 
         /// <inheritdoc />
-        public void CancelRobotBuild(string username, byte robotId, Action callback)
+        public async void CancelRobotBuild(string username, byte robotNumber, Action callback)
         {
-            ///
+            var filter = Builders<PlayerData>.Filter.Eq(u => u.Id, username);
+            var update = Builders<PlayerData>.Update.PullFilter(u => u.RobotBuilding, f => f.ElementId == robotNumber);
+            await _database.PlayerData.UpdateOneAsync(filter, update);
+            callback();
         }
 
         /// <inheritdoc />

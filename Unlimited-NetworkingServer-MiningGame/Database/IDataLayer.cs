@@ -121,9 +121,9 @@ namespace Unlimited_NetworkingServer_MiningGame.Database
         ///     Cancels the robot building
         /// </summary>
         /// <param name="username">The user name</param>
-        /// <param name="robotId">The robot type</param>
+        /// <param name="robotNumber">The robot type</param>
         /// <param name="callback">Action executed</param>
-        void CancelRobotBuild(string username, byte robotId, Action callback);
+        void CancelRobotBuild(string username, byte robotNumber, Action callback);
         
         #endregion
 

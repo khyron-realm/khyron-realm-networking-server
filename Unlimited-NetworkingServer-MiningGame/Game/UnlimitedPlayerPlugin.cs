@@ -185,12 +185,9 @@ namespace Unlimited_NetworkingServer_MiningGame.Game
         private void UpdatePlayerLevel(byte level, IClient client)
         {
             string username = GetPlayerUsername(client);
-            Logger.Info("Updating username: " + username);
+            Logger.Info("Updating player level for " + username);
 
-            _database.DataLayer.UpdatePlayerLevel(username, level, () =>
-            {
-                Logger.Info("Updated player level");
-            });
+            _database.DataLayer.UpdatePlayerLevel(username, level, () => { });
         }
         
         /// <summary>
@@ -199,7 +196,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Game
         /// <param name="client">The connected client</param>
         private void ConvertResources(IClient client)
         {
-            Logger.Info("Converting resources");
+            Logger.Info("Converting resources to energy");
             
             string username = GetPlayerUsername(client);
             
@@ -218,10 +215,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Game
             if (energy >= energyThreshold)
             {
                 // Yes: Add resources to conversion
-                _database.DataLayer.AddResourceConversion(username, time, () =>
-                {
-                    Logger.Info("Converting resources to energy");
-                });
+                _database.DataLayer.AddResourceConversion(username, time, () => { });
                             
                 // Send conversion accepted
                 using (var writer = DarkRiftWriter.Create())
@@ -310,10 +304,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Game
             if (energy >= energyThreshold)
             {
                 // Yes: Add a robot upgrade task
-                _database.DataLayer.AddRobotUpgrade(username, robotId, robotPart, time, () =>
-                {
-                    Logger.Info("Upgrading robot part");
-                });
+                _database.DataLayer.AddRobotUpgrade(username, robotId, robotPart, time, () => { });
 
                 // Send upgrade accepted
                 using (var writer = DarkRiftWriter.Create())
@@ -347,10 +338,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Game
             string username = GetPlayerUsername(client);
 
             // Add resources to conversion
-            _database.DataLayer.CancelRobotUpgrade(username, () =>
-            {
-                Logger.Info("Cancelling robot upgrade");
-            });
+            _database.DataLayer.CancelRobotUpgrade(username, () => { });
             
             // Send cancel conversion accepted
             using (var msg = Message.CreateEmpty(GameTags.CancelUpgradeAccepted))
@@ -401,10 +389,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Game
             if (energy >= energyThreshold)
             {
                 // Yes: Add a build robot task
-                _database.DataLayer.AddRobotBuild(username, robotId, time, () =>
-                {
-                    Logger.Info("Building new robot " + robotId);
-                });
+                _database.DataLayer.AddRobotBuild(username, robotId, time, () => { });
                             
                 // Send build accepted
                 using (var writer = DarkRiftWriter.Create())
@@ -429,7 +414,33 @@ namespace Unlimited_NetworkingServer_MiningGame.Game
 
         private void CancelBuildRobot(IClient client, Message message)
         {
-            ///
+            Logger.Info("Cancelling build robot");
+            
+            string username = GetPlayerUsername(client);
+            
+            // Receive robot id and robot part
+            byte robotNumber = 0;
+            using (var reader = message.GetReader())
+            {
+                try
+                {
+                    robotNumber = reader.ReadByte();
+                }
+                catch (Exception exception)
+                {
+                    // Return error 0 for Invalid Data Packages Received
+                    InvalidData(client, GameTags.RequestFailed, exception, "Failed to send required data");
+                }
+            }
+
+            // Add resources to conversion
+            _database.DataLayer.CancelRobotBuild(username, robotNumber,() => {});
+            
+            // Send cancel conversion accepted
+            using (var msg = Message.CreateEmpty(GameTags.CancelBuildAccepted))
+            {
+                client.SendMessage(msg, SendMode.Reliable);
+            }
         }
         
         #endregion
