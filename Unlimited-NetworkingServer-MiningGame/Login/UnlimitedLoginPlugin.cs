@@ -1,9 +1,12 @@
 using System;
 using System.Collections.Concurrent;
 using System.IO;
+using System.Linq;
 using DarkRift;
 using DarkRift.Server;
 using Unlimited_NetworkingServer_MiningGame.Database;
+using Unlimited_NetworkingServer_MiningGame.Game;
+using Unlimited_NetworkingServer_MiningGame.GameElements;
 using Unlimited_NetworkingServer_MiningGame.Tags;
 
 namespace Unlimited_NetworkingServer_MiningGame.Login
@@ -130,6 +133,42 @@ namespace Unlimited_NetworkingServer_MiningGame.Login
                     }
                 }
             }
+        }
+        
+        
+        private PlayerData InitializePlayerData(string username)
+        {
+            // Get game elements
+            byte nrRobots = 3;
+            byte nrResources = 3;
+            string[] resourceNames = {"Silicon", "Lithium", "Titanium"};
+            string[] robotNames = {"Worker", "Probe", "Crusher"};
+            
+            // Create player data
+            string id = username;
+            byte level = 1;
+            ushort experience = 1;
+            uint energy = 1000;
+
+            // Create resources
+            Resource[] resources = new Resource[nrResources];
+            foreach (int iterator in Enumerable.Range(0, nrResources))
+            {
+                resources[iterator] = new Resource((byte)iterator, resourceNames[iterator], 10, 10);
+            }
+
+            // Create robots
+            Robot[] robots = new Robot[nrRobots];
+            foreach (int iterator in Enumerable.Range(0, nrRobots))
+            {
+                robots[iterator] = new Robot((byte)iterator, robotNames[iterator], level, 1, 1, 1, 1);
+            }
+            
+            // Create tasks queue
+            BuildTask[] taskQueue = {};
+
+            // Create player object
+            return new PlayerData(id, level, experience, energy, resources, robots, taskQueue);
         }
 
         #region ReceivedCalls
@@ -287,7 +326,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Login
                                 client.SendMessage(msg, SendMode.Reliable);
                             }
                             
-                            _database.DataLayer.InitializePlayerData(username, () =>
+                            _database.DataLayer.AddPlayerData(InitializePlayerData(username), () =>
                             {
                                 if(_debug) Logger.Info("Initialized data for user: " + username);
                             });

@@ -130,6 +130,7 @@
         <Compile Include="GameElements\Robot.cs" />
         <Compile Include="GameElements\User.cs" />
         <Compile Include="Game\BuildTask.cs" />
+        <Compile Include="Game\GameConstants.cs" />
         <Compile Include="Game\GameManager.cs" />
         <Compile Include="Game\UnlimitedPlayerPlugin.cs" />
         <Compile Include="Login\Encryption.cs" />

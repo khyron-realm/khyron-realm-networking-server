@@ -1,4 +1,6 @@
+using System.Threading.Tasks;
 using DarkRift;
+using DarkRift.Server;
 using Unlimited_NetworkingServer_MiningGame.Game;
 
 namespace Unlimited_NetworkingServer_MiningGame.GameElements
@@ -14,14 +16,14 @@ namespace Unlimited_NetworkingServer_MiningGame.GameElements
         public uint Energy { get; set; }
         public Resource[] Resources { get; set; }
         public Robot[] Robots { get; set; }
-        public BuildTask ResourceConversion { get; set; }
-        public BuildTask RobotUpgrade { get; set; }
-        public BuildTask[] RobotBuilding { get; set; }
+        public BuildTask[] TaskQueue { get; set; }
 
-        public PlayerData() { }
+        public PlayerData()
+        {
+        }
 
         public PlayerData(string id, byte level, ushort experience, uint energy, Resource[] resources, Robot[] robots,
-            BuildTask resourceConversion, BuildTask robotUpgrade, BuildTask[] robotBuilding)
+            BuildTask[] taskQueue)
         {
             Id = id;
             Level = level;
@@ -29,11 +31,9 @@ namespace Unlimited_NetworkingServer_MiningGame.GameElements
             Energy = energy;
             Resources = resources;
             Robots = robots;
-            ResourceConversion = resourceConversion;
-            RobotUpgrade = robotUpgrade;
-            RobotBuilding = robotBuilding;
+            TaskQueue = taskQueue;
         }
-        
+
         /// <summary>
         ///     Deserialization method for player data
         /// </summary>
@@ -46,11 +46,9 @@ namespace Unlimited_NetworkingServer_MiningGame.GameElements
             Energy = e.Reader.ReadUInt32();
             Resources = e.Reader.ReadSerializables<Resource>();
             Robots = e.Reader.ReadSerializables<Robot>();
-            ResourceConversion = e.Reader.ReadSerializable<BuildTask>();
-            RobotUpgrade = e.Reader.ReadSerializable<BuildTask>();
-            RobotBuilding = e.Reader.ReadSerializables<BuildTask>();
+            TaskQueue = e.Reader.ReadSerializables<BuildTask>();
         }
-        
+
         /// <summary>
         ///     Serialization method for player data
         /// </summary>
@@ -63,9 +61,7 @@ namespace Unlimited_NetworkingServer_MiningGame.GameElements
             e.Writer.Write(Energy);
             e.Writer.Write(Resources);
             e.Writer.Write(Robots);
-            e.Writer.Write(ResourceConversion);
-            e.Writer.Write(RobotUpgrade);
-            e.Writer.Write(RobotBuilding);
+            e.Writer.Write(TaskQueue);
         }
     }
 }

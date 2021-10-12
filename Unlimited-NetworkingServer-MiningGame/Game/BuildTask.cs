@@ -9,25 +9,31 @@ namespace Unlimited_NetworkingServer_MiningGame.Game
     public class BuildTask : IDarkRiftSerializable
     {
         public byte Id { get; set; }
+        public byte Type { get; set; }
         public byte Element { get; set; }
-        public byte Part { get; set; }
         public long EndTime { get; set; }
 
-        public BuildTask() { }
+        public BuildTask()
+        {
+            Id = 0;
+            Type = 0;
+            Element = 0;
+            EndTime = 0;
+        }
         
-        public BuildTask(byte id, byte element, long endTime)
+        public BuildTask(byte id, byte type, long endTime)
         {
             Id = id;
-            Element = element;
-            Part = 0;
+            Type = type;
+            Element = 0;
             EndTime = endTime;
         }
         
-        public BuildTask(byte id, byte element, byte part, long endTime)
+        public BuildTask(byte id, byte type, byte element, long endTime)
         {
             Id = id;
+            Type = type;
             Element = element;
-            Part = part;
             EndTime = endTime;
         }
 
@@ -38,8 +44,8 @@ namespace Unlimited_NetworkingServer_MiningGame.Game
         public void Deserialize(DeserializeEvent e)
         {
             Id = e.Reader.ReadByte();
+            Type = e.Reader.ReadByte();
             Element = e.Reader.ReadByte();
-            Part = e.Reader.ReadByte();
             EndTime = e.Reader.ReadInt64();
         }
         
@@ -50,8 +56,8 @@ namespace Unlimited_NetworkingServer_MiningGame.Game
         public void Serialize(SerializeEvent e)
         {
             e.Writer.Write(Id);
+            e.Writer.Write(Type);
             e.Writer.Write(Element);
-            e.Writer.Write(Part);
             e.Writer.Write(EndTime);
         }
     }

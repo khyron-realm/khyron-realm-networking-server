@@ -9,14 +9,14 @@ namespace Unlimited_NetworkingServer_MiningGame.GameElements
         {
         }
 
-        public GameParameters(ushort version, byte nrRobots, byte nrResources, byte maxBuildRobotsQueue, byte maxPlayerLevel,
+        public GameParameters(ushort version, byte nrRobots, byte nrResources, byte maxQueueTasks, byte maxPlayerLevel,
             byte maxRobotsLevel, ushort maxExperience, uint maxEnergy, uint maxResources, Resource[] resources,
             Robot[] robots)
         {
             Version = version;
             NrRobots = nrRobots;
             NrResources = nrResources;
-            MaxBuildRobotsQueue = maxBuildRobotsQueue;
+            MaxQueueTasks = maxQueueTasks;
             MaxPlayerLevel = maxPlayerLevel;
             MaxRobotsLevel = maxRobotsLevel;
             MaxExperience = maxExperience;
@@ -31,7 +31,7 @@ namespace Unlimited_NetworkingServer_MiningGame.GameElements
         public byte NrRobots { get; set; }
         public byte NrResources { get; set; }
 
-        public byte MaxBuildRobotsQueue { get; set; }
+        public byte MaxQueueTasks { get; set; }
 
         public byte MaxPlayerLevel { get; set; }
         public byte MaxRobotsLevel { get; set; }

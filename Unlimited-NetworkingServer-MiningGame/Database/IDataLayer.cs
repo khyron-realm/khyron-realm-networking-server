@@ -46,7 +46,14 @@ namespace Unlimited_NetworkingServer_MiningGame.Database
         #endregion
 
         #region Game
-
+        
+        /// <summary>
+        ///     Initializes player data for new users
+        /// </summary>
+        /// <param name="username">The user name</param>
+        /// <param name="callback">Action executed</param>
+        void AddPlayerData(PlayerData player, Action callback);
+        
         /// <summary>
         ///     Retrieves player data from the database
         /// </summary>
@@ -60,13 +67,6 @@ namespace Unlimited_NetworkingServer_MiningGame.Database
         /// <param name="username">The user name</param>
         /// <param name="callback">Action executed</param>
         void GetPlayerEnergy(string username, Action<uint> callback);
-        
-        /// <summary>
-        ///     Initializes player data for new users
-        /// </summary>
-        /// <param name="username">The user name</param>
-        /// <param name="callback">Action executed</param>
-        void InitializePlayerData(string username, Action callback);
 
         /// <summary>
         ///     Updates the player level
@@ -75,6 +75,14 @@ namespace Unlimited_NetworkingServer_MiningGame.Database
         /// <param name="level">The new player level</param>
         /// <param name="callback">Action executed</param>
         void UpdatePlayerLevel(string username, byte level, Action callback);
+
+        /// <summary>
+        ///     Returns true if 
+        /// </summary>
+        /// <param name="username">The user name</param>
+        /// <param name="queueNumber">The task number in queue</param>
+        /// <param name="callback">Action executed</param>
+        void TaskAvailable(string username, byte queueNumber, Action<bool> callback);
 
         /// <summary>
         ///     Adds a resource conversion task
@@ -99,7 +107,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Database
         /// <param name="robotPart">The robot part</param>
         /// <param name="time">The finalization time</param>
         /// <param name="callback">Action executed</param>
-        void AddRobotUpgrade(string username, byte robotId, byte robotPart, long time, Action callback);
+        void AddRobotUpgrade(string username, byte robotId, long time, Action callback);
 
         /// <summary>
         ///     Cancels the robot upgrade
