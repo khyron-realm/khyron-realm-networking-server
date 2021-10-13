@@ -1,26 +1,24 @@
 ﻿using System;
-using System.Linq;
 using DarkRift;
 using DarkRift.Server;
 using Unlimited_NetworkingServer_MiningGame.Database;
-using Unlimited_NetworkingServer_MiningGame.GameElements;
 using Unlimited_NetworkingServer_MiningGame.Login;
 using Unlimited_NetworkingServer_MiningGame.Tags;
 
-namespace Unlimited_NetworkingServer_MiningGame.Game
+namespace Unlimited_NetworkingServer_MiningGame.Headquarters
 {
     /// <summary>
     ///     Player manager that handles the game messages
     /// </summary>
-    public class UnlimitedPlayerPlugin : Plugin
+    public class PlayerPlugin : Plugin
     {
         private static readonly object InitializeLock = new object();
 
-        private UnlimitedLoginPlugin _loginPlugin;
+        private LoginPlugin _loginPlugin;
         private DatabaseProxy _database;
         private bool _debug = true;
 
-        public UnlimitedPlayerPlugin(PluginLoadData pluginLoadData) : base(pluginLoadData)
+        public PlayerPlugin(PluginLoadData pluginLoadData) : base(pluginLoadData)
         {
             ClientManager.ClientConnected += OnPlayerConnected;
             ClientManager.ClientDisconnected += OnPlayerDisconnected;
@@ -45,7 +43,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Game
                 lock (InitializeLock)
                 {
                     if (_loginPlugin == null)
-                        _loginPlugin = PluginManager.GetPluginByType<UnlimitedLoginPlugin>();
+                        _loginPlugin = PluginManager.GetPluginByType<LoginPlugin>();
                 }
             if (_database == null)
                 lock (InitializeLock)
@@ -202,8 +200,10 @@ namespace Unlimited_NetworkingServer_MiningGame.Game
             
             string username = GetPlayerUsername(client);
             
+            byte queueNumber = 0;
+            
             // Check if task already exists
-            _database.DataLayer.TaskAvailable(username, GameConstants.ConversionTask, isAvailable =>
+            _database.DataLayer.TaskAvailable(username, queueNumber, GameConstants.ConversionTask, isAvailable =>
             {
                 if (isAvailable) 
                 { 
@@ -222,7 +222,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Game
                     if (energy >= energyThreshold)
                     {
                         // Yes: Add resources to conversion
-                        _database.DataLayer.AddResourceConversion(username, time, () => { });
+                        _database.DataLayer.AddResourceConversion(username, queueNumber, time, () => { });
                             
                         // Send conversion accepted
                         using (var writer = DarkRiftWriter.Create())
@@ -296,6 +296,8 @@ namespace Unlimited_NetworkingServer_MiningGame.Game
         {
             Logger.Info("Upgrading robot");
             
+            byte queueNumber = 0;
+            
             // Receive robot id
             byte robotId = 0;
             using (var reader = message.GetReader())
@@ -315,7 +317,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Game
             string username = GetPlayerUsername(client);
             
             // Check if task already exists
-            _database.DataLayer.TaskAvailable(username, GameConstants.UpgradeTask, isAvailable =>
+            _database.DataLayer.TaskAvailable(username, queueNumber, GameConstants.UpgradeTask, isAvailable =>
             {
                 if (isAvailable)
                 {
@@ -334,7 +336,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Game
                     if (energy >= energyThreshold)
                     {
                         // Yes: Add a robot upgrade task
-                        _database.DataLayer.AddRobotUpgrade(username, robotId, time, () => { });
+                        _database.DataLayer.AddRobotUpgrade(username, queueNumber, robotId, time, () => { });
 
                         // Send upgrade accepted
                         using (var writer = DarkRiftWriter.Create())
@@ -426,7 +428,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Game
             string username = GetPlayerUsername(client);
             
             // Check if task already exists
-            _database.DataLayer.TaskAvailable(username, queueNumber, isAvailable =>
+            _database.DataLayer.TaskAvailable(username, queueNumber, GameConstants.BuildTask, isAvailable =>
             {
                 Logger.Info("result = " + isAvailable);
                 if (isAvailable)

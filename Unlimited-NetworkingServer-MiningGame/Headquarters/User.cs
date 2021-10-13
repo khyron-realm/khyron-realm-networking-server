@@ -1,7 +1,7 @@
 using MongoDB.Bson.Serialization.Attributes;
 using Unlimited_NetworkingServer_MiningGame.Database;
 
-namespace Unlimited_NetworkingServer_MiningGame.MongoDbConnector
+namespace Unlimited_NetworkingServer_MiningGame.Headquarters
 {
     /// <summary>
     ///     User class for storing data into the database

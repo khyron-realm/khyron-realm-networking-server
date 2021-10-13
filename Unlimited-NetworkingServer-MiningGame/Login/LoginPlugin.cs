@@ -5,8 +5,7 @@ using System.Linq;
 using DarkRift;
 using DarkRift.Server;
 using Unlimited_NetworkingServer_MiningGame.Database;
-using Unlimited_NetworkingServer_MiningGame.Game;
-using Unlimited_NetworkingServer_MiningGame.GameElements;
+using Unlimited_NetworkingServer_MiningGame.Headquarters;
 using Unlimited_NetworkingServer_MiningGame.Tags;
 
 namespace Unlimited_NetworkingServer_MiningGame.Login
@@ -14,7 +13,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Login
     /// <summary>
     ///     Login Manager for handling authentication
     /// </summary>
-    public class UnlimitedLoginPlugin : Plugin
+    public class LoginPlugin : Plugin
     {
         private const string PrivateKeyPath = @"Plugins/PrivateKey.xml";
         private static readonly object InitializeLock = new object();
@@ -28,7 +27,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Login
         private bool _debug = true;
         private string _privateKey;
 
-        public UnlimitedLoginPlugin(PluginLoadData pluginLoadData) : base(pluginLoadData)
+        public LoginPlugin(PluginLoadData pluginLoadData) : base(pluginLoadData)
         {
             LoadRsaKey();
 
@@ -138,7 +137,8 @@ namespace Unlimited_NetworkingServer_MiningGame.Login
         
         private PlayerData InitializePlayerData(string username)
         {
-            // Get game elements
+            // Extract game elements
+            //
             byte nrRobots = 3;
             byte nrResources = 3;
             string[] resourceNames = {"Silicon", "Lithium", "Titanium"};
@@ -154,14 +154,14 @@ namespace Unlimited_NetworkingServer_MiningGame.Login
             Resource[] resources = new Resource[nrResources];
             foreach (int iterator in Enumerable.Range(0, nrResources))
             {
-                resources[iterator] = new Resource((byte)iterator, resourceNames[iterator], 10, 10);
+                resources[iterator] = new Resource((byte)iterator, resourceNames[iterator], 10);
             }
 
             // Create robots
             Robot[] robots = new Robot[nrRobots];
             foreach (int iterator in Enumerable.Range(0, nrRobots))
             {
-                robots[iterator] = new Robot((byte)iterator, robotNames[iterator], level, 1, 1, 1, 1);
+                robots[iterator] = new Robot((byte)iterator, robotNames[iterator], level, 1);
             }
             
             // Create tasks queue

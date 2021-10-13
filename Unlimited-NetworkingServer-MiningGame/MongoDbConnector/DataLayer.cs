@@ -1,10 +1,8 @@
 using System;
-using System.Linq;
-using MongoDB.Bson.Serialization;
 using MongoDB.Driver;
 using Unlimited_NetworkingServer_MiningGame.Database;
-using Unlimited_NetworkingServer_MiningGame.Game;
-using Unlimited_NetworkingServer_MiningGame.GameElements;
+using Unlimited_NetworkingServer_MiningGame.GameData;
+using Unlimited_NetworkingServer_MiningGame.Headquarters;
 
 namespace Unlimited_NetworkingServer_MiningGame.MongoDbConnector
 {
@@ -120,19 +118,21 @@ namespace Unlimited_NetworkingServer_MiningGame.MongoDbConnector
         }
 
         /// <inheritdoc />
-        public async void TaskAvailable(string username, byte queueNumber, Action<bool> callback)
+        public async void TaskAvailable(string username, byte queueNumber, byte type, Action<bool> callback)
         {
             var filter = Builders<PlayerData>.Filter.And(
                 Builders<PlayerData>.Filter.Eq(u => u.Id, username),
-                Builders<PlayerData>.Filter.ElemMatch(u => u.TaskQueue,b => b.Id == queueNumber)
-                );
+                Builders<PlayerData>.Filter.ElemMatch(u => u.TaskQueue, Builders<BuildTask>.Filter.And(
+                        Builders<BuildTask>.Filter.Eq(b => b.Id, queueNumber),
+                        Builders<BuildTask>.Filter.Eq(b => b.Type, type)))
+            );
             callback(await _database.PlayerData.Find(filter).FirstOrDefaultAsync() == null);
         }
 
         /// <inheritdoc />
-        public async void AddResourceConversion(string username, long time, Action callback)
+        public async void AddResourceConversion(string username, byte queueNumber, long time, Action callback)
         {
-            var conversion = new BuildTask(GameConstants.ConversionId, GameConstants.ConversionTask, 0, time);
+            var conversion = new BuildTask(queueNumber, GameConstants.ConversionTask, 0, time);
             var filter = Builders<PlayerData>.Filter.Eq(u => u.Id, username);
             var update = Builders<PlayerData>.Update.Push(u => u.TaskQueue, conversion);
             await _database.PlayerData.UpdateOneAsync(filter, update);
@@ -149,9 +149,9 @@ namespace Unlimited_NetworkingServer_MiningGame.MongoDbConnector
         }
         
         /// <inheritdoc />
-        public async void AddRobotUpgrade(string username, byte robotId, long time, Action callback)
+        public async void AddRobotUpgrade(string username, byte queueNumber, byte robotId, long time, Action callback)
         {
-            var upgrade = new BuildTask(GameConstants.UpgradeId, GameConstants.UpgradeTask, robotId, time);
+            var upgrade = new BuildTask(queueNumber, GameConstants.UpgradeTask, robotId, time);
             var filter = Builders<PlayerData>.Filter.Eq(u => u.Id, username);
             var update = Builders<PlayerData>.Update.AddToSet(u => u.TaskQueue, upgrade);
             await _database.PlayerData.UpdateOneAsync(filter, update);

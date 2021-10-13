@@ -1,9 +1,6 @@
-using System.Threading.Tasks;
 using DarkRift;
-using DarkRift.Server;
-using Unlimited_NetworkingServer_MiningGame.Game;
 
-namespace Unlimited_NetworkingServer_MiningGame.GameElements
+namespace Unlimited_NetworkingServer_MiningGame.Headquarters
 {
     /// <summary>
     ///     Stores the player data

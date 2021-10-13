@@ -1,25 +1,25 @@
 using DarkRift;
 
-namespace Unlimited_NetworkingServer_MiningGame.GameElements
+namespace Unlimited_NetworkingServer_MiningGame.GameData
 {
     /// <summary>
     ///     Stores the resource data
     /// </summary>
-    public class Resource : IDarkRiftSerializable
+    public class ResourceDetails : IDarkRiftSerializable
     {
         public byte Id { get; set; }
         public string Name { get; set; }
         public ushort ConversionRate { get; set; }
-        public uint Count { get; set; }
+        public uint MaxCount { get; set; }
 
-        public Resource() {}
+        public ResourceDetails() {}
         
-        public Resource(byte id, string name, ushort conversionRate, uint count)
+        public ResourceDetails(byte id, string name, ushort conversionRate, uint maxCount)
         {
             Id = id;
             Name = name;
             ConversionRate = conversionRate;
-            Count = count;
+            MaxCount = maxCount;
         }
 
         /// <summary>
@@ -31,7 +31,7 @@ namespace Unlimited_NetworkingServer_MiningGame.GameElements
             Id = e.Reader.ReadByte();
             Name = e.Reader.ReadString();
             ConversionRate = e.Reader.ReadUInt16();
-            Count = e.Reader.ReadUInt32();
+            MaxCount = e.Reader.ReadUInt32();
         }
 
         /// <summary>
@@ -43,7 +43,7 @@ namespace Unlimited_NetworkingServer_MiningGame.GameElements
             e.Writer.Write(Id);
             e.Writer.Write(Name);
             e.Writer.Write(ConversionRate);
-            e.Writer.Write(Count);
+            e.Writer.Write(MaxCount);
         }
     }
 }

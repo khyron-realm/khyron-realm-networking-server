@@ -4,7 +4,8 @@ using System.Xml.Linq;
 using DarkRift.Server;
 using MongoDB.Driver;
 using Unlimited_NetworkingServer_MiningGame.Database;
-using Unlimited_NetworkingServer_MiningGame.GameElements;
+using Unlimited_NetworkingServer_MiningGame.GameData;
+using Unlimited_NetworkingServer_MiningGame.Headquarters;
 
 namespace Unlimited_NetworkingServer_MiningGame.MongoDbConnector
 {

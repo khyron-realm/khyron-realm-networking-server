@@ -1,7 +1,6 @@
 using System;
-using MongoDB.Driver;
-using Unlimited_NetworkingServer_MiningGame.GameElements;
-using Unlimited_NetworkingServer_MiningGame.MongoDbConnector;
+using Unlimited_NetworkingServer_MiningGame.GameData;
+using Unlimited_NetworkingServer_MiningGame.Headquarters;
 
 namespace Unlimited_NetworkingServer_MiningGame.Database
 {
@@ -112,15 +111,16 @@ namespace Unlimited_NetworkingServer_MiningGame.Database
         /// <param name="username">The user name</param>
         /// <param name="queueNumber">The task number in queue</param>
         /// <param name="callback">Action executed</param>
-        void TaskAvailable(string username, byte queueNumber, Action<bool> callback);
+        void TaskAvailable(string username, byte queueNumber, byte type,  Action<bool> callback);
 
         /// <summary>
         ///     Adds a resource conversion task
         /// </summary>
         /// <param name="username">The user name</param>
+        /// <param name="queueNumber">The number in the queue</param>
         /// <param name="time">The finalization time</param>
         /// <param name="callback">Action executed</param>
-        void AddResourceConversion(string username, long time, Action callback);
+        void AddResourceConversion(string username, byte queueNumber, long time, Action callback);
         
         /// <summary>
         ///     Cancels the resource conversion task
@@ -133,11 +133,11 @@ namespace Unlimited_NetworkingServer_MiningGame.Database
         ///     Adds a upgrade task for the robot id and part
         /// </summary>
         /// <param name="username">The user name</param>
+        /// <param name="queueNumber">The number in the queue</param>
         /// <param name="robotId">The robot type</param>
-        /// <param name="robotPart">The robot part</param>
         /// <param name="time">The finalization time</param>
         /// <param name="callback">Action executed</param>
-        void AddRobotUpgrade(string username, byte robotId, long time, Action callback);
+        void AddRobotUpgrade(string username, byte queueNumber, byte robotId, long time, Action callback);
 
         /// <summary>
         ///     Cancels the robot upgrade
@@ -150,7 +150,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Database
         ///     Adds a building task for the robot id
         /// </summary>
         /// <param name="username">The user name</param>
-        /// <param name="queueNumber"></param>
+        /// <param name="queueNumber">The number in the queue</param>
         /// <param name="robotId">The robot type</param>
         /// <param name="time">The finalization time</param>
         /// <param name="callback">Action executed</param>

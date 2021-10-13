@@ -1,9 +1,8 @@
 using System;
 using DarkRift.Server;
 using Unlimited_NetworkingServer_MiningGame.Database;
-using Unlimited_NetworkingServer_MiningGame.GameElements;
 
-namespace Unlimited_NetworkingServer_MiningGame.Game
+namespace Unlimited_NetworkingServer_MiningGame.GameData
 {
     /// <summary>
     ///     Game manager for updating game elements
@@ -53,31 +52,21 @@ namespace Unlimited_NetworkingServer_MiningGame.Game
         /// <param name="e">The command event object</param>
         private void DefaultParameters(object sender, CommandEventArgs e)
         {
-            Resource[] resources =
+            ResourceDetails[] resources =
             {
-                new Resource(0, "Silicon", 16, 0),
-                new Resource(1, "Lithium", 32, 0),
-                new Resource(2, "Titanium", 64, 0)
+                new ResourceDetails(0, "Silicon", 0, 0),
+                new ResourceDetails(1, "Lithium", 0, 0),
+                new ResourceDetails(2, "Titanium", 0, 0)
             };
 
-            Robot[] robots =
+            RobotDetails[] robots =
             {
-                new Robot(0, "Worker", 1, 0, 0, 0, 0),
-                new Robot(1, "Probe", 1, 0, 0, 0, 0),
-                new Robot(2, "Crusher", 1, 0, 0, 0, 0)
+                new RobotDetails(0, "Worker", 1, 0, 0, 0, 0, 0, 0),
+                new RobotDetails(1, "Probe", 1, 0, 0, 0, 0, 0, 0),
+                new RobotDetails(2, "Crusher", 1, 0, 0, 0, 0, 0, 0)
             };
 
-            _parameters = new GameParameters(
-                1,
-                3,
-                3,
-                15,
-                30,
-                10,
-                60000,
-                100000,
-                100000,
-                resources, robots);
+            _parameters = new GameParameters(1, 30, 10, 100000, 60000, 30, resources, robots);
             
             Logger.Info("Initialized the parameters to default values");
         }
