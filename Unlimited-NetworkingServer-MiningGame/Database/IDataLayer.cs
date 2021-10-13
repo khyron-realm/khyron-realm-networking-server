@@ -46,11 +46,11 @@ namespace Unlimited_NetworkingServer_MiningGame.Database
         #endregion
 
         #region Game
-        
+
         /// <summary>
         ///     Initializes player data for new users
         /// </summary>
-        /// <param name="username">The user name</param>
+        /// <param name="player">The player data object</param>
         /// <param name="callback">Action executed</param>
         void AddPlayerData(PlayerData player, Action callback);
         
@@ -60,14 +60,14 @@ namespace Unlimited_NetworkingServer_MiningGame.Database
         /// <param name="username">The user name</param>
         /// <param name="callback">Action executed</param>
         void GetPlayerData(string username, Action<PlayerData> callback);
-
+        
         /// <summary>
-        ///     Retrieves player energy from the database 
+        ///     Retrieves player level from the database 
         /// </summary>
         /// <param name="username">The user name</param>
         /// <param name="callback">Action executed</param>
-        void GetPlayerEnergy(string username, Action<uint> callback);
-
+        void GetPlayerLevel(string username, Action<uint> callback);
+        
         /// <summary>
         ///     Updates the player level
         /// </summary>
@@ -75,6 +75,36 @@ namespace Unlimited_NetworkingServer_MiningGame.Database
         /// <param name="level">The new player level</param>
         /// <param name="callback">Action executed</param>
         void UpdatePlayerLevel(string username, byte level, Action callback);
+        
+        /// <summary>
+        ///     Retrieves player experience from the database 
+        /// </summary>
+        /// <param name="username">The user name</param>
+        /// <param name="callback">Action executed</param>
+        void GetPlayerExperience(string username, Action<uint> callback);
+        
+        /// <summary>
+        ///     Updates the player experience
+        /// </summary>
+        /// <param name="username">The user name</param>
+        /// <param name="experience">The new player experience</param>
+        /// <param name="callback">Action executed</param>
+        void UpdatePlayerExperience(string username, ushort experience, Action callback);
+
+        /// <summary>
+        ///     Retrieves player energy from the database 
+        /// </summary>
+        /// <param name="username">The user name</param>
+        /// <param name="callback">Action executed</param>
+        void GetPlayerEnergy(string username, Action<uint> callback);
+        
+        /// <summary>
+        ///     Updates the player energy
+        /// </summary>
+        /// <param name="username">The user name</param>
+        /// <param name="energy">The new player energy</param>
+        /// <param name="callback">Action executed</param>
+        void UpdatePlayerEnergy(string username, uint energy, Action callback);
 
         /// <summary>
         ///     Returns true if 
@@ -133,7 +163,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Database
         /// <param name="queueNumber">The robot type</param>
         /// <param name="callback">Action executed</param>
         void CancelRobotBuild(string username, byte queueNumber, Action callback);
-        
+
         #endregion
 
         #region Parameters

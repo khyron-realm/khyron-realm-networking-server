@@ -70,13 +70,13 @@ namespace Unlimited_NetworkingServer_MiningGame.MongoDbConnector
             callback(playerData);
         }
 
-        /// <inheritdoc />
-        public async void GetPlayerEnergy(string username, Action<uint> callback)
+        public async void GetPlayerLevel(string username, Action<uint> callback)
         {
-            var energy = await _database.PlayerData.Find(u => u.Id == username).Project(u => u.Energy).FirstOrDefaultAsync();
-            callback(energy);
+            var level = await _database.PlayerData.Find(u => u.Id == username).Project(u => u.Level)
+                .FirstOrDefaultAsync();
+            callback(level);
         }
-
+        
         /// <inheritdoc />
         public async void UpdatePlayerLevel(string username, byte level, Action callback)
         {
@@ -86,6 +86,40 @@ namespace Unlimited_NetworkingServer_MiningGame.MongoDbConnector
             callback();
         }
 
+        /// <inheritdoc />
+        public async void GetPlayerExperience(string username, Action<uint> callback)
+        {
+            var experience = await _database.PlayerData.Find(u => u.Id == username).Project(u => u.Experience)
+                .FirstOrDefaultAsync();
+            callback(experience);
+        }
+
+        /// <inheritdoc />
+        public async void UpdatePlayerExperience(string username, ushort experience, Action callback)
+        {
+            var filter = Builders<PlayerData>.Filter.Eq(u => u.Id, username);
+            var update = Builders<PlayerData>.Update.Set(u => u.Experience, experience);
+            await _database.PlayerData.UpdateOneAsync(filter, update);
+            callback();
+        }
+
+        /// <inheritdoc />
+        public async void GetPlayerEnergy(string username, Action<uint> callback)
+        {
+            var energy = await _database.PlayerData.Find(u => u.Id == username).Project(u => u.Energy).FirstOrDefaultAsync();
+            callback(energy);
+        }
+
+        /// <inheritdoc />
+        public async void UpdatePlayerEnergy(string username, uint energy, Action callback)
+        {
+            var filter = Builders<PlayerData>.Filter.Eq(u => u.Id, username);
+            var update = Builders<PlayerData>.Update.Set(u => u.Energy, energy);
+            await _database.PlayerData.UpdateOneAsync(filter, update);
+            callback();
+        }
+
+        /// <inheritdoc />
         public async void TaskAvailable(string username, byte queueNumber, Action<bool> callback)
         {
             var filter = Builders<PlayerData>.Filter.And(
@@ -152,6 +186,10 @@ namespace Unlimited_NetworkingServer_MiningGame.MongoDbConnector
             await _database.PlayerData.UpdateOneAsync(filter, update);
             callback();
         }
+
+        #endregion
+
+        #region Parameters
 
         /// <inheritdoc />
         public async void AddGameParameters(GameParameters parameters, Action callback)

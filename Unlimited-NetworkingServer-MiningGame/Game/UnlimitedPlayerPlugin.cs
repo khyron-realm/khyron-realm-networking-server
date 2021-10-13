@@ -203,7 +203,6 @@ namespace Unlimited_NetworkingServer_MiningGame.Game
             string username = GetPlayerUsername(client);
             
             // Check if task already exists
-            bool taskExists = false;
             _database.DataLayer.TaskAvailable(username, GameConstants.ConversionTask, isAvailable =>
             {
                 if (isAvailable) 

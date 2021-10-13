@@ -18,9 +18,7 @@ namespace Unlimited_NetworkingServer_MiningGame.GameElements
         public Robot[] Robots { get; set; }
         public BuildTask[] TaskQueue { get; set; }
 
-        public PlayerData()
-        {
-        }
+        public PlayerData() { }
 
         public PlayerData(string id, byte level, ushort experience, uint energy, Resource[] resources, Robot[] robots,
             BuildTask[] taskQueue)
