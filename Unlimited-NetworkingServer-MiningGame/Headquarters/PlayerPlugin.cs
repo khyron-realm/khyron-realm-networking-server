@@ -97,13 +97,13 @@ namespace Unlimited_NetworkingServer_MiningGame.Headquarters
 
                     case GameTags.ConvertResources:
                     {
-                        ConvertResources(client);
+                        ConvertResources(client, message);
                         break;
                     }
 
-                    case GameTags.CancelConversion:
+                    case GameTags.FinishConversion:
                     {
-                        CancelConvertResources(client);
+                        FinishConvertResources(client);
                         break;
                     }
 
@@ -113,9 +113,9 @@ namespace Unlimited_NetworkingServer_MiningGame.Headquarters
                         break;
                     }
 
-                    case GameTags.CancelUpgrade:
+                    case GameTags.FinishUpgrade:
                     {
-                        CancelUpgradeRobot(client);
+                        FinishUpgradeRobot(client);
                         break;
                     }
 
@@ -124,7 +124,13 @@ namespace Unlimited_NetworkingServer_MiningGame.Headquarters
                         BuildRobot(client, message);
                         break;
                     }
-
+                    
+                    case GameTags.FinishBuild:
+                    {
+                        FinishBuildRobot(client, message);
+                        break;
+                    }
+                    
                     case GameTags.CancelBuild:
                     {
                         CancelBuildRobot(client, message);
@@ -144,11 +150,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Headquarters
         {
             Logger.Info("Getting player data");
             string username = GetPlayerUsername(client);
-            
-            // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-            // Check tasks in progress and update them
-            // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
+           
             // Retrieve data from database
             _database.DataLayer.GetPlayerData(username, playerData =>
             {
@@ -189,64 +191,69 @@ namespace Unlimited_NetworkingServer_MiningGame.Headquarters
 
             _database.DataLayer.UpdatePlayerLevel(username, level, () => { });
         }
-        
+
         /// <summary>
         ///     Convert the resources into energy
         /// </summary>
         /// <param name="client">The connected client</param>
-        private void ConvertResources(IClient client)
+        /// <param name="message">The message received</param>
+        private void ConvertResources(IClient client, Message message)
         {
             Logger.Info("Converting resources to energy");
             
-            string username = GetPlayerUsername(client);
-            
+            long startTime = 0;
             byte queueNumber = 0;
+            string username = GetPlayerUsername(client);
+
+            // Receive start time
+            using (var reader = message.GetReader())
+            {
+                try
+                {
+                    startTime = reader.ReadInt64();
+                }
+                catch (Exception exception)
+                {
+                    // Return error 0 for Invalid Data Packages Received
+                    InvalidData(client, GameTags.RequestFailed, exception, "Failed to send required data");
+                }
+            }
             
-            // Check if task already exists
-            _database.DataLayer.TaskAvailable(username, queueNumber, GameConstants.ConversionTask, isAvailable =>
+            _database.DataLayer.TaskAvailable(username, GameConstants.ConversionTask, GameConstants.ConversionTask, isAvailable =>
             {
                 if (isAvailable) 
-                { 
-                    // Get energy
-                    uint energy = 0;
-                    _database.DataLayer.GetPlayerEnergy(username, playerEnergy =>
+                {
+                    _database.DataLayer.GetPlayerEnergy(username, energy =>
                     {
-                        energy = playerEnergy;
-                    });
+                        // Get conversion cost
+                        // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+                        uint conversionCost = 0;
 
-                    // Get energy threshold and conversion time
-                    uint energyThreshold = 0;
-                    var time = DateTime.Now.AddHours(1).ToBinary();
-
-                    // Check if resources are available
-                    if (energy >= energyThreshold)
-                    {
-                        // Yes: Add resources to conversion
-                        _database.DataLayer.AddResourceConversion(username, queueNumber, time, () => { });
+                        // Check if energy is available
+                        if (energy >= conversionCost)
+                        {
+                            // Yes: Add resources to conversion
+                            _database.DataLayer.AddResourceConversion(username, queueNumber, startTime, () => { });
                             
-                        // Send conversion accepted
-                        using (var writer = DarkRiftWriter.Create())
-                        {
-                            writer.Write(time);
-
-                            using (var msg = Message.Create(GameTags.ConversionAccepted, writer))
+                            // Send conversion accepted
+                            using (var msg = Message.CreateEmpty(GameTags.ConversionAccepted))
                             {
                                 client.SendMessage(msg, SendMode.Reliable);
                             }
                         }
-                    }
-                    else
-                    {
-                        // No: Send conversion rejected
-                        using (var writer = DarkRiftWriter.Create())
+                        else
                         {
-                            writer.Write((byte) 2);
-                            using (var msg = Message.CreateEmpty(GameTags.ConversionRejected))
+                            // No: Send conversion rejected
+                            using (var writer = DarkRiftWriter.Create())
                             {
-                                client.SendMessage(msg, SendMode.Reliable);
+                                writer.Write((byte) 2);
+                                using (var msg = Message.CreateEmpty(GameTags.ConversionRejected))
+                                {
+                                    client.SendMessage(msg, SendMode.Reliable);
+                                }
                             }
-                        }
-                    } 
+                        } 
+                    });
                 }
                 else
                 {
@@ -265,23 +272,19 @@ namespace Unlimited_NetworkingServer_MiningGame.Headquarters
         }
 
         /// <summary>
-        ///     Cancels the conversion of resources
+        ///     Finish the conversion of resources
         /// </summary>
         /// <param name="client">The connected client</param>
-        private void CancelConvertResources(IClient client)
+        private void FinishConvertResources(IClient client)
         {
-            Logger.Info("Cancelling resource conversion");
+            Logger.Info("Finish resource conversion");
             
             string username = GetPlayerUsername(client);
             
-            // Add resources to conversion
-            _database.DataLayer.CancelResourceConversion(username, () =>
-            {
-                Logger.Info("Cancelling resource conversion");
-            });
+            _database.DataLayer.FinishResourceConversion(username, () => { });
             
-            // Send cancel conversion accepted
-            using (var msg = Message.CreateEmpty(GameTags.CancelConversionAccepted))
+            // Send finish conversion accepted
+            using (var msg = Message.CreateEmpty(GameTags.FinishConversionAccepted))
             {
                 client.SendMessage(msg, SendMode.Reliable);
             }
@@ -296,15 +299,18 @@ namespace Unlimited_NetworkingServer_MiningGame.Headquarters
         {
             Logger.Info("Upgrading robot");
             
-            byte queueNumber = 0;
-            
-            // Receive robot id
             byte robotId = 0;
+            byte queueNumber = 0;
+            long startTime = 0;
+            string username = GetPlayerUsername(client);
+
+            // Receive robot id and start time
             using (var reader = message.GetReader())
             {
                 try
                 {
                     robotId = reader.ReadByte();
+                    startTime = reader.ReadInt64();
                 }
                 catch (Exception exception)
                 {
@@ -312,55 +318,42 @@ namespace Unlimited_NetworkingServer_MiningGame.Headquarters
                     InvalidData(client, GameTags.RequestFailed, exception, "Failed to send required data");
                 }
             }
-
-            // Get player username
-            string username = GetPlayerUsername(client);
             
-            // Check if task already exists
             _database.DataLayer.TaskAvailable(username, queueNumber, GameConstants.UpgradeTask, isAvailable =>
             {
                 if (isAvailable)
                 {
-                    // Get energy
-                    uint energy = 0;
-                    _database.DataLayer.GetPlayerEnergy(username, playerEnergy =>
+                    _database.DataLayer.GetPlayerEnergy(username, energy =>
                     {
-                        energy = playerEnergy;
+                        // Get upgrade cost
+                        // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+                        uint upgradeCost = 0;
+
+                        // Check if energy is available
+                        if (energy >= upgradeCost)
+                        {
+                            // Yes: Add a robot upgrade task
+                            _database.DataLayer.AddRobotUpgrade(username, queueNumber, robotId, startTime, () => { });
+
+                            // Send upgrade accepted
+                            using (var msg = Message.CreateEmpty(GameTags.UpgradeRobotAccepted))
+                            {
+                                client.SendMessage(msg, SendMode.Reliable);
+                            }
+                        }
+                        else
+                        {
+                            // No: Send upgrade rejected
+                            using (var writer = DarkRiftWriter.Create())
+                            {
+                                writer.Write((byte) 2);
+                                using (var msg = Message.CreateEmpty(GameTags.UpgradeRobotRejected))
+                                {
+                                    client.SendMessage(msg, SendMode.Reliable);
+                                }
+                            }
+                        }
                     });
-
-                    // Get energy threshold and conversion time
-                    uint energyThreshold = 0;
-                    var time = DateTime.Now.AddHours(1).ToBinary();
-
-                    // Check if resources are available
-                    if (energy >= energyThreshold)
-                    {
-                        // Yes: Add a robot upgrade task
-                        _database.DataLayer.AddRobotUpgrade(username, queueNumber, robotId, time, () => { });
-
-                        // Send upgrade accepted
-                        using (var writer = DarkRiftWriter.Create())
-                        {
-                            writer.Write(time);
-
-                            using (var msg = Message.Create(GameTags.UpgradeRobotAccepted, writer))
-                            {
-                                client.SendMessage(msg, SendMode.Reliable);
-                            }
-                        }
-                    }
-                    else
-                    {
-                        // No: Send upgrade rejected
-                        using (var writer = DarkRiftWriter.Create())
-                        {
-                            writer.Write((byte) 2);
-                            using (var msg = Message.CreateEmpty(GameTags.UpgradeRobotRejected))
-                            {
-                                client.SendMessage(msg, SendMode.Reliable);
-                            }
-                        }
-                    }
                 }
                 else
                 {
@@ -379,20 +372,19 @@ namespace Unlimited_NetworkingServer_MiningGame.Headquarters
         }
 
         /// <summary>
-        ///     Cancels the robot upgrades
+        ///     Finish the robot upgrades
         /// </summary>
         /// <param name="client">The connected client</param>
-        private void CancelUpgradeRobot(IClient client)
+        private void FinishUpgradeRobot(IClient client)
         {
-            Logger.Info("Cancelling upgrade robot");
+            Logger.Info("Finish upgrade robot");
             
             string username = GetPlayerUsername(client);
-
-            // Add resources to conversion
-            _database.DataLayer.CancelRobotUpgrade(username, () => { });
             
-            // Send cancel conversion accepted
-            using (var msg = Message.CreateEmpty(GameTags.CancelUpgradeAccepted))
+            _database.DataLayer.FinishRobotUpgrade(username, () => { });
+            
+            // Send finish upgrade accepted
+            using (var msg = Message.CreateEmpty(GameTags.FinishUpgradeAccepted))
             {
                 client.SendMessage(msg, SendMode.Reliable);
             }
@@ -405,17 +397,20 @@ namespace Unlimited_NetworkingServer_MiningGame.Headquarters
         /// <param name="message">The message received</param>
         private void BuildRobot(IClient client, Message message)
         {
-            Logger.Info("Building robot part");
+            Logger.Info("Building robot");
             
-            // Receive robot id and robot part
-            byte queueNumber = 0;
             byte robotId = 0;
+            byte queueNumber = 0;
+            long startTime = 0;
+            
+            // Receive the queue number, robot id and start time
             using (var reader = message.GetReader())
             {
                 try
                 {
                     queueNumber = reader.ReadByte();
                     robotId = reader.ReadByte();
+                    startTime = reader.ReadInt64();
                 }
                 catch (Exception exception)
                 {
@@ -434,45 +429,37 @@ namespace Unlimited_NetworkingServer_MiningGame.Headquarters
                 if (isAvailable)
                 {
                     // Get energy
-                    uint energy = 0;
-                    _database.DataLayer.GetPlayerEnergy(username, playerEnergy =>
+                    _database.DataLayer.GetPlayerEnergy(username, energy =>
                     {
-                        energy = playerEnergy;
-                    });
+                        // Get build cost
+                        // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+                        uint buildCost = 0;
 
-                    // Get energy threshold and conversion time
-                    uint energyThreshold = 0;
-                    var time = DateTime.Now.AddHours(1).ToBinary();
-
-                    // Check if resources are available
-                    if (energy >= energyThreshold)
-                    {
-                        // Yes: Add a build robot task
-                        _database.DataLayer.AddRobotBuild(username, queueNumber, robotId, time, () => { });
+                        // Check if energy is available
+                        if (energy >= buildCost)
+                        {
+                            // Yes: Add a build robot task
+                            _database.DataLayer.AddRobotBuild(username, queueNumber, robotId, startTime, () => { });
                             
-                        // Send build accepted
-                        using (var writer = DarkRiftWriter.Create())
-                        {
-                            writer.Write(time);
-
-                            using (var msg = Message.Create(GameTags.BuildRobotAccepted, writer))
+                            // Send build accepted
+                            using (var msg = Message.CreateEmpty(GameTags.BuildRobotAccepted))
                             {
                                 client.SendMessage(msg, SendMode.Reliable);
                             }
                         }
-                    }
-                    else
-                    {
-                        // No: Send build rejected
-                        using (var writer = DarkRiftWriter.Create())
+                        else
                         {
-                            writer.Write((byte) 2);
-                            using (var msg = Message.CreateEmpty(GameTags.BuildRobotRejected))
+                            // No: Send build rejected
+                            using (var writer = DarkRiftWriter.Create())
                             {
-                                client.SendMessage(msg, SendMode.Reliable);
+                                writer.Write((byte) 2);
+                                using (var msg = Message.CreateEmpty(GameTags.BuildRobotRejected))
+                                {
+                                    client.SendMessage(msg, SendMode.Reliable);
+                                }
                             }
                         }
-                    }
+                    });
                 }
                 else
                 {
@@ -490,6 +477,42 @@ namespace Unlimited_NetworkingServer_MiningGame.Headquarters
             });
         }
 
+        /// <summary>
+        ///     Finish the robot upgrades
+        /// </summary>
+        /// <param name="client">The connected client</param>
+        /// <param name="message">The message received</param>
+        private void FinishBuildRobot(IClient client, Message message)
+        {
+            Logger.Info("Cancelling build robot");
+            
+            byte queueNumber = 0;
+            string username = GetPlayerUsername(client);
+            
+            // Receive queue number
+            using (var reader = message.GetReader())
+            {
+                try
+                {
+                    queueNumber = reader.ReadByte();
+                }
+                catch (Exception exception)
+                {
+                    // Return error 0 for Invalid Data Packages Received
+                    InvalidData(client, GameTags.RequestFailed, exception, "Failed to send required data");
+                }
+            }
+
+            // Add resources to conversion
+            _database.DataLayer.FinishRobotBuild(username, queueNumber,() => {});
+            
+            // Send cancel conversion accepted
+            using (var msg = Message.CreateEmpty(GameTags.FinishBuildAccepted))
+            {
+                client.SendMessage(msg, SendMode.Reliable);
+            }
+        }
+        
         /// <summary>
         ///     Cancels the robot upgrades
         /// </summary>
@@ -520,7 +543,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Headquarters
             _database.DataLayer.CancelRobotBuild(username, queueNumber,() => {});
             
             // Send cancel conversion accepted
-            using (var msg = Message.CreateEmpty(GameTags.CancelBuildAccepted))
+            using (var msg = Message.CreateEmpty(GameTags.FinishBuildAccepted))
             {
                 client.SendMessage(msg, SendMode.Reliable);
             }

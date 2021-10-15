@@ -110,6 +110,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Database
         /// </summary>
         /// <param name="username">The user name</param>
         /// <param name="queueNumber">The task number in queue</param>
+        /// <param name="type">The robot type</param>
         /// <param name="callback">Action executed</param>
         void TaskAvailable(string username, byte queueNumber, byte type,  Action<bool> callback);
 
@@ -123,11 +124,11 @@ namespace Unlimited_NetworkingServer_MiningGame.Database
         void AddResourceConversion(string username, byte queueNumber, long time, Action callback);
         
         /// <summary>
-        ///     Cancels the resource conversion task
+        ///     Finish the resource conversion task
         /// </summary>
         /// <param name="username">The user name</param>
         /// <param name="callback">Action executed</param>
-        void CancelResourceConversion(string username, Action callback);
+        void FinishResourceConversion(string username, Action callback);
 
         /// <summary>
         ///     Adds a upgrade task for the robot id and part
@@ -140,11 +141,11 @@ namespace Unlimited_NetworkingServer_MiningGame.Database
         void AddRobotUpgrade(string username, byte queueNumber, byte robotId, long time, Action callback);
 
         /// <summary>
-        ///     Cancels the robot upgrade
+        ///     Finish the robot upgrade
         /// </summary>
         /// <param name="username">The user name</param>
         /// <param name="callback">Action executed</param>
-        void CancelRobotUpgrade(string username, Action callback);
+        void FinishRobotUpgrade(string username, Action callback);
 
         /// <summary>
         ///     Adds a building task for the robot id
@@ -157,7 +158,15 @@ namespace Unlimited_NetworkingServer_MiningGame.Database
         void AddRobotBuild(string username, byte queueNumber, byte robotId, long time, Action callback);
 
         /// <summary>
-        ///     Cancels the robot building
+        ///     Finish the robot building
+        /// </summary>
+        /// <param name="username">The user name</param>
+        /// <param name="queueNumber">The robot type</param>
+        /// <param name="callback">Action executed</param>
+        void FinishRobotBuild(string username, byte queueNumber, Action callback);
+        
+        /// <summary>
+        ///     Cancel the robot building
         /// </summary>
         /// <param name="username">The user name</param>
         /// <param name="queueNumber">The robot type</param>
@@ -180,6 +189,12 @@ namespace Unlimited_NetworkingServer_MiningGame.Database
         /// </summary>
         /// <param name="callback">Action executed</param>
         void GetGameParameters(Action<GameParameters> callback);
+        
+        /// <summary>
+        ///     Retrieves the game parameters
+        /// </summary>
+        /// <param name="callback">Action executed</param>
+        void GetGameParameters(ushort version, Action<GameParameters> callback);
 
         #endregion
     }

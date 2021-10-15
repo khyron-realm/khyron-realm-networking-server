@@ -7,31 +7,32 @@ namespace Unlimited_NetworkingServer_MiningGame.GameData
     /// </summary>
     public class RobotDetails : IDarkRiftSerializable
     {
-        public RobotDetails(byte id, string name, byte health, byte movementSpeed, byte miningSpeed, byte buildTime, byte upgradeTime, byte price, byte maxCount)
+        public RobotDetails(byte id, string name, ushort health, byte movementSpeed, byte miningDamage,
+            ushort buildTime, ushort upgradeTime, ushort buildPrice, ushort upgradePrice, byte housingSpace)
         {
             Id = id;
             Name = name;
             Health = health;
             MovementSpeed = movementSpeed;
-            MiningSpeed = miningSpeed;
+            MiningDamage = miningDamage;
             BuildTime = buildTime;
             UpgradeTime = upgradeTime;
-            Price = price;
-            MaxCount = maxCount;
+            BuildPrice = buildPrice;
+            UpgradePrice = upgradePrice;
+            HousingSpace = housingSpace;
         }
 
         public byte Id { get; set; }
         public string Name { get; set; }
-        public byte Health { get; set; }
-        public byte MovementSpeed { get; set; }
-        public byte MiningSpeed { get; set; }
-        public byte BuildTime { get; set; }
-        public byte UpgradeTime { get; set; }
-        public byte Price { get; set; }
-        public byte MaxCount { get; set; }
+        public ushort Health { get; set; }              // Value
+        public byte MovementSpeed { get; set; }         // Blocks / second
+        public byte MiningDamage { get; set; }          // Damage / bloc and Damage per self health
+        public ushort BuildTime { get; set; }           // Seconds
+        public ushort UpgradeTime { get; set; }         // Minute
+        public ushort BuildPrice { get; set; }          // Energy
+        public ushort UpgradePrice { get; set; }        // Energy
+        public byte HousingSpace { get; set; }          // Value
 
-        
-        
 
         /// <summary>
         ///     Deserialization method for robot data
@@ -41,13 +42,14 @@ namespace Unlimited_NetworkingServer_MiningGame.GameData
         {
             Id = e.Reader.ReadByte();
             Name = e.Reader.ReadString();
-            Health = e.Reader.ReadByte();
+            Health = e.Reader.ReadUInt16();
             MovementSpeed = e.Reader.ReadByte();
-            MiningSpeed = e.Reader.ReadByte();
-            BuildTime = e.Reader.ReadByte();
-            UpgradeTime = e.Reader.ReadByte();
-            Price = e.Reader.ReadByte();
-            MaxCount = e.Reader.ReadByte();
+            MiningDamage = e.Reader.ReadByte();
+            BuildTime = e.Reader.ReadUInt16();
+            UpgradeTime = e.Reader.ReadUInt16();
+            BuildPrice = e.Reader.ReadUInt16();
+            UpgradePrice = e.Reader.ReadUInt16();
+            HousingSpace = e.Reader.ReadByte();
         }
 
         /// <summary>
@@ -60,11 +62,12 @@ namespace Unlimited_NetworkingServer_MiningGame.GameData
             e.Writer.Write(Name);
             e.Writer.Write(Health);
             e.Writer.Write(MovementSpeed);
-            e.Writer.Write(MiningSpeed);
+            e.Writer.Write(MiningDamage);
             e.Writer.Write(BuildTime);
             e.Writer.Write(UpgradeTime);
-            e.Writer.Write(Price);
-            e.Writer.Write(MaxCount);
+            e.Writer.Write(BuildPrice);
+            e.Writer.Write(UpgradePrice);
+            e.Writer.Write(HousingSpace);
         }
     }
 }

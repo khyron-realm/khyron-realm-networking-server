@@ -2,6 +2,19 @@ namespace Unlimited_NetworkingServer_MiningGame.GameData
 {
     public class LevelFormulas
     {
+        public byte Id;
+        public float A;
+        public float B;
+        public float C;
+
+        public LevelFormulas(byte id, float a, float b, float c)
+        {
+            Id = id;
+            A = a;
+            B = b;
+            C = c;
+        }
+
         /// <summary>
         /// 
         /// </summary>

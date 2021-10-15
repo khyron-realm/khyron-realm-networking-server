@@ -22,11 +22,11 @@ namespace Unlimited_NetworkingServer_MiningGame.GameData
 
         public override Command[] Commands => new[]
         {
-            new Command("DefaultParameters", "Store the default game parameters in the database", "DefaultParameters",
+            new Command("DefaultParameters", "Store the default game parameters in the database", "DefaultParameters [version]",
                 DefaultParameters),
             new Command("StoreParameters", "Store the game parameters in the database", "StoreParameters",
                 StoreParameters),
-            new Command("GetParameters", "Get the game parameters from the database", "GetParameters",
+            new Command("GetParameters", "Get the game parameters from the database for the specified version", "GetParameters [version]",
                 GetGameParameters)
         };
 
@@ -52,23 +52,37 @@ namespace Unlimited_NetworkingServer_MiningGame.GameData
         /// <param name="e">The command event object</param>
         private void DefaultParameters(object sender, CommandEventArgs e)
         {
+            if (e.Arguments.Length != 1)
+            {
+                Logger.Warning("Invalid arguments. Enter DefaultParameters [version]");
+                return;
+            }
+
+            var version = Convert.ToUInt16(e.Arguments[0]);
+            
             ResourceDetails[] resources =
             {
-                new ResourceDetails(0, "Silicon", 0, 0),
-                new ResourceDetails(1, "Lithium", 0, 0),
-                new ResourceDetails(2, "Titanium", 0, 0)
+                new ResourceDetails(0, "Silicon", 400, 10000),
+                new ResourceDetails(1, "Lithium", 200, 10000),
+                new ResourceDetails(2, "Titanium", 100, 10000)
             };
 
             RobotDetails[] robots =
             {
-                new RobotDetails(0, "Worker", 1, 0, 0, 0, 0, 0, 0),
-                new RobotDetails(1, "Probe", 1, 0, 0, 0, 0, 0, 0),
-                new RobotDetails(2, "Crusher", 1, 0, 0, 0, 0, 0, 0)
+                new RobotDetails(0, "Worker", 1000, 10, 20, 5, 5, 100, 1000, 1),
+                new RobotDetails(1, "Probe", 1000, 0, 20, 10, 8, 150, 1500, 2),
+                new RobotDetails(2, "Crusher", 2000, 5, 40, 30, 15, 300, 3000, 4)
             };
 
-            _parameters = new GameParameters(1, 30, 10, 100000, 60000, 30, resources, robots);
+            LevelFormulas[] formulas =
+            {
+                new LevelFormulas(0, 1, 1, 1)
+            };
+
+            _parameters = new GameParameters(version, 30, 10, 100000, 60000, 
+                30, 5, resources, robots, formulas);
             
-            Logger.Info("Initialized the parameters to default values");
+            Logger.Info("Initialized the parameters to default values for the version " + version);
         }
         
         /// <summary>
@@ -100,16 +114,38 @@ namespace Unlimited_NetworkingServer_MiningGame.GameData
         {
             InitializeDb();
 
+            if (e.Arguments.Length > 1)
+            {
+                Logger.Warning("Invalid arguments. Enter GetParameters [version]");
+                return;
+            }
+
             try
             {
-                _database.DataLayer.GetGameParameters(_parameters =>
+                var version = Convert.ToUInt16(e.Arguments[0]);
+                try
                 {
-                    Logger.Info("Getting game parameters version " + _parameters.Version);
-                });
+                    _database.DataLayer.GetGameParameters(version,
+                        _parameters => { Logger.Info("Getting game parameters version " + _parameters.Version); });
+                }
+                catch (NullReferenceException)
+                {
+                    Logger.Error("No parameters stored");
+                }
             }
-            catch (NullReferenceException)
+            catch (IndexOutOfRangeException)
             {
-                Logger.Error("No parameters stored");
+                try
+                {
+                    _database.DataLayer.GetGameParameters(_parameters =>
+                    {
+                        Logger.Info("Getting game parameters version " + _parameters.Version);
+                    });
+                }
+                catch (NullReferenceException)
+                {
+                    Logger.Error("No parameters stored");
+                }
             }
         }
 

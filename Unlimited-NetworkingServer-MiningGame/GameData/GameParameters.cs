@@ -5,30 +5,35 @@ namespace Unlimited_NetworkingServer_MiningGame.GameData
 {
     public class GameParameters : IDarkRiftSerializable
     {
-        public GameParameters(ushort version, byte maxPlayerLevel, byte maxRobotsLevel, uint maxEnergy,
-            ushort maxExperience, uint maxBuildRobotsQueue, ResourceDetails[] resources, RobotDetails[] robots)
+        public GameParameters(ushort version, byte maxPlayerLevel, byte maxRobotLevel, uint maxEnergy,
+            ushort maxExperience, uint maxHousingSpace, ushort conversionTime, ResourceDetails[] resources,
+            RobotDetails[] robots, LevelFormulas[] levels)
         {
             Version = version;
             MaxPlayerLevel = maxPlayerLevel;
-            MaxRobotsLevel = maxRobotsLevel;
+            MaxRobotLevel = maxRobotLevel;
             MaxEnergy = maxEnergy;
             MaxExperience = maxExperience;
-            MaxBuildRobotsQueue = maxBuildRobotsQueue;
+            MaxHousingSpace = maxHousingSpace;
+            ConversionTime = conversionTime;
             Resources = resources;
             Robots = robots;
+            Levels = levels;
         }
+        
+        public GameParameters() { }
 
         [BsonId]
         public ushort Version { get; set; }
         public byte MaxPlayerLevel { get; set; }
-        public byte MaxRobotsLevel { get; set; }
+        public byte MaxRobotLevel { get; set; }
         public uint MaxEnergy { get; set; }
         public ushort MaxExperience { get; set; }
-        public uint MaxBuildRobotsQueue { get; set; }
+        public uint MaxHousingSpace { get; set; }
+        public ushort ConversionTime { get; set; }              // In minutes
         public ResourceDetails[] Resources { get; set; }
         public RobotDetails[] Robots { get; set; }
-        
-        // public LevelFormulas Levels { get; set; }
+        public LevelFormulas[] Levels { get; set; }
 
         #region Serialization
 

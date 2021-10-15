@@ -140,7 +140,7 @@ namespace Unlimited_NetworkingServer_MiningGame.MongoDbConnector
         }
 
         /// <inheritdoc />
-        public async void CancelResourceConversion(string username, Action callback)
+        public async void FinishResourceConversion(string username, Action callback)
         {
             var filter = Builders<PlayerData>.Filter.Eq(u => u.Id, username);
             var update = Builders<PlayerData>.Update.PullFilter(u => u.TaskQueue, f => f.Type == GameConstants.ConversionTask);
@@ -159,7 +159,7 @@ namespace Unlimited_NetworkingServer_MiningGame.MongoDbConnector
         }
         
         /// <inheritdoc />
-        public async void CancelRobotUpgrade(string username, Action callback)
+        public async void FinishRobotUpgrade(string username, Action callback)
         {
             var filter = Builders<PlayerData>.Filter.Eq(u => u.Id, username);
             var update = Builders<PlayerData>.Update.PullFilter(u => u.TaskQueue, f => f.Type == GameConstants.UpgradeTask);
@@ -179,12 +179,25 @@ namespace Unlimited_NetworkingServer_MiningGame.MongoDbConnector
         }
 
         /// <inheritdoc />
-        public async void CancelRobotBuild(string username, byte queueNumber, Action callback)
+        public async void FinishRobotBuild(string username, byte queueNumber, Action callback)
         {
+            /*
             var filter = Builders<PlayerData>.Filter.Eq(u => u.Id, username);
             var update = Builders<PlayerData>.Update.PullFilter(u => u.TaskQueue, f => f.Id == queueNumber);
-            await _database.PlayerData.UpdateOneAsync(filter, update);
+            await _database.PlayerData.UpdateOneAsync(filter, update);       
             callback();
+            */
+        }
+        
+        /// <inheritdoc />
+        public async void CancelRobotBuild(string username, byte queueNumber, Action callback)
+        {
+            /*
+            var filter = Builders<PlayerData>.Filter.Eq(u => u.Id, username);
+            var update = Builders<PlayerData>.Update.PullFilter(u => u.TaskQueue, f => f.Id == queueNumber);
+            await _database.PlayerData.UpdateOneAsync(filter, update);       
+            callback();
+            */
         }
 
         #endregion
@@ -197,11 +210,20 @@ namespace Unlimited_NetworkingServer_MiningGame.MongoDbConnector
             await _database.Parameters.InsertOneAsync(parameters);
             callback();
         }
-
+        
         /// <inheritdoc />
         public async void GetGameParameters(Action<GameParameters> callback)
         {
-            var parameters = await _database.Parameters.Find(p => p.Version > 0).FirstOrDefaultAsync();
+            var filter = Builders<GameParameters>.Filter.Empty;
+            var sort = Builders<GameParameters>.Sort.Descending(p => p.Version);
+            var parameters = await _database.Parameters.Find(filter).Sort(sort).FirstOrDefaultAsync();
+            callback(parameters);
+        }
+
+        /// <inheritdoc />
+        public async void GetGameParameters(ushort version, Action<GameParameters> callback)
+        {
+            var parameters = await _database.Parameters.Find(p => p.Version == version).FirstOrDefaultAsync();
             callback(parameters);
         }
 

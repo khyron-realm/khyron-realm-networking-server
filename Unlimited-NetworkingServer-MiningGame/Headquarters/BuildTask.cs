@@ -10,30 +10,22 @@ namespace Unlimited_NetworkingServer_MiningGame.Headquarters
         public byte Id { get; set; }
         public byte Type { get; set; }
         public byte Element { get; set; }
-        public long EndTime { get; set; }
+        public long StartTime { get; set; }
 
         public BuildTask()
         {
             Id = 0;
             Type = 0;
             Element = 0;
-            EndTime = 0;
+            StartTime = 0;
         }
-        
-        public BuildTask(byte id, byte type, long endTime)
-        {
-            Id = id;
-            Type = type;
-            Element = 0;
-            EndTime = endTime;
-        }
-        
-        public BuildTask(byte id, byte type, byte element, long endTime)
+  
+        public BuildTask(byte id, byte type, byte element, long startTime)
         {
             Id = id;
             Type = type;
             Element = element;
-            EndTime = endTime;
+            StartTime = startTime;
         }
 
         /// <summary>
@@ -45,7 +37,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Headquarters
             Id = e.Reader.ReadByte();
             Type = e.Reader.ReadByte();
             Element = e.Reader.ReadByte();
-            EndTime = e.Reader.ReadInt64();
+            StartTime = e.Reader.ReadInt64();
         }
         
         /// <summary>
@@ -57,7 +49,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Headquarters
             e.Writer.Write(Id);
             e.Writer.Write(Type);
             e.Writer.Write(Element);
-            e.Writer.Write(EndTime);
+            e.Writer.Write(StartTime);
         }
     }
 }
