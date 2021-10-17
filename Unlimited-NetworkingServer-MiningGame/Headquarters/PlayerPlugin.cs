@@ -1,7 +1,10 @@
 ﻿using System;
+using System.Diagnostics;
+using System.Linq;
 using DarkRift;
 using DarkRift.Server;
 using Unlimited_NetworkingServer_MiningGame.Database;
+using Unlimited_NetworkingServer_MiningGame.Game;
 using Unlimited_NetworkingServer_MiningGame.Login;
 using Unlimited_NetworkingServer_MiningGame.Tags;
 
@@ -16,6 +19,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Headquarters
 
         private LoginPlugin _loginPlugin;
         private DatabaseProxy _database;
+        private GameData _gameData;
         private bool _debug = true;
 
         public PlayerPlugin(PluginLoadData pluginLoadData) : base(pluginLoadData)
@@ -52,6 +56,8 @@ namespace Unlimited_NetworkingServer_MiningGame.Headquarters
                         _database = PluginManager.GetPluginByType<DatabaseProxy>();
                 }
 
+            _gameData = new GameData();
+            
             using (var msg = Message.CreateEmpty(GameTags.PlayerConnected))
             {
                 e.Client.SendMessage(msg, SendMode.Reliable);
@@ -95,6 +101,12 @@ namespace Unlimited_NetworkingServer_MiningGame.Headquarters
                         break;
                     }
 
+                    case GameTags.GameData:
+                    {
+                        SendGameData(client);
+                        break;
+                    }
+                    
                     case GameTags.ConvertResources:
                     {
                         ConvertResources(client, message);
@@ -115,7 +127,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Headquarters
 
                     case GameTags.FinishUpgrade:
                     {
-                        FinishUpgradeRobot(client);
+                        FinishUpgradeRobot(client, message);
                         break;
                     }
 
@@ -127,13 +139,19 @@ namespace Unlimited_NetworkingServer_MiningGame.Headquarters
                     
                     case GameTags.FinishBuild:
                     {
-                        FinishBuildRobot(client, message);
+                        FinishBuildRobot(client, message, true, true);
                         break;
                     }
                     
-                    case GameTags.CancelBuild:
+                    case GameTags.CancelInProgressBuild:
                     {
-                        CancelBuildRobot(client, message);
+                        FinishBuildRobot(client, message, false, false);
+                        break;
+                    }
+                    
+                    case GameTags.CancelOnHoldBuild:
+                    {
+                        FinishBuildRobot(client, message, false, false);
                         break;
                     }
                 }
@@ -178,18 +196,43 @@ namespace Unlimited_NetworkingServer_MiningGame.Headquarters
                 }
             });
         }
-
+        
         /// <summary>
-        ///     Updates the player level
+        ///     Sends game data to the client
         /// </summary>
-        /// <param name="level">The new player level</param>
         /// <param name="client">The connected client</param>
-        private void UpdatePlayerLevel(byte level, IClient client)
+        private void SendGameData(IClient client)
         {
-            string username = GetPlayerUsername(client);
-            Logger.Info("Updating player level for " + username);
+            Logger.Info("Getting game data");
+            
+            // Retrieve data from database
+            _database.DataLayer.GetGameData(gameData =>
+            {
+                if (gameData != null)
+                {
+                    _gameData = gameData;
+                    
+                    // Send data to the client
+                    using (var newPlayerWriter = DarkRiftWriter.Create())
+                    {
+                        newPlayerWriter.Write(gameData);
 
-            _database.DataLayer.UpdatePlayerLevel(username, level, () => { });
+                        using (var newPlayerMessage = Message.Create(GameTags.GameData, newPlayerWriter))
+                        {
+                            client.SendMessage(newPlayerMessage, SendMode.Reliable);
+                        }
+                    }
+                }
+                else
+                {
+                    if (_debug) Logger.Info("Game data is not available for user " + GetPlayerUsername(client));
+                    
+                    using (var msg = Message.CreateEmpty(GameTags.GameDataUnavailable))
+                    {
+                        client.SendMessage(msg, SendMode.Reliable);
+                    }
+                }
+            });
         }
 
         /// <summary>
@@ -202,7 +245,6 @@ namespace Unlimited_NetworkingServer_MiningGame.Headquarters
             Logger.Info("Converting resources to energy");
             
             long startTime = 0;
-            byte queueNumber = 0;
             string username = GetPlayerUsername(client);
 
             // Receive start time
@@ -223,23 +265,47 @@ namespace Unlimited_NetworkingServer_MiningGame.Headquarters
             {
                 if (isAvailable) 
                 {
-                    _database.DataLayer.GetPlayerEnergy(username, energy =>
+                    _database.DataLayer.GetPlayerResources(username, resources =>
                     {
                         // Get conversion cost
-                        // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-                        uint conversionCost = 0;
-
-                        // Check if energy is available
-                        if (energy >= conversionCost)
+                        bool validCondition = true;
+                        foreach (var tuple in resources.Zip(_gameData.Resources, (x, y) => (x, y)))
+                        {
+                            if (tuple.x.Count < tuple.y.ConversionRate)
+                            {
+                                validCondition = false;
+                            }
+                        }
+                        
+                        if (validCondition)
                         {
                             // Yes: Add resources to conversion
-                            _database.DataLayer.AddResourceConversion(username, queueNumber, startTime, () => { });
-                            
-                            // Send conversion accepted
-                            using (var msg = Message.CreateEmpty(GameTags.ConversionAccepted))
-                            {
-                                client.SendMessage(msg, SendMode.Reliable);
-                            }
+                            _database.DataLayer.AddTask(username, 0, GameConstants.ConversionTask, 0, startTime,
+                                () =>
+                                {
+                                    // Decrease resources count
+                                    foreach (var tuple in resources.Zip(_gameData.Resources, (x, y) => (x, y)))
+                                    {
+                                        tuple.x.Count -= tuple.y.ConversionRate;
+                                    }
+                                    _database.DataLayer.SetPlayerResources(username, resources, () => {});
+                                    
+                                    // Send conversion accepted
+                                    using (var msg = Message.CreateEmpty(GameTags.ConversionAccepted))
+                                    {
+                                        client.SendMessage(msg, SendMode.Reliable);
+                                    }
+                                    
+                                    // Send new resources count
+                                    using (var writer = DarkRiftWriter.Create())
+                                    {
+                                        writer.Write(resources);
+                                        using (var msg = Message.CreateEmpty(GameTags.ResourcesUpdate))
+                                        {
+                                            client.SendMessage(msg, SendMode.Reliable);
+                                        }
+                                    }
+                                });
                         }
                         else
                         {
@@ -278,16 +344,36 @@ namespace Unlimited_NetworkingServer_MiningGame.Headquarters
         private void FinishConvertResources(IClient client)
         {
             Logger.Info("Finish resource conversion");
-            
+
             string username = GetPlayerUsername(client);
             
-            _database.DataLayer.FinishResourceConversion(username, () => { });
-            
-            // Send finish conversion accepted
-            using (var msg = Message.CreateEmpty(GameTags.FinishConversionAccepted))
+            _database.DataLayer.FinishTask(username, 0, GameConstants.ConversionTask, () =>
             {
-                client.SendMessage(msg, SendMode.Reliable);
-            }
+                // Increase energy count
+                _database.DataLayer.GetPlayerEnergy(username, energy =>
+                {
+                    energy += 10000;
+                    
+                    // Send finish conversion accepted
+                    using (var msg = Message.CreateEmpty(GameTags.FinishConversionAccepted))
+                    {
+                        client.SendMessage(msg, SendMode.Reliable);
+                    }
+                    
+                    // Send new energy count
+                    _database.DataLayer.SetPlayerEnergy(username, energy, () =>
+                    {
+                        using (var writer = DarkRiftWriter.Create())
+                        {
+                            writer.Write(energy);
+                            using (var msg = Message.CreateEmpty(GameTags.EnergyUpdate))
+                            {
+                                client.SendMessage(msg, SendMode.Reliable);
+                            }
+                        }
+                    });
+                });
+            });
         }
 
         /// <summary>
@@ -300,7 +386,6 @@ namespace Unlimited_NetworkingServer_MiningGame.Headquarters
             Logger.Info("Upgrading robot");
             
             byte robotId = 0;
-            byte queueNumber = 0;
             long startTime = 0;
             string username = GetPlayerUsername(client);
 
@@ -319,27 +404,44 @@ namespace Unlimited_NetworkingServer_MiningGame.Headquarters
                 }
             }
             
-            _database.DataLayer.TaskAvailable(username, queueNumber, GameConstants.UpgradeTask, isAvailable =>
+            _database.DataLayer.TaskAvailable(username, 0, GameConstants.UpgradeTask, isAvailable =>
             {
                 if (isAvailable)
                 {
                     _database.DataLayer.GetPlayerEnergy(username, energy =>
                     {
                         // Get upgrade cost
-                        // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-                        uint upgradeCost = 0;
+                        uint upgradeCost = _gameData.Robots[robotId].UpgradePrice;
 
                         // Check if energy is available
                         if (energy >= upgradeCost)
                         {
                             // Yes: Add a robot upgrade task
-                            _database.DataLayer.AddRobotUpgrade(username, queueNumber, robotId, startTime, () => { });
-
-                            // Send upgrade accepted
-                            using (var msg = Message.CreateEmpty(GameTags.UpgradeRobotAccepted))
-                            {
-                                client.SendMessage(msg, SendMode.Reliable);
-                            }
+                            _database.DataLayer.AddTask(username, 0, GameConstants.UpgradeTask, robotId, 
+                                startTime, () =>
+                                {
+                                    // Decrease energy
+                                    energy -= upgradeCost;
+                                    _database.DataLayer.SetPlayerEnergy(username, energy, () =>
+                                    {
+                                        // Send upgrade accepted
+                                        using (var msg = Message.CreateEmpty(GameTags.UpgradeRobotAccepted))
+                                        {
+                                            client.SendMessage(msg, SendMode.Reliable);
+                                        }
+                                        
+                                        // Send new energy
+                                        using (var writer = DarkRiftWriter.Create())
+                                        {
+                                            writer.Write(energy);
+                                            using (var msg = Message.CreateEmpty(GameTags.EnergyUpdate))
+                                            {
+                                                client.SendMessage(msg, SendMode.Reliable);
+                                            }
+                                        }
+                                    });
+                                    
+                                });
                         }
                         else
                         {
@@ -375,19 +477,56 @@ namespace Unlimited_NetworkingServer_MiningGame.Headquarters
         ///     Finish the robot upgrades
         /// </summary>
         /// <param name="client">The connected client</param>
-        private void FinishUpgradeRobot(IClient client)
+        /// <param name="message">The message received</param>
+        private void FinishUpgradeRobot(IClient client, Message message)
         {
             Logger.Info("Finish upgrade robot");
             
+            byte robotId = 0;
             string username = GetPlayerUsername(client);
-            
-            _database.DataLayer.FinishRobotUpgrade(username, () => { });
-            
-            // Send finish upgrade accepted
-            using (var msg = Message.CreateEmpty(GameTags.FinishUpgradeAccepted))
+
+            // Receive robot id and start time
+            using (var reader = message.GetReader())
             {
-                client.SendMessage(msg, SendMode.Reliable);
+                try
+                {
+                    robotId = reader.ReadByte();
+                }
+                catch (Exception exception)
+                {
+                    // Return error 0 for Invalid Data Packages Received
+                    InvalidData(client, GameTags.RequestFailed, exception, "Failed to send required data");
+                }
             }
+            
+            _database.DataLayer.FinishTask(username, 0, GameConstants.UpgradeTask, () =>
+            {
+                
+                _database.DataLayer.GetPlayerRobots(username, robots =>
+                {
+                    // Increase robot level
+                    robots[robotId].Level++;
+                    
+                    _database.DataLayer.SetPlayerRobots(username, robots, () =>
+                    {
+                        // Send finish upgrade accepted
+                        using (var msg = Message.CreateEmpty(GameTags.FinishUpgradeAccepted))
+                        {
+                            client.SendMessage(msg, SendMode.Reliable);
+                        }
+                
+                        // Send new robots
+                        using (var writer = DarkRiftWriter.Create())
+                        {
+                            writer.Write(robots);
+                            using (var msg = Message.CreateEmpty(GameTags.RobotsUpdate))
+                            {
+                                client.SendMessage(msg, SendMode.Reliable);
+                            }
+                        }
+                    });
+                });
+            });
         }
 
         /// <summary>
@@ -400,7 +539,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Headquarters
             Logger.Info("Building robot");
             
             byte robotId = 0;
-            byte queueNumber = 0;
+            ushort queueNumber = 0;
             long startTime = 0;
             
             // Receive the queue number, robot id and start time
@@ -408,7 +547,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Headquarters
             {
                 try
                 {
-                    queueNumber = reader.ReadByte();
+                    queueNumber = reader.ReadUInt16();
                     robotId = reader.ReadByte();
                     startTime = reader.ReadInt64();
                 }
@@ -422,30 +561,48 @@ namespace Unlimited_NetworkingServer_MiningGame.Headquarters
             // Get player username
             string username = GetPlayerUsername(client);
             
+            Logger.Info("building robot " + queueNumber + " - " + robotId + " - " + DateTime.FromBinary(startTime));
+            
             // Check if task already exists
             _database.DataLayer.TaskAvailable(username, queueNumber, GameConstants.BuildTask, isAvailable =>
             {
-                Logger.Info("result = " + isAvailable);
+                Logger.Info("Task available " + isAvailable);
                 if (isAvailable)
                 {
                     // Get energy
                     _database.DataLayer.GetPlayerEnergy(username, energy =>
                     {
                         // Get build cost
-                        // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-                        uint buildCost = 0;
+                        uint buildCost = _gameData.Robots[robotId].BuildPrice;
 
                         // Check if energy is available
                         if (energy >= buildCost)
                         {
                             // Yes: Add a build robot task
-                            _database.DataLayer.AddRobotBuild(username, queueNumber, robotId, startTime, () => { });
-                            
-                            // Send build accepted
-                            using (var msg = Message.CreateEmpty(GameTags.BuildRobotAccepted))
-                            {
-                                client.SendMessage(msg, SendMode.Reliable);
-                            }
+                            _database.DataLayer.AddTask(username, queueNumber, GameConstants.BuildTask, robotId,
+                                startTime, () =>
+                                {
+                                    // Decrease energy
+                                    energy -= buildCost;
+                                    _database.DataLayer.SetPlayerEnergy(username, energy, () =>
+                                    {
+                                        // Send build accepted
+                                        using (var msg = Message.CreateEmpty(GameTags.BuildRobotAccepted))
+                                        {
+                                            client.SendMessage(msg, SendMode.Reliable);
+                                        }
+                                        
+                                        // Send new energy
+                                        using (var writer = DarkRiftWriter.Create())
+                                        {
+                                            writer.Write(energy);
+                                            using (var msg = Message.CreateEmpty(GameTags.EnergyUpdate))
+                                            {
+                                                client.SendMessage(msg, SendMode.Reliable);
+                                            }
+                                        }
+                                    });
+                                });
                         }
                         else
                         {
@@ -478,15 +635,19 @@ namespace Unlimited_NetworkingServer_MiningGame.Headquarters
         }
 
         /// <summary>
-        ///     Finish the robot upgrades
+        ///     Finish the robot build
         /// </summary>
         /// <param name="client">The connected client</param>
         /// <param name="message">The message received</param>
-        private void FinishBuildRobot(IClient client, Message message)
+        /// <param name="isFinished">True if the task is finished and false if the task is cancelled</param>
+        /// <param name="inProgress">True if the task is in progress or false otherwise</param>
+        private void FinishBuildRobot(IClient client, Message message, bool isFinished, bool inProgress = true)
         {
-            Logger.Info("Cancelling build robot");
-            
-            byte queueNumber = 0;
+            Logger.Info("Finish build robot");
+
+            byte robotId = 0;
+            ushort queueNumber = 0;
+            long startTime = 0;
             string username = GetPlayerUsername(client);
             
             // Receive queue number
@@ -494,7 +655,9 @@ namespace Unlimited_NetworkingServer_MiningGame.Headquarters
             {
                 try
                 {
-                    queueNumber = reader.ReadByte();
+                    robotId = reader.ReadByte();
+                    queueNumber = reader.ReadUInt16();
+                    startTime = reader.ReadInt64();
                 }
                 catch (Exception exception)
                 {
@@ -502,53 +665,93 @@ namespace Unlimited_NetworkingServer_MiningGame.Headquarters
                     InvalidData(client, GameTags.RequestFailed, exception, "Failed to send required data");
                 }
             }
-
-            // Add resources to conversion
-            _database.DataLayer.FinishRobotBuild(username, queueNumber,() => {});
             
-            // Send cancel conversion accepted
-            using (var msg = Message.CreateEmpty(GameTags.FinishBuildAccepted))
+            Logger.Info("Finish build robot with " + queueNumber + " - " + startTime);
+            
+            _database.DataLayer.FinishTask(username, queueNumber,GameConstants.BuildTask, () =>
             {
-                client.SendMessage(msg, SendMode.Reliable);
-            }
-        }
-        
-        /// <summary>
-        ///     Cancels the robot upgrades
-        /// </summary>
-        /// <param name="client">The connected client</param>
-        /// <param name="message">The message received</param>
-        private void CancelBuildRobot(IClient client, Message message)
-        {
-            Logger.Info("Cancelling build robot");
-            
-            string username = GetPlayerUsername(client);
-            
-            // Receive robot id and robot part
-            byte queueNumber = 0;
-            using (var reader = message.GetReader())
-            {
-                try
+                if (isFinished)
                 {
-                    queueNumber = reader.ReadByte();
+                    // Task finished -> increase robot type count
+                    _database.DataLayer.GetPlayerRobots(username, robots =>
+                    {
+                        robots[robotId].Count++;
+                        
+                        _database.DataLayer.UpdateTasks(username, queueNumber, GameConstants.BuildTask, startTime, () =>
+                        {
+                            // Send finish task accepted
+                            using (var msg = Message.CreateEmpty(GameTags.FinishBuildAccepted))
+                            {
+                                client.SendMessage(msg, SendMode.Reliable);
+                                Logger.Info("Sending finish build accepted");
+                            }
+                        
+                            // Send new robots
+                            using (var writer = DarkRiftWriter.Create())
+                            {
+                                writer.Write(robots);
+                                using (var msg = Message.CreateEmpty(GameTags.RobotsUpdate))
+                                {
+                                    client.SendMessage(msg, SendMode.Reliable);
+                                }
+                            }
+                        });
+                    });
                 }
-                catch (Exception exception)
+                else
                 {
-                    // Return error 0 for Invalid Data Packages Received
-                    InvalidData(client, GameTags.RequestFailed, exception, "Failed to send required data");
-                }
-            }
-
-            // Add resources to conversion
-            _database.DataLayer.CancelRobotBuild(username, queueNumber,() => {});
-            
-            // Send cancel conversion accepted
-            using (var msg = Message.CreateEmpty(GameTags.FinishBuildAccepted))
-            {
-                client.SendMessage(msg, SendMode.Reliable);
-            }
+                    // Task cancelled -> return energy
+                    // Decrease energy
+                    _database.DataLayer.GetPlayerEnergy(username, energy =>
+                    {
+                        // Get upgrade cost
+                        energy -= _gameData.Robots[robotId].BuildPrice;
+                        
+                        _database.DataLayer.SetPlayerEnergy(username, energy, () =>
+                        {
+                            if (inProgress)
+                            {   
+                                _database.DataLayer.UpdateTasks(username, queueNumber, GameConstants.BuildTask, startTime, () =>
+                                {
+                                    // Send finish task accepted
+                                    using (var msg = Message.CreateEmpty(GameTags.FinishBuildAccepted))
+                                    {
+                                        client.SendMessage(msg, SendMode.Reliable);
+                                        Logger.Info("Sending finish build accepted");
+                                    }
+                                });
+                            }
+                            else
+                            {
+                                // Send finish task accepted
+                                using (var msg = Message.CreateEmpty(GameTags.FinishBuildAccepted))
+                                {
+                                    client.SendMessage(msg, SendMode.Reliable);
+                                    Logger.Info("Sending finish build accepted");
+                                }
+                            }
+                    
+                            // Send new energy
+                            using (var writer = DarkRiftWriter.Create())
+                            {
+                                writer.Write(energy);
+                                using (var msg = Message.CreateEmpty(GameTags.EnergyUpdate))
+                                {
+                                    client.SendMessage(msg, SendMode.Reliable);
+                                }
+                            }
+                        });
+                    });
+                } 
+            });
         }
+
+        #endregion
+
+        #region PlayerDataMethods
         
+        
+
         #endregion
         
         #region ErrorHandling

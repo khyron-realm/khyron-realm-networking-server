@@ -1,4 +1,4 @@
-namespace Unlimited_NetworkingServer_MiningGame.GameData
+namespace Unlimited_NetworkingServer_MiningGame.Game
 {
     public class LevelFormulas
     {

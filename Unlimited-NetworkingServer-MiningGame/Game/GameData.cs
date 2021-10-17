@@ -1,11 +1,11 @@
 using DarkRift;
 using MongoDB.Bson.Serialization.Attributes;
 
-namespace Unlimited_NetworkingServer_MiningGame.GameData
+namespace Unlimited_NetworkingServer_MiningGame.Game
 {
-    public class GameParameters : IDarkRiftSerializable
+    public class GameData : IDarkRiftSerializable
     {
-        public GameParameters(ushort version, byte maxPlayerLevel, byte maxRobotLevel, uint maxEnergy,
+        public GameData(ushort version, byte maxPlayerLevel, byte maxRobotLevel, uint maxEnergy,
             ushort maxExperience, uint maxHousingSpace, ushort conversionTime, ResourceDetails[] resources,
             RobotDetails[] robots, LevelFormulas[] levels)
         {
@@ -21,7 +21,7 @@ namespace Unlimited_NetworkingServer_MiningGame.GameData
             Levels = levels;
         }
         
-        public GameParameters() { }
+        public GameData() { }
 
         [BsonId]
         public ushort Version { get; set; }

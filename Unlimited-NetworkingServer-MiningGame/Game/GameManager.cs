@@ -2,7 +2,7 @@ using System;
 using DarkRift.Server;
 using Unlimited_NetworkingServer_MiningGame.Database;
 
-namespace Unlimited_NetworkingServer_MiningGame.GameData
+namespace Unlimited_NetworkingServer_MiningGame.Game
 {
     /// <summary>
     ///     Game manager for updating game elements
@@ -11,7 +11,7 @@ namespace Unlimited_NetworkingServer_MiningGame.GameData
     {
         private static readonly object InitializeLock = new object();
         private DatabaseProxy _database;
-        private GameParameters _parameters;
+        private GameData Data;
 
         public GameManager(PluginLoadData pluginLoadData) : base(pluginLoadData)
         {
@@ -22,12 +22,12 @@ namespace Unlimited_NetworkingServer_MiningGame.GameData
 
         public override Command[] Commands => new[]
         {
-            new Command("DefaultParameters", "Store the default game parameters in the database", "DefaultParameters [version]",
-                DefaultParameters),
-            new Command("StoreParameters", "Store the game parameters in the database", "StoreParameters",
-                StoreParameters),
-            new Command("GetParameters", "Get the game parameters from the database for the specified version", "GetParameters [version]",
-                GetGameParameters)
+            new Command("DefaultGameData", "Initialize the game data with the default parameters", "DefaultGameData [version]",
+                DefaultGameData),
+            new Command("StoreGameData", "Store the game data parameters in the database", "StoreGameData",
+                StoreGameData),
+            new Command("GetGameData", "Get the game data parameters from the database for the specified version", "GetGameData [version]",
+                ExtractGameData)
         };
 
         /// <summary>
@@ -46,15 +46,15 @@ namespace Unlimited_NetworkingServer_MiningGame.GameData
         #region Commands
         
         /// <summary>
-        ///     Initializes the default game parameters
+        ///     Initializes the default game data
         /// </summary>
         /// <param name="sender">The sender object</param>
         /// <param name="e">The command event object</param>
-        private void DefaultParameters(object sender, CommandEventArgs e)
+        private void DefaultGameData(object sender, CommandEventArgs e)
         {
             if (e.Arguments.Length != 1)
             {
-                Logger.Warning("Invalid arguments. Enter DefaultParameters [version]");
+                Logger.Warning("Invalid arguments. Enter DefaultGameData [version]");
                 return;
             }
 
@@ -79,44 +79,44 @@ namespace Unlimited_NetworkingServer_MiningGame.GameData
                 new LevelFormulas(0, 1, 1, 1)
             };
 
-            _parameters = new GameParameters(version, 30, 10, 100000, 60000, 
+            Data = new Game.GameData(version, 30, 10, 100000, 60000, 
                 30, 5, resources, robots, formulas);
             
-            Logger.Info("Initialized the parameters to default values for the version " + version);
+            Logger.Info("Initialized the game data to default values for the version " + version);
         }
         
         /// <summary>
-        ///     Stores the game parameters in the database
+        ///     Stores the game data in the database
         /// </summary>
         /// <param name="sender">The sender object</param>
         /// <param name="e">The command event object</param>
-        private void StoreParameters(object sender, CommandEventArgs e)
+        private void StoreGameData(object sender, CommandEventArgs e)
         {
             InitializeDb();
 
-            if(_parameters != null)
+            if(Data != null)
             {
-                _database.DataLayer.AddGameParameters(_parameters, () => { Logger.Info("Adding game parameters"); });
+                _database.DataLayer.AddGameData(Data, () => { Logger.Info("Adding game data"); });
             }
             else 
             {
-                Logger.Error("Parameters are not initialized");
+                Logger.Error("Game data data are not initialized");
             }
             
         }
 
         /// <summary>
-        ///     Stores the game parameters in the database
+        ///     Gets the game data in the database
         /// </summary>
         /// <param name="sender">The sender object</param>
         /// <param name="e">The command event object</param>
-        private void GetGameParameters(object sender, CommandEventArgs e)
+        private void ExtractGameData(object sender, CommandEventArgs e)
         {
             InitializeDb();
 
             if (e.Arguments.Length > 1)
             {
-                Logger.Warning("Invalid arguments. Enter GetParameters [version]");
+                Logger.Warning("Invalid arguments. Enter GetGameData [version]");
                 return;
             }
 
@@ -125,30 +125,34 @@ namespace Unlimited_NetworkingServer_MiningGame.GameData
                 var version = Convert.ToUInt16(e.Arguments[0]);
                 try
                 {
-                    _database.DataLayer.GetGameParameters(version,
-                        _parameters => { Logger.Info("Getting game parameters version " + _parameters.Version); });
+                    _database.DataLayer.GetGameData(version, gameData =>
+                    {
+                        Data = gameData;
+                        Logger.Info("Getting game data version " + gameData.Version);
+                    });
                 }
                 catch (NullReferenceException)
                 {
-                    Logger.Error("No parameters stored");
+                    Logger.Error("No parameters stored in the game data");
                 }
             }
             catch (IndexOutOfRangeException)
             {
                 try
                 {
-                    _database.DataLayer.GetGameParameters(_parameters =>
+                    _database.DataLayer.GetGameData(gameData =>
                     {
-                        Logger.Info("Getting game parameters version " + _parameters.Version);
+                        Data = gameData;
+                        Logger.Info("Getting game data version " + Data.Version);
                     });
                 }
                 catch (NullReferenceException)
                 {
-                    Logger.Error("No parameters stored");
+                    Logger.Error("No parameters stored in the game data");
                 }
             }
         }
-
+        
         #endregion
     }
 }

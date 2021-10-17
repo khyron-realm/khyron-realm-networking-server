@@ -4,7 +4,6 @@ using System.Xml.Linq;
 using DarkRift.Server;
 using MongoDB.Driver;
 using Unlimited_NetworkingServer_MiningGame.Database;
-using Unlimited_NetworkingServer_MiningGame.GameData;
 using Unlimited_NetworkingServer_MiningGame.Headquarters;
 
 namespace Unlimited_NetworkingServer_MiningGame.MongoDbConnector
@@ -50,7 +49,7 @@ namespace Unlimited_NetworkingServer_MiningGame.MongoDbConnector
 
         public IMongoCollection<User> Users { get; private set; }
         public IMongoCollection<PlayerData> PlayerData { get; private set; }
-        public IMongoCollection<GameParameters> Parameters { get; set; }
+        public IMongoCollection<Game.GameData> GameData { get; private set; }
 
         /// <summary>
         ///     Create or load the config document for setting the database connection
@@ -128,7 +127,7 @@ namespace Unlimited_NetworkingServer_MiningGame.MongoDbConnector
         {
             Users = _mongoDatabase.GetCollection<User>("Users");
             PlayerData = _mongoDatabase.GetCollection<PlayerData>("PlayerData");
-            Parameters = _mongoDatabase.GetCollection<GameParameters>("Parameters");
+            GameData = _mongoDatabase.GetCollection<Game.GameData>("GameData");
         }
 
         #region Commands

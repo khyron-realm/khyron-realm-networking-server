@@ -1,6 +1,6 @@
 using DarkRift;
 
-namespace Unlimited_NetworkingServer_MiningGame.GameData
+namespace Unlimited_NetworkingServer_MiningGame.Game
 {
     /// <summary>
     ///     Stores the resource data
@@ -9,7 +9,7 @@ namespace Unlimited_NetworkingServer_MiningGame.GameData
     {
         public byte Id { get; set; }
         public string Name { get; set; }
-        public ushort ConversionRate { get; set; }
+        public ushort ConversionRate { get; set; }              // Number of resources necessary
         public uint MaxCount { get; set; }
 
         public ResourceDetails() {}

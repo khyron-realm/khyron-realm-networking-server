@@ -1,5 +1,5 @@
 using System;
-using Unlimited_NetworkingServer_MiningGame.GameData;
+using Unlimited_NetworkingServer_MiningGame.Game;
 using Unlimited_NetworkingServer_MiningGame.Headquarters;
 
 namespace Unlimited_NetworkingServer_MiningGame.Database
@@ -73,7 +73,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Database
         /// <param name="username">The user name</param>
         /// <param name="level">The new player level</param>
         /// <param name="callback">Action executed</param>
-        void UpdatePlayerLevel(string username, byte level, Action callback);
+        void SetPlayerLevel(string username, byte level, Action callback);
         
         /// <summary>
         ///     Retrieves player experience from the database 
@@ -88,7 +88,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Database
         /// <param name="username">The user name</param>
         /// <param name="experience">The new player experience</param>
         /// <param name="callback">Action executed</param>
-        void UpdatePlayerExperience(string username, ushort experience, Action callback);
+        void SetPlayerExperience(string username, ushort experience, Action callback);
 
         /// <summary>
         ///     Retrieves player energy from the database 
@@ -103,98 +103,100 @@ namespace Unlimited_NetworkingServer_MiningGame.Database
         /// <param name="username">The user name</param>
         /// <param name="energy">The new player energy</param>
         /// <param name="callback">Action executed</param>
-        void UpdatePlayerEnergy(string username, uint energy, Action callback);
+        void SetPlayerEnergy(string username, uint energy, Action callback);
+        
+        /// <summary>
+        ///     Retrieves player resources from the database 
+        /// </summary>
+        /// <param name="username">The user name</param>
+        /// <param name="callback">Action executed</param>
+        void GetPlayerResources(string username, Action<Resource[]> callback);
 
+        /// <summary>
+        ///     Updates the player resources
+        /// </summary>
+        /// <param name="username">The user name</param>
+        /// <param name="resources">The new player resources</param>
+        /// <param name="callback">Action executed</param>
+        void SetPlayerResources(string username, Resource[] resources, Action callback);
+        
+        /// <summary>
+        ///     Retrieves player robots from the database 
+        /// </summary>
+        /// <param name="username">The user name</param>
+        /// <param name="callback">Action executed</param>
+        void GetPlayerRobots(string username, Action<Robot[]> callback);
+
+        /// <summary>
+        ///     Updates the player robots
+        /// </summary>
+        /// <param name="username">The user name</param>
+        /// <param name="robots">The new player robots</param>
+        /// <param name="callback">Action executed</param>
+        void SetPlayerRobots(string username, Robot[] robots, Action callback);
+        
         /// <summary>
         ///     Returns true if 
         /// </summary>
         /// <param name="username">The user name</param>
-        /// <param name="queueNumber">The task number in queue</param>
+        /// <param name="id">The task number in queue</param>
         /// <param name="type">The robot type</param>
         /// <param name="callback">Action executed</param>
-        void TaskAvailable(string username, byte queueNumber, byte type,  Action<bool> callback);
+        void TaskAvailable(string username, ushort id, byte type,  Action<bool> callback);
 
         /// <summary>
-        ///     Adds a resource conversion task
+        ///     Adds a task
         /// </summary>
         /// <param name="username">The user name</param>
-        /// <param name="queueNumber">The number in the queue</param>
-        /// <param name="time">The finalization time</param>
+        /// <param name="id">The number in the queue</param>
+        /// <param name="type">The task type</param>
+        /// <param name="element">The selected element</param>
+        /// <param name="time">The start time</param>
         /// <param name="callback">Action executed</param>
-        void AddResourceConversion(string username, byte queueNumber, long time, Action callback);
-        
-        /// <summary>
-        ///     Finish the resource conversion task
-        /// </summary>
-        /// <param name="username">The user name</param>
-        /// <param name="callback">Action executed</param>
-        void FinishResourceConversion(string username, Action callback);
+        void AddTask(string username, ushort id, byte type, byte element, long time, Action callback);
 
         /// <summary>
-        ///     Adds a upgrade task for the robot id and part
+        ///     Finish a task
         /// </summary>
         /// <param name="username">The user name</param>
-        /// <param name="queueNumber">The number in the queue</param>
-        /// <param name="robotId">The robot type</param>
-        /// <param name="time">The finalization time</param>
+        /// <param name="id">The task id</param>
+        /// <param name="type">The task type</param>
         /// <param name="callback">Action executed</param>
-        void AddRobotUpgrade(string username, byte queueNumber, byte robotId, long time, Action callback);
+        void FinishTask(string username, ushort id, byte type, Action callback);
 
         /// <summary>
-        ///     Finish the robot upgrade
+        ///     Updated following tasks
         /// </summary>
         /// <param name="username">The user name</param>
+        /// <param name="id">The number in the queue</param>
+        /// <param name="type">The task type</param>
+        /// <param name="time">The start time</param>
         /// <param name="callback">Action executed</param>
-        void FinishRobotUpgrade(string username, Action callback);
-
-        /// <summary>
-        ///     Adds a building task for the robot id
-        /// </summary>
-        /// <param name="username">The user name</param>
-        /// <param name="queueNumber">The number in the queue</param>
-        /// <param name="robotId">The robot type</param>
-        /// <param name="time">The finalization time</param>
-        /// <param name="callback">Action executed</param>
-        void AddRobotBuild(string username, byte queueNumber, byte robotId, long time, Action callback);
-
-        /// <summary>
-        ///     Finish the robot building
-        /// </summary>
-        /// <param name="username">The user name</param>
-        /// <param name="queueNumber">The robot type</param>
-        /// <param name="callback">Action executed</param>
-        void FinishRobotBuild(string username, byte queueNumber, Action callback);
-        
-        /// <summary>
-        ///     Cancel the robot building
-        /// </summary>
-        /// <param name="username">The user name</param>
-        /// <param name="queueNumber">The robot type</param>
-        /// <param name="callback">Action executed</param>
-        void CancelRobotBuild(string username, byte queueNumber, Action callback);
+        void UpdateTasks(string username, ushort id, byte type, long time, Action callback);
 
         #endregion
 
         #region Parameters
 
         /// <summary>
-        ///     Store the game parameters
+        ///     Store the game data
         /// </summary>
-        /// <param name="parameters">The game parameters</param>
+        /// <param name="data">The game parameters</param>
         /// <param name="callback">Action executed</param>
-        void AddGameParameters(GameParameters parameters, Action callback);
+        void AddGameData(GameData data, Action callback);
 
         /// <summary>
-        ///     Retrieves the game parameters
+        ///     Retrieves the game data
         /// </summary>
         /// <param name="callback">Action executed</param>
-        void GetGameParameters(Action<GameParameters> callback);
-        
+        void GetGameData(Action<GameData> callback);
+
         /// <summary>
-        ///     Retrieves the game parameters
+        ///     Retrieves the game data
         /// </summary>
+        /// <param name="version">The game data version</param>
         /// <param name="callback">Action executed</param>
-        void GetGameParameters(ushort version, Action<GameParameters> callback);
+        void GetGameData(ushort version, Action<GameData> callback);
 
         #endregion
     }

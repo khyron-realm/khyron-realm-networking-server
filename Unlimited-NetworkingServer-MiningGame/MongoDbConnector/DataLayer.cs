@@ -1,7 +1,6 @@
 using System;
 using MongoDB.Driver;
 using Unlimited_NetworkingServer_MiningGame.Database;
-using Unlimited_NetworkingServer_MiningGame.GameData;
 using Unlimited_NetworkingServer_MiningGame.Headquarters;
 
 namespace Unlimited_NetworkingServer_MiningGame.MongoDbConnector
@@ -76,7 +75,7 @@ namespace Unlimited_NetworkingServer_MiningGame.MongoDbConnector
         }
         
         /// <inheritdoc />
-        public async void UpdatePlayerLevel(string username, byte level, Action callback)
+        public async void SetPlayerLevel(string username, byte level, Action callback)
         {
             var filter = Builders<PlayerData>.Filter.Eq(u => u.Id, username);
             var update = Builders<PlayerData>.Update.Set(u => u.Level, level);
@@ -93,7 +92,7 @@ namespace Unlimited_NetworkingServer_MiningGame.MongoDbConnector
         }
 
         /// <inheritdoc />
-        public async void UpdatePlayerExperience(string username, ushort experience, Action callback)
+        public async void SetPlayerExperience(string username, ushort experience, Action callback)
         {
             var filter = Builders<PlayerData>.Filter.Eq(u => u.Id, username);
             var update = Builders<PlayerData>.Update.Set(u => u.Experience, experience);
@@ -109,95 +108,92 @@ namespace Unlimited_NetworkingServer_MiningGame.MongoDbConnector
         }
 
         /// <inheritdoc />
-        public async void UpdatePlayerEnergy(string username, uint energy, Action callback)
+        public async void SetPlayerEnergy(string username, uint energy, Action callback)
         {
             var filter = Builders<PlayerData>.Filter.Eq(u => u.Id, username);
             var update = Builders<PlayerData>.Update.Set(u => u.Energy, energy);
             await _database.PlayerData.UpdateOneAsync(filter, update);
             callback();
         }
+        
+        /// <inheritdoc />
+        public async void GetPlayerResources(string username, Action<Resource[]> callback)
+        {
+            var resources = await _database.PlayerData.Find(u => u.Id == username).Project(u => u.Resources).FirstOrDefaultAsync();
+            callback(resources);
+        }
 
         /// <inheritdoc />
-        public async void TaskAvailable(string username, byte queueNumber, byte type, Action<bool> callback)
+        public async void SetPlayerResources(string username, Resource[] resources, Action callback)
+        {
+            var filter = Builders<PlayerData>.Filter.Eq(u => u.Id, username);
+            var update = Builders<PlayerData>.Update.Set(u => u.Resources, resources);
+            await _database.PlayerData.UpdateOneAsync(filter, update);
+            callback();
+        }
+
+        /// <inheritdoc />
+        public async void GetPlayerRobots(string username, Action<Robot[]> callback)
+        {
+            var robots = await _database.PlayerData.Find(u => u.Id == username).Project(u => u.Robots).FirstOrDefaultAsync();
+            callback(robots);
+        }
+
+        /// <inheritdoc />
+        public async void SetPlayerRobots(string username, Robot[] robots, Action callback)
+        {
+            var filter = Builders<PlayerData>.Filter.Eq(u => u.Id, username);
+            var update = Builders<PlayerData>.Update.Set(u => u.Robots, robots);
+            await _database.PlayerData.UpdateOneAsync(filter, update);
+            callback();
+        }
+
+        /// <inheritdoc />
+        public async void TaskAvailable(string username, ushort id, byte type, Action<bool> callback)
         {
             var filter = Builders<PlayerData>.Filter.And(
                 Builders<PlayerData>.Filter.Eq(u => u.Id, username),
                 Builders<PlayerData>.Filter.ElemMatch(u => u.TaskQueue, Builders<BuildTask>.Filter.And(
-                        Builders<BuildTask>.Filter.Eq(b => b.Id, queueNumber),
+                        Builders<BuildTask>.Filter.Eq(b => b.Id, id),
                         Builders<BuildTask>.Filter.Eq(b => b.Type, type)))
             );
             callback(await _database.PlayerData.Find(filter).FirstOrDefaultAsync() == null);
         }
-
-        /// <inheritdoc />
-        public async void AddResourceConversion(string username, byte queueNumber, long time, Action callback)
-        {
-            var conversion = new BuildTask(queueNumber, GameConstants.ConversionTask, 0, time);
-            var filter = Builders<PlayerData>.Filter.Eq(u => u.Id, username);
-            var update = Builders<PlayerData>.Update.Push(u => u.TaskQueue, conversion);
-            await _database.PlayerData.UpdateOneAsync(filter, update);
-            callback();
-        }
-
-        /// <inheritdoc />
-        public async void FinishResourceConversion(string username, Action callback)
-        {
-            var filter = Builders<PlayerData>.Filter.Eq(u => u.Id, username);
-            var update = Builders<PlayerData>.Update.PullFilter(u => u.TaskQueue, f => f.Type == GameConstants.ConversionTask);
-            await _database.PlayerData.UpdateOneAsync(filter, update);
-            callback();
-        }
         
         /// <inheritdoc />
-        public async void AddRobotUpgrade(string username, byte queueNumber, byte robotId, long time, Action callback)
+        public async void AddTask(string username, ushort id, byte type, byte element, long time, Action callback)
         {
-            var upgrade = new BuildTask(queueNumber, GameConstants.UpgradeTask, robotId, time);
+            var upgrade = new BuildTask(id, type, element, time);
             var filter = Builders<PlayerData>.Filter.Eq(u => u.Id, username);
             var update = Builders<PlayerData>.Update.AddToSet(u => u.TaskQueue, upgrade);
             await _database.PlayerData.UpdateOneAsync(filter, update);
             callback();
         }
-        
+
         /// <inheritdoc />
-        public async void FinishRobotUpgrade(string username, Action callback)
+        public async void FinishTask(string username, ushort id, byte type, Action callback)
         {
             var filter = Builders<PlayerData>.Filter.Eq(u => u.Id, username);
-            var update = Builders<PlayerData>.Update.PullFilter(u => u.TaskQueue, f => f.Type == GameConstants.UpgradeTask);
+            var update = Builders<PlayerData>.Update.PullFilter( u => u.TaskQueue, 
+                Builders<BuildTask>.Filter.And(Builders<BuildTask>.Filter.Eq(b => b.Id, id),
+                    Builders<BuildTask>.Filter.Eq(b => b.Type, type)
+                ));
             await _database.PlayerData.UpdateOneAsync(filter, update);
             callback();
         }
-
-        /// <inheritdoc />
-        public async void AddRobotBuild(string username, byte queueNumber, byte robotId, long time, Action callback)
-        {
-            var build = new BuildTask(queueNumber, GameConstants.BuildTask, robotId, time);
-            var filter = Builders<PlayerData>.Filter.Eq(u => u.Id, username);
-            var update = Builders<PlayerData>.Update.Push(u => u.TaskQueue, build);
-
-            await _database.PlayerData.UpdateOneAsync(filter, update);
-            callback();
-        }
-
-        /// <inheritdoc />
-        public async void FinishRobotBuild(string username, byte queueNumber, Action callback)
-        {
-            /*
-            var filter = Builders<PlayerData>.Filter.Eq(u => u.Id, username);
-            var update = Builders<PlayerData>.Update.PullFilter(u => u.TaskQueue, f => f.Id == queueNumber);
-            await _database.PlayerData.UpdateOneAsync(filter, update);       
-            callback();
-            */
-        }
         
         /// <inheritdoc />
-        public async void CancelRobotBuild(string username, byte queueNumber, Action callback)
+        public async void UpdateTasks(string username, ushort id, byte type, long time, Action callback)
         {
-            /*
-            var filter = Builders<PlayerData>.Filter.Eq(u => u.Id, username);
-            var update = Builders<PlayerData>.Update.PullFilter(u => u.TaskQueue, f => f.Id == queueNumber);
-            await _database.PlayerData.UpdateOneAsync(filter, update);       
+            var filter = Builders<PlayerData>.Filter.And(
+                Builders<PlayerData>.Filter.Eq(u => u.Id, username),
+                Builders<PlayerData>.Filter.ElemMatch(u => u.TaskQueue, Builders<BuildTask>.Filter.And(
+                    Builders<BuildTask>.Filter.Eq(b => b.Id, id+1),
+                    Builders<BuildTask>.Filter.Eq(b => b.Type, type)))
+                );
+            var update = Builders<PlayerData>.Update.Set(b => b.TaskQueue[-1].StartTime, time);
+            await _database.PlayerData.UpdateOneAsync(filter, update);
             callback();
-            */
         }
 
         #endregion
@@ -205,26 +201,26 @@ namespace Unlimited_NetworkingServer_MiningGame.MongoDbConnector
         #region Parameters
 
         /// <inheritdoc />
-        public async void AddGameParameters(GameParameters parameters, Action callback)
+        public async void AddGameData(Game.GameData data, Action callback)
         {
-            await _database.Parameters.InsertOneAsync(parameters);
+            await _database.GameData.InsertOneAsync(data);
             callback();
         }
         
         /// <inheritdoc />
-        public async void GetGameParameters(Action<GameParameters> callback)
+        public async void GetGameData(Action<Game.GameData> callback)
         {
-            var filter = Builders<GameParameters>.Filter.Empty;
-            var sort = Builders<GameParameters>.Sort.Descending(p => p.Version);
-            var parameters = await _database.Parameters.Find(filter).Sort(sort).FirstOrDefaultAsync();
-            callback(parameters);
+            var filter = Builders<Game.GameData>.Filter.Empty;
+            var sort = Builders<Game.GameData>.Sort.Descending(p => p.Version);
+            var gameData = await _database.GameData.Find(filter).Sort(sort).FirstOrDefaultAsync();
+            callback(gameData);
         }
 
         /// <inheritdoc />
-        public async void GetGameParameters(ushort version, Action<GameParameters> callback)
+        public async void GetGameData(ushort version, Action<Game.GameData> callback)
         {
-            var parameters = await _database.Parameters.Find(p => p.Version == version).FirstOrDefaultAsync();
-            callback(parameters);
+            var gameData = await _database.GameData.Find(p => p.Version == version).FirstOrDefaultAsync();
+            callback(gameData);
         }
 
         #endregion

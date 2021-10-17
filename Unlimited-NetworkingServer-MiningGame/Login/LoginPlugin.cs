@@ -139,29 +139,33 @@ namespace Unlimited_NetworkingServer_MiningGame.Login
         {
             // Extract game elements
             //
-            byte nrRobots = 3;
             byte nrResources = 3;
             string[] resourceNames = {"Silicon", "Lithium", "Titanium"};
+            uint[] resourceInitialCount = { 1000, 450, 250 };
+            
+            byte nrRobots = 3;
             string[] robotNames = {"Worker", "Probe", "Crusher"};
+            byte[] robotsInitialCount = {0, 0, 0};
+            
             
             // Create player data
             string id = username;
             byte level = 1;
             ushort experience = 1;
-            uint energy = 1000;
+            uint energy = 10000;
 
             // Create resources
             Resource[] resources = new Resource[nrResources];
             foreach (int iterator in Enumerable.Range(0, nrResources))
             {
-                resources[iterator] = new Resource((byte)iterator, resourceNames[iterator], 10);
+                resources[iterator] = new Resource((byte)iterator, resourceNames[iterator], resourceInitialCount[iterator]);
             }
 
             // Create robots
             Robot[] robots = new Robot[nrRobots];
             foreach (int iterator in Enumerable.Range(0, nrRobots))
             {
-                robots[iterator] = new Robot((byte)iterator, robotNames[iterator], level, 1);
+                robots[iterator] = new Robot((byte)iterator, robotNames[iterator], level, robotsInitialCount[iterator]);
             }
             
             // Create tasks queue
