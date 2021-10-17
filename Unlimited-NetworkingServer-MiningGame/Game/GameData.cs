@@ -20,7 +20,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Game
             Robots = robots;
             Levels = levels;
         }
-        
+
         public GameData() { }
 
         [BsonId]
@@ -39,12 +39,30 @@ namespace Unlimited_NetworkingServer_MiningGame.Game
 
         public void Deserialize(DeserializeEvent e)
         {
-            throw new System.NotImplementedException();
+            Version = e.Reader.ReadUInt16();
+            MaxPlayerLevel = e.Reader.ReadByte();
+            MaxRobotLevel = e.Reader.ReadByte();
+            MaxEnergy = e.Reader.ReadUInt32();
+            MaxExperience = e.Reader.ReadUInt16();
+            MaxHousingSpace = e.Reader.ReadUInt32();
+            ConversionTime = e.Reader.ReadUInt16();
+            Resources = e.Reader.ReadSerializables<ResourceDetails>();
+            Robots = e.Reader.ReadSerializables<RobotDetails>();
+            Levels = e.Reader.ReadSerializables<LevelFormulas>();
         }
 
         public void Serialize(SerializeEvent e)
         {
-            throw new System.NotImplementedException();
+            e.Writer.Write(Version);
+            e.Writer.Write(MaxPlayerLevel);
+            e.Writer.Write(MaxRobotLevel);
+            e.Writer.Write(MaxEnergy);
+            e.Writer.Write(MaxExperience);
+            e.Writer.Write(MaxHousingSpace);
+            e.Writer.Write(ConversionTime);
+            e.Writer.Write(Resources);
+            e.Writer.Write(Robots);
+            e.Writer.Write(Levels);
         }
 
         #endregion

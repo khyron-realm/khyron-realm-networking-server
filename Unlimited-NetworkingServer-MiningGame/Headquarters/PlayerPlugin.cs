@@ -267,6 +267,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Headquarters
                 {
                     _database.DataLayer.GetPlayerResources(username, resources =>
                     {
+                        Logger.Info("Getting player resources");
                         // Get conversion cost
                         bool validCondition = true;
                         foreach (var tuple in resources.Zip(_gameData.Resources, (x, y) => (x, y)))
@@ -276,6 +277,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Headquarters
                                 validCondition = false;
                             }
                         }
+                        Logger.Info("GameData is ok");
                         
                         if (validCondition)
                         {
