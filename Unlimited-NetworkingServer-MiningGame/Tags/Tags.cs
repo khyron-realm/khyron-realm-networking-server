@@ -6,5 +6,6 @@ namespace Unlimited_NetworkingServer_MiningGame.Tags
         
         public const byte Game = 0;
         public const byte Login = 1;
+        public const byte Auction = 2;
     }
 }

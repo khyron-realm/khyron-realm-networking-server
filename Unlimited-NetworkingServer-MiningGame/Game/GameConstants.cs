@@ -1,4 +1,4 @@
-namespace Unlimited_NetworkingServer_MiningGame.Headquarters
+namespace Unlimited_NetworkingServer_MiningGame.Game
 {
     public static class GameConstants
     {

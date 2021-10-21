@@ -7,13 +7,13 @@ namespace Unlimited_NetworkingServer_MiningGame.Game
     /// <summary>
     ///     Game manager for updating game elements
     /// </summary>
-    public class GameManager : Plugin
+    public class GamePlugin : Plugin
     {
         private static readonly object InitializeLock = new object();
         private DatabaseProxy _database;
-        private GameData Data;
+        private GameData _data;
 
-        public GameManager(PluginLoadData pluginLoadData) : base(pluginLoadData)
+        public GamePlugin(PluginLoadData pluginLoadData) : base(pluginLoadData)
         {
         }
 
@@ -74,12 +74,12 @@ namespace Unlimited_NetworkingServer_MiningGame.Game
                 new RobotDetails(2, "Crusher", 2000, 5, 40, 30, 15, 300, 3000, 4)
             };
 
-            LevelFormulas[] formulas =
+            LevelDetails[] formulas =
             {
-                new LevelFormulas(0, 1, 1, 1)
+                new LevelDetails(0, 1, 1, 1)
             };
 
-            Data = new Game.GameData(version, 30, 10, 100000, 60000, 
+            _data = new Game.GameData(version, 30, 10, 100000, 60000, 
                 30, 5, resources, robots, formulas);
             
             Logger.Info("Initialized the game data to default values for the version " + version);
@@ -94,9 +94,9 @@ namespace Unlimited_NetworkingServer_MiningGame.Game
         {
             InitializeDb();
 
-            if(Data != null)
+            if(_data != null)
             {
-                _database.DataLayer.AddGameData(Data, () => { Logger.Info("Adding game data"); });
+                _database.DataLayer.AddGameData(_data, () => { Logger.Info("Adding game data"); });
             }
             else 
             {
@@ -127,7 +127,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Game
                 {
                     _database.DataLayer.GetGameData(version, gameData =>
                     {
-                        Data = gameData;
+                        _data = gameData;
                         Logger.Info("Getting game data version " + gameData.Version);
                     });
                 }
@@ -142,8 +142,8 @@ namespace Unlimited_NetworkingServer_MiningGame.Game
                 {
                     _database.DataLayer.GetGameData(gameData =>
                     {
-                        Data = gameData;
-                        Logger.Info("Getting game data version " + Data.Version);
+                        _data = gameData;
+                        Logger.Info("Getting game data version " + _data.Version);
                     });
                 }
                 catch (NullReferenceException)

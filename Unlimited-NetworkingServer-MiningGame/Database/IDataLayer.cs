@@ -176,7 +176,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Database
 
         #endregion
 
-        #region Parameters
+        #region GameData
 
         /// <summary>
         ///     Store the game data

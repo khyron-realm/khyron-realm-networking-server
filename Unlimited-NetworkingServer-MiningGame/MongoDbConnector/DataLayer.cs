@@ -10,9 +10,9 @@ namespace Unlimited_NetworkingServer_MiningGame.MongoDbConnector
     /// </summary>
     internal class DataLayer : IDataLayer
     {
-        private readonly MongoDbConnector _database;
+        private readonly MongoDbPlugin _database;
 
-        public DataLayer(string name, MongoDbConnector database)
+        public DataLayer(string name, MongoDbPlugin database)
         {
             Name = name;
             _database = database;

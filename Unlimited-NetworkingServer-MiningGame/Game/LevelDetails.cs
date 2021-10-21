@@ -2,16 +2,16 @@ using DarkRift;
 
 namespace Unlimited_NetworkingServer_MiningGame.Game
 {
-    public class LevelFormulas : IDarkRiftSerializable
+    public class LevelDetails : IDarkRiftSerializable
     {
         public byte Id;
         public double A;
         public double B;
         public double C;
 
-        public LevelFormulas() {}
+        public LevelDetails() {}
         
-        public LevelFormulas(byte id, float a, float b, float c)
+        public LevelDetails(byte id, float a, float b, float c)
         {
             Id = id;
             A = a;

@@ -45,7 +45,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Database
         ///     Sends a database connection error 2 to the client
         /// </summary>
         /// <param name="client">The client where the error occured</param>
-        /// <param name="tag">Mesage tag</param>
+        /// <param name="tag">The message tag</param>
         /// <param name="e">Returned exception</param>
         public void DatabaseError(IClient client, ushort tag, Exception e)
         {

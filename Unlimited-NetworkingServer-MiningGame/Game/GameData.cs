@@ -7,7 +7,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Game
     {
         public GameData(ushort version, byte maxPlayerLevel, byte maxRobotLevel, uint maxEnergy,
             ushort maxExperience, uint maxHousingSpace, ushort conversionTime, ResourceDetails[] resources,
-            RobotDetails[] robots, LevelFormulas[] levels)
+            RobotDetails[] robots, LevelDetails[] levels)
         {
             Version = version;
             MaxPlayerLevel = maxPlayerLevel;
@@ -33,7 +33,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Game
         public ushort ConversionTime { get; set; }              // In minutes
         public ResourceDetails[] Resources { get; set; }
         public RobotDetails[] Robots { get; set; }
-        public LevelFormulas[] Levels { get; set; }
+        public LevelDetails[] Levels { get; set; }
 
         #region Serialization
 
@@ -48,7 +48,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Game
             ConversionTime = e.Reader.ReadUInt16();
             Resources = e.Reader.ReadSerializables<ResourceDetails>();
             Robots = e.Reader.ReadSerializables<RobotDetails>();
-            Levels = e.Reader.ReadSerializables<LevelFormulas>();
+            Levels = e.Reader.ReadSerializables<LevelDetails>();
         }
 
         public void Serialize(SerializeEvent e)

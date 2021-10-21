@@ -11,7 +11,7 @@ namespace Unlimited_NetworkingServer_MiningGame.MongoDbConnector
     /// <summary>
     ///     MongoDB connection that sets up the MongoDB connection
     /// </summary>
-    public class MongoDbConnector : Plugin
+    public class MongoDbPlugin : Plugin
     {
         private const string ConfigPath = @"Plugins/MongoDbConnector.xml";
         private static readonly object InitializeLock = new object();
@@ -19,7 +19,7 @@ namespace Unlimited_NetworkingServer_MiningGame.MongoDbConnector
         private readonly IMongoDatabase _mongoDatabase;
         private DatabaseProxy _database;
 
-        public MongoDbConnector(PluginLoadData pluginLoadData) : base(pluginLoadData)
+        public MongoDbPlugin(PluginLoadData pluginLoadData) : base(pluginLoadData)
         {
             LoadConfig(out var connectionString, out var database);
 

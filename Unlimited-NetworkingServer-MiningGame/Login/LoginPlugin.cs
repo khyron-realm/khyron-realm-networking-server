@@ -107,7 +107,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Login
             using (var message = e.GetMessage())
             {
                 // Check if message is meant for this plugin
-                if (message.Tag >= Tags.Tags.TagsPerPlugin * (Tags.Tags.Login + 1)) return;
+                if (message.Tag < Tags.Tags.TagsPerPlugin * Tags.Tags.Login || message.Tag >= Tags.Tags.TagsPerPlugin * (Tags.Tags.Login + 1)) return;
 
                 var client = e.Client;
 
@@ -568,7 +568,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Login
         /// <param name="tag">The error tag</param>
         /// <param name="e">The exception that occured</param>
         /// <param name="error">The error description</param>
-        private void InvalidData(IClient client, ushort tag, Exception e, string error)
+        public void InvalidData(IClient client, ushort tag, Exception e, string error)
         {
             using (var writer = DarkRiftWriter.Create())
             {
