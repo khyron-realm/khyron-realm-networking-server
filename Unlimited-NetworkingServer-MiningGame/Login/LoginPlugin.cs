@@ -107,7 +107,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Login
             using (var message = e.GetMessage())
             {
                 // Check if message is meant for this plugin
-                if (message.Tag < Tags.Tags.TagsPerPlugin * Tags.Tags.Login || message.Tag >= Tags.Tags.TagsPerPlugin * (Tags.Tags.Login + 1)) return;
+                if (message.Tag >= Tags.Tags.TagsPerPlugin * (Tags.Tags.Login + 1)) return;
 
                 var client = e.Client;
 
@@ -274,17 +274,19 @@ namespace Unlimited_NetworkingServer_MiningGame.Login
         /// <param name="client">The connected client</param>
         private void LogoutUser(IClient client)
         {
+            Logger.Info("User logged out");
+            
             var username = _usersLoggedIn[client];
             _usersLoggedIn[client] = null;
 
             if (username != null) _clients.TryRemove(username, out _);
 
-            if (_debug) Logger.Info("User " + client.ID + " logged out!");
-
             using (var msg = Message.CreateEmpty(LoginTags.LogoutSuccess))
             {
                 client.SendMessage(msg, SendMode.Reliable);
             }
+
+            if (_debug) Logger.Info("User " + username + " logged out!");
         }
 
         /// <summary>

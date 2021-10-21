@@ -78,11 +78,11 @@ namespace Unlimited_NetworkingServer_MiningGame.Auctions
             using (var message = e.GetMessage())
             {
                 // Check if message is meant for this plugin
-                if (message.Tag < Tags.Tags.TagsPerPlugin * Tags.Tags.Auctions || message.Tag >= Tags.Tags.TagsPerPlugin * (Tags.Tags.Auctions + 1))
-                    return;
+                if (message.Tag < Tags.Tags.TagsPerPlugin * Tags.Tags.Auctions ||
+                    message.Tag >= Tags.Tags.TagsPerPlugin * (Tags.Tags.Auctions + 1)) return;
 
                 var client = e.Client;
-                
+
                 // If player isn't logged in, return error 1
                 if (!_loginPlugin.PlayerLoggedIn(client, Tags.AuctionTags.CreateFailed, "Player not logged in."))
                     return;

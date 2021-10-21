@@ -57,7 +57,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Headquarters
 
             _gameData = new GameData();
             
-            using (var msg = Message.CreateEmpty(GameTags.PlayerConnected))
+            using (var msg = Message.CreateEmpty(HeadquartersTags.PlayerConnected))
             {
                 e.Client.SendMessage(msg, SendMode.Reliable);
             }
@@ -82,73 +82,73 @@ namespace Unlimited_NetworkingServer_MiningGame.Headquarters
             using (var message = e.GetMessage())
             {
                 // Check if message is meant for this plugin
-                if (message.Tag >= Tags.Tags.TagsPerPlugin * (Tags.Tags.Headquarters + 1))
-                    return;
-                
+                if (message.Tag < Tags.Tags.TagsPerPlugin * Tags.Tags.Headquarters ||
+                    message.Tag >= Tags.Tags.TagsPerPlugin * (Tags.Tags.Headquarters + 1)) return;
+
                 // Get client
                 var client = e.Client;
-                
+
                 // If player isn't logged in, return error 1
-                if (!_loginPlugin.PlayerLoggedIn(client, GameTags.RequestFailed, "Player not logged in.")) 
+                if (!_loginPlugin.PlayerLoggedIn(client, HeadquartersTags.RequestFailed, "Player not logged in.")) 
                     return;
 
                 switch (message.Tag)
                 {
-                    case GameTags.PlayerData:
+                    case HeadquartersTags.PlayerData:
                     {
                         SendPlayerData(client);
                         break;
                     }
 
-                    case GameTags.GameData:
+                    case HeadquartersTags.GameData:
                     {
                         SendGameData(client);
                         break;
                     }
                     
-                    case GameTags.ConvertResources:
+                    case HeadquartersTags.ConvertResources:
                     {
                         ConvertResources(client, message);
                         break;
                     }
 
-                    case GameTags.FinishConversion:
+                    case HeadquartersTags.FinishConversion:
                     {
                         FinishConvertResources(client);
                         break;
                     }
 
-                    case GameTags.UpgradeRobot:
+                    case HeadquartersTags.UpgradeRobot:
                     {
                         UpgradeRobot(client, message);
                         break;
                     }
 
-                    case GameTags.FinishUpgrade:
+                    case HeadquartersTags.FinishUpgrade:
                     {
                         FinishUpgradeRobot(client, message);
                         break;
                     }
 
-                    case GameTags.BuildRobot:
+                    case HeadquartersTags.BuildRobot:
                     {
                         BuildRobot(client, message);
                         break;
                     }
                     
-                    case GameTags.FinishBuild:
+                    case HeadquartersTags.FinishBuild:
                     {
                         FinishBuildRobot(client, message, true, true);
                         break;
                     }
                     
-                    case GameTags.CancelInProgressBuild:
+                    case HeadquartersTags.CancelInProgressBuild:
                     {
                         FinishBuildRobot(client, message, false, true);
                         break;
                     }
                     
-                    case GameTags.CancelOnHoldBuild:
+                    case HeadquartersTags.CancelOnHoldBuild:
                     {
                         FinishBuildRobot(client, message, false, false);
                         break;
@@ -178,7 +178,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Headquarters
                     {
                         newPlayerWriter.Write(playerData);
 
-                        using (var newPlayerMessage = Message.Create(GameTags.PlayerData, newPlayerWriter))
+                        using (var newPlayerMessage = Message.Create(HeadquartersTags.PlayerData, newPlayerWriter))
                         {
                             client.SendMessage(newPlayerMessage, SendMode.Reliable);
                         }
@@ -188,7 +188,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Headquarters
                 {
                     if (_debug) Logger.Info("Player data is not available for user " + username);
                     
-                    using (var msg = Message.CreateEmpty(GameTags.PlayerDataUnavailable))
+                    using (var msg = Message.CreateEmpty(HeadquartersTags.PlayerDataUnavailable))
                     {
                         client.SendMessage(msg, SendMode.Reliable);
                     }
@@ -216,7 +216,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Headquarters
                     {
                         newPlayerWriter.Write(gameData);
 
-                        using (var newPlayerMessage = Message.Create(GameTags.GameData, newPlayerWriter))
+                        using (var newPlayerMessage = Message.Create(HeadquartersTags.GameData, newPlayerWriter))
                         {
                             client.SendMessage(newPlayerMessage, SendMode.Reliable);
                         }
@@ -226,7 +226,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Headquarters
                 {
                     if (_debug) Logger.Info("Game data is not available for user " + GetPlayerUsername(client));
                     
-                    using (var msg = Message.CreateEmpty(GameTags.GameDataUnavailable))
+                    using (var msg = Message.CreateEmpty(HeadquartersTags.GameDataUnavailable))
                     {
                         client.SendMessage(msg, SendMode.Reliable);
                     }
@@ -256,7 +256,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Headquarters
                 catch (Exception exception)
                 {
                     // Return error 0 for Invalid Data Packages Received
-                    InvalidData(client, GameTags.RequestFailed, exception, "Failed to send required data");
+                    InvalidData(client, HeadquartersTags.RequestFailed, exception, "Failed to send required data");
                 }
             }
             
@@ -291,7 +291,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Headquarters
                                     _database.DataLayer.SetPlayerResources(username, resources, () => {});
                                     
                                     // Send conversion accepted
-                                    using (var msg = Message.CreateEmpty(GameTags.ConversionAccepted))
+                                    using (var msg = Message.CreateEmpty(HeadquartersTags.ConversionAccepted))
                                     {
                                         client.SendMessage(msg, SendMode.Reliable);
                                     }
@@ -300,7 +300,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Headquarters
                                     using (var writer = DarkRiftWriter.Create())
                                     {
                                         writer.Write(resources);
-                                        using (var msg = Message.Create(GameTags.ResourcesUpdate, writer))
+                                        using (var msg = Message.Create(HeadquartersTags.ResourcesUpdate, writer))
                                         {
                                             client.SendMessage(msg, SendMode.Reliable);
                                         }
@@ -313,7 +313,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Headquarters
                             using (var writer = DarkRiftWriter.Create())
                             {
                                 writer.Write((byte) 2);
-                                using (var msg = Message.Create(GameTags.ConversionRejected, writer))
+                                using (var msg = Message.Create(HeadquartersTags.ConversionRejected, writer))
                                 {
                                     client.SendMessage(msg, SendMode.Reliable);
                                 }
@@ -328,7 +328,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Headquarters
                     using (var writer = DarkRiftWriter.Create())
                     {
                         writer.Write((byte) 1);
-                        using (var msg = Message.Create(GameTags.ConversionRejected, writer))
+                        using (var msg = Message.Create(HeadquartersTags.ConversionRejected, writer))
                         {
                             client.SendMessage(msg, SendMode.Reliable);
                         }
@@ -355,7 +355,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Headquarters
                     energy += 10000;
                     
                     // Send finish conversion accepted
-                    using (var msg = Message.CreateEmpty(GameTags.FinishConversionAccepted))
+                    using (var msg = Message.CreateEmpty(HeadquartersTags.FinishConversionAccepted))
                     {
                         client.SendMessage(msg, SendMode.Reliable);
                     }
@@ -366,7 +366,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Headquarters
                         using (var writer = DarkRiftWriter.Create())
                         {
                             writer.Write(energy);
-                            using (var msg = Message.Create(GameTags.EnergyUpdate, writer))
+                            using (var msg = Message.Create(HeadquartersTags.EnergyUpdate, writer))
                             {
                                 client.SendMessage(msg, SendMode.Reliable);
                             }
@@ -400,7 +400,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Headquarters
                 catch (Exception exception)
                 {
                     // Return error 0 for Invalid Data Packages Received
-                    InvalidData(client, GameTags.RequestFailed, exception, "Failed to send required data");
+                    InvalidData(client, HeadquartersTags.RequestFailed, exception, "Failed to send required data");
                 }
             }
             
@@ -425,7 +425,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Headquarters
                                     _database.DataLayer.SetPlayerEnergy(username, energy, () =>
                                     {
                                         // Send upgrade accepted
-                                        using (var msg = Message.CreateEmpty(GameTags.UpgradeRobotAccepted))
+                                        using (var msg = Message.CreateEmpty(HeadquartersTags.UpgradeRobotAccepted))
                                         {
                                             client.SendMessage(msg, SendMode.Reliable);
                                         }
@@ -434,7 +434,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Headquarters
                                         using (var writer = DarkRiftWriter.Create())
                                         {
                                             writer.Write(energy);
-                                            using (var msg = Message.Create(GameTags.EnergyUpdate, writer))
+                                            using (var msg = Message.Create(HeadquartersTags.EnergyUpdate, writer))
                                             {
                                                 client.SendMessage(msg, SendMode.Reliable);
                                             }
@@ -449,7 +449,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Headquarters
                             using (var writer = DarkRiftWriter.Create())
                             {
                                 writer.Write((byte) 2);
-                                using (var msg = Message.Create(GameTags.UpgradeRobotRejected, writer))
+                                using (var msg = Message.Create(HeadquartersTags.UpgradeRobotRejected, writer))
                                 {
                                     client.SendMessage(msg, SendMode.Reliable);
                                 }
@@ -464,7 +464,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Headquarters
                     using (var writer = DarkRiftWriter.Create())
                     {
                         writer.Write((byte) 1);
-                        using (var msg = Message.Create(GameTags.UpgradeRobotRejected, writer))
+                        using (var msg = Message.Create(HeadquartersTags.UpgradeRobotRejected, writer))
                         {
                             client.SendMessage(msg, SendMode.Reliable);
                         }
@@ -495,7 +495,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Headquarters
                 catch (Exception exception)
                 {
                     // Return error 0 for Invalid Data Packages Received
-                    InvalidData(client, GameTags.RequestFailed, exception, "Failed to send required data");
+                    InvalidData(client, HeadquartersTags.RequestFailed, exception, "Failed to send required data");
                 }
             }
             
@@ -510,7 +510,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Headquarters
                     _database.DataLayer.SetPlayerRobots(username, robots, () =>
                     {
                         // Send finish upgrade accepted
-                        using (var msg = Message.CreateEmpty(GameTags.FinishUpgradeAccepted))
+                        using (var msg = Message.CreateEmpty(HeadquartersTags.FinishUpgradeAccepted))
                         {
                             client.SendMessage(msg, SendMode.Reliable);
                         }
@@ -519,7 +519,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Headquarters
                         using (var writer = DarkRiftWriter.Create())
                         {
                             writer.Write(robots);
-                            using (var msg = Message.Create(GameTags.RobotsUpdate, writer))
+                            using (var msg = Message.Create(HeadquartersTags.RobotsUpdate, writer))
                             {
                                 client.SendMessage(msg, SendMode.Reliable);
                             }
@@ -554,7 +554,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Headquarters
                 catch (Exception exception)
                 {
                     // Return error 0 for Invalid Data Packages Received
-                    InvalidData(client, GameTags.RequestFailed, exception, "Failed to send required data");
+                    InvalidData(client, HeadquartersTags.RequestFailed, exception, "Failed to send required data");
                 }
             }
 
@@ -587,7 +587,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Headquarters
                                     _database.DataLayer.SetPlayerEnergy(username, energy, () =>
                                     {
                                         // Send build accepted
-                                        using (var msg = Message.CreateEmpty(GameTags.BuildRobotAccepted))
+                                        using (var msg = Message.CreateEmpty(HeadquartersTags.BuildRobotAccepted))
                                         {
                                             client.SendMessage(msg, SendMode.Reliable);
                                         }
@@ -596,7 +596,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Headquarters
                                         using (var writer = DarkRiftWriter.Create())
                                         {
                                             writer.Write(energy);
-                                            using (var msg = Message.Create(GameTags.EnergyUpdate, writer))
+                                            using (var msg = Message.Create(HeadquartersTags.EnergyUpdate, writer))
                                             {
                                                 client.SendMessage(msg, SendMode.Reliable);
                                             }
@@ -610,7 +610,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Headquarters
                             using (var writer = DarkRiftWriter.Create())
                             {
                                 writer.Write((byte) 2);
-                                using (var msg = Message.Create(GameTags.BuildRobotRejected, writer))
+                                using (var msg = Message.Create(HeadquartersTags.BuildRobotRejected, writer))
                                 {
                                     client.SendMessage(msg, SendMode.Reliable);
                                 }
@@ -625,7 +625,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Headquarters
                     using (var writer = DarkRiftWriter.Create())
                     {
                         writer.Write((byte) 1);
-                        using (var msg = Message.Create(GameTags.BuildRobotRejected, writer))
+                        using (var msg = Message.Create(HeadquartersTags.BuildRobotRejected, writer))
                         {
                             client.SendMessage(msg, SendMode.Reliable);
                         }
@@ -662,7 +662,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Headquarters
                 catch (Exception exception)
                 {
                     // Return error 0 for Invalid Data Packages Received
-                    InvalidData(client, GameTags.RequestFailed, exception, "Failed to send required data");
+                    InvalidData(client, HeadquartersTags.RequestFailed, exception, "Failed to send required data");
                 }
             }
             
@@ -682,7 +682,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Headquarters
                             _database.DataLayer.SetPlayerRobots(username, robots, () =>
                             {
                                 // Send finish task accepted
-                                using (var msg = Message.CreateEmpty(GameTags.FinishBuildAccepted))
+                                using (var msg = Message.CreateEmpty(HeadquartersTags.FinishBuildAccepted))
                                 {
                                     client.SendMessage(msg, SendMode.Reliable);
                                     Logger.Info("Sending finish build accepted");
@@ -692,7 +692,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Headquarters
                                 using (var writer = DarkRiftWriter.Create())
                                 {
                                     writer.Write(robots);
-                                    using (var msg = Message.Create(GameTags.RobotsUpdate, writer))
+                                    using (var msg = Message.Create(HeadquartersTags.RobotsUpdate, writer))
                                     {
                                         client.SendMessage(msg, SendMode.Reliable);
                                     }
@@ -720,7 +720,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Headquarters
                                     using (var writer = DarkRiftWriter.Create())
                                     {
                                         writer.Write((byte)0);
-                                        using (var msg = Message.Create(GameTags.CancelBuildAccepted, writer))
+                                        using (var msg = Message.Create(HeadquartersTags.CancelBuildAccepted, writer))
                                         {
                                             client.SendMessage(msg, SendMode.Reliable);
                                             Logger.Info("Sending finish build accepted");
@@ -734,7 +734,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Headquarters
                                 using (var writer = DarkRiftWriter.Create())
                                 {
                                     writer.Write((byte)1);
-                                    using (var msg = Message.Create(GameTags.CancelBuildAccepted, writer))
+                                    using (var msg = Message.Create(HeadquartersTags.CancelBuildAccepted, writer))
                                     {
                                         client.SendMessage(msg, SendMode.Reliable);
                                         Logger.Info("Sending finish build accepted");
@@ -746,7 +746,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Headquarters
                             using (var writer = DarkRiftWriter.Create())
                             {
                                 writer.Write(energy);
-                                using (var msg = Message.Create(GameTags.EnergyUpdate, writer))
+                                using (var msg = Message.Create(HeadquartersTags.EnergyUpdate, writer))
                                 {
                                     client.SendMessage(msg, SendMode.Reliable);
                                 }

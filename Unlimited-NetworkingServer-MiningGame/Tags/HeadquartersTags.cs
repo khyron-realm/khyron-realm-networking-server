@@ -1,6 +1,6 @@
 namespace Unlimited_NetworkingServer_MiningGame.Tags
 {
-    public static class GameTags
+    public static class HeadquartersTags
     {
         private const ushort Shift = Tags.Headquarters * Tags.TagsPerPlugin;
 
