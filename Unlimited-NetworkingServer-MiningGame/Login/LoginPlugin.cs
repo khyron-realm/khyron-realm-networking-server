@@ -281,7 +281,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Login
 
             if (_debug) Logger.Info("User " + client.ID + " logged out!");
 
-            using (var msg = Message.CreateEmpty(LoginTags.LoginSuccess))
+            using (var msg = Message.CreateEmpty(LoginTags.LogoutSuccess))
             {
                 client.SendMessage(msg, SendMode.Reliable);
             }

@@ -78,7 +78,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Auctions
             using (var message = e.GetMessage())
             {
                 // Check if message is meant for this plugin
-                if (message.Tag < Tags.Tags.TagsPerPlugin * Tags.Tags.Auction || message.Tag >= Tags.Tags.TagsPerPlugin * (Tags.Tags.Auction + 1))
+                if (message.Tag < Tags.Tags.TagsPerPlugin * Tags.Tags.Auctions || message.Tag >= Tags.Tags.TagsPerPlugin * (Tags.Tags.Auctions + 1))
                     return;
 
                 var client = e.Client;

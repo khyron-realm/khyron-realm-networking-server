@@ -82,7 +82,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Headquarters
             using (var message = e.GetMessage())
             {
                 // Check if message is meant for this plugin
-                if (message.Tag >= Tags.Tags.TagsPerPlugin * (Tags.Tags.Game + 1))
+                if (message.Tag >= Tags.Tags.TagsPerPlugin * (Tags.Tags.Headquarters + 1))
                     return;
                 
                 // Get client
