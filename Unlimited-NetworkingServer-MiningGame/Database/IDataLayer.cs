@@ -172,7 +172,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Database
         /// <param name="type">The task type</param>
         /// <param name="time">The start time</param>
         /// <param name="callback">Action executed</param>
-        void UpdateTasks(string username, ushort id, byte type, long time, Action callback);
+        void UpdateNextTask(string username, ushort id, byte type, long time, Action callback);
 
         #endregion
 

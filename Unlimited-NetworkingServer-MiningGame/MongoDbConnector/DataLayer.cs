@@ -175,7 +175,7 @@ namespace Unlimited_NetworkingServer_MiningGame.MongoDbConnector
         {
             var filter = Builders<PlayerData>.Filter.Eq(u => u.Id, username);
             var update = Builders<PlayerData>.Update.PullFilter( u => u.TaskQueue, 
-                Builders<BuildTask>.Filter.And(Builders<BuildTask>.Filter.Eq(b => b.Id, id),
+                Builders<BuildTask>.Filter.And(Builders<BuildTask>.Filter.Lte(b => b.Id, id),
                     Builders<BuildTask>.Filter.Eq(b => b.Type, type)
                 ));
             await _database.PlayerData.UpdateOneAsync(filter, update);
@@ -183,7 +183,7 @@ namespace Unlimited_NetworkingServer_MiningGame.MongoDbConnector
         }
         
         /// <inheritdoc />
-        public async void UpdateTasks(string username, ushort id, byte type, long time, Action callback)
+        public async void UpdateNextTask(string username, ushort id, byte type, long time, Action callback)
         {
             var filter = Builders<PlayerData>.Filter.And(
                 Builders<PlayerData>.Filter.Eq(u => u.Id, username),

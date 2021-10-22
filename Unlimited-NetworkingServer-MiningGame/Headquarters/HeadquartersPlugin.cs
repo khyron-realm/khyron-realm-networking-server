@@ -139,9 +139,15 @@ namespace Unlimited_NetworkingServer_MiningGame.Headquarters
                         break;
                     }
                     
-                    case HeadquartersTags.CancelBuild:
+                    case HeadquartersTags.CancelInProgressBuild:
                     {
                         FinishBuildRobot(client, message, false);
+                        break;
+                    }
+                    
+                    case HeadquartersTags.CancelOnHoldBuild:
+                    {
+                        FinishBuildRobot(client, message, false, false);
                         break;
                     }
                 }
@@ -529,11 +535,13 @@ namespace Unlimited_NetworkingServer_MiningGame.Headquarters
         /// <param name="client">The connected client</param>
         /// <param name="message">The message received</param>
         /// <param name="isFinished">True if the task is finished and false if the task is cancelled</param>
-        private void FinishBuildRobot(IClient client, Message message, bool isFinished)
+        /// <param name="inProgress">True if the task is in progress or false otherwise</param>
+        private void FinishBuildRobot(IClient client, Message message, bool isFinished, bool inProgress = true)
         {
             string username = GetPlayerUsername(client);
             ushort queueNumber = 0;
             byte robotId = 0;
+            long startTime = 0;
             Robot[] robots = new Robot[] { };
             uint energy = 0;
 
@@ -544,6 +552,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Headquarters
                 {
                     queueNumber = reader.ReadUInt16();
                     robotId = reader.ReadByte();
+                    startTime = reader.ReadInt64();
                     if (isFinished)
                     {
                         robots = reader.ReadSerializables<Robot>();
@@ -582,6 +591,21 @@ namespace Unlimited_NetworkingServer_MiningGame.Headquarters
             {
                 try
                 {
+                    _database.DataLayer.UpdateNextTask(username, queueNumber, robotId, startTime, () => {});
+                }
+                catch
+                {
+                    using (var writer = DarkRiftWriter.Create())
+                    {
+                        writer.Write((byte) 1);
+                        using (var msg = Message.Create(HeadquartersTags.FinishBuildError, writer))
+                        {
+                            client.SendMessage(msg, SendMode.Reliable);
+                        }
+                    }
+                }
+                try
+                {
                     _database.DataLayer.SetPlayerRobots(username, robots, () => { });
                 }
                 catch
@@ -598,6 +622,24 @@ namespace Unlimited_NetworkingServer_MiningGame.Headquarters
             }
             else
             {
+                if (inProgress)
+                {
+                    try
+                    {
+                        _database.DataLayer.UpdateNextTask(username, queueNumber, robotId, startTime, () => {});
+                    }
+                    catch
+                    {
+                        using (var writer = DarkRiftWriter.Create())
+                        {
+                            writer.Write((byte) 1);
+                            using (var msg = Message.Create(HeadquartersTags.FinishBuildError, writer))
+                            {
+                                client.SendMessage(msg, SendMode.Reliable);
+                            }
+                        }
+                    }
+                }
                 try
                 {
                     _database.DataLayer.SetPlayerEnergy(username, energy, () => { });
