@@ -468,8 +468,8 @@ namespace Unlimited_NetworkingServer_MiningGame.Headquarters
         private void BuildRobot(IClient client, Message message)
         {
             string username = GetPlayerUsername(client);
-            byte robotId = 0;
             ushort queueNumber = 0;
+            byte robotId = 0;
             long startTime = 0;
             uint energy = 0;
             
