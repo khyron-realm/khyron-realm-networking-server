@@ -612,7 +612,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Headquarters
                 {
                     using (var writer = DarkRiftWriter.Create())
                     {
-                        writer.Write((byte) 1);
+                        writer.Write((byte) 2);
                         using (var msg = Message.Create(HeadquartersTags.FinishBuildError, writer))
                         {
                             client.SendMessage(msg, SendMode.Reliable);
@@ -648,7 +648,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Headquarters
                 {
                     using (var writer = DarkRiftWriter.Create())
                     {
-                        writer.Write((byte) 1);
+                        writer.Write((byte) 2);
                         using (var msg = Message.Create(HeadquartersTags.CancelBuildError, writer))
                         {
                             client.SendMessage(msg, SendMode.Reliable);
