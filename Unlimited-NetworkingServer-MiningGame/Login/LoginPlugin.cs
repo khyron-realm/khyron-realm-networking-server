@@ -274,19 +274,17 @@ namespace Unlimited_NetworkingServer_MiningGame.Login
         /// <param name="client">The connected client</param>
         private void LogoutUser(IClient client)
         {
-            Logger.Info("User logged out");
-            
             var username = _usersLoggedIn[client];
             _usersLoggedIn[client] = null;
 
             if (username != null) _clients.TryRemove(username, out _);
+            
+            if (_debug) Logger.Info("User " + username + " logged out!");
 
             using (var msg = Message.CreateEmpty(LoginTags.LogoutSuccess))
             {
                 client.SendMessage(msg, SendMode.Reliable);
             }
-
-            if (_debug) Logger.Info("User " + username + " logged out!");
         }
 
         /// <summary>
