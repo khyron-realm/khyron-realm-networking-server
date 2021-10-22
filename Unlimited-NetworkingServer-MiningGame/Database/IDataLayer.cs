@@ -128,6 +128,15 @@ namespace Unlimited_NetworkingServer_MiningGame.Database
         void GetPlayerRobots(string username, Action<Robot[]> callback);
 
         /// <summary>
+        ///     Updates a single player robot
+        /// </summary>
+        /// <param name="username">The user name</param>
+        /// <param name="robotId">The new player robot id</param>
+        /// <param name="robot">The new player robot</param>
+        /// <param name="callback">Action executed</param>
+        void SetPlayerRobot(string username, byte robotId, Robot robot, Action callback);
+        
+        /// <summary>
         ///     Updates the player robots
         /// </summary>
         /// <param name="username">The user name</param>

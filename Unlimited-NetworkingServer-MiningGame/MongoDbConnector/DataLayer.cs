@@ -140,6 +140,17 @@ namespace Unlimited_NetworkingServer_MiningGame.MongoDbConnector
         }
 
         /// <inheritdoc />
+        public async void SetPlayerRobot(string username, byte robotId, Robot robot, Action callback)
+        {
+            var filter = Builders<PlayerData>.Filter.And(
+                Builders<PlayerData>.Filter.Eq(u => u.Id, username),
+                Builders<PlayerData>.Filter.ElemMatch(u => u.Robots, r => r.Id == robotId));
+            var update = Builders<PlayerData>.Update.Set(b => b.Robots[-1], robot);
+            await _database.PlayerData.UpdateOneAsync(filter, update);
+            callback();
+        }
+        
+        /// <inheritdoc />
         public async void SetPlayerRobots(string username, Robot[] robots, Action callback)
         {
             var filter = Builders<PlayerData>.Filter.Eq(u => u.Id, username);

@@ -416,14 +416,14 @@ namespace Unlimited_NetworkingServer_MiningGame.Headquarters
         {
             string username = GetPlayerUsername(client);
             byte robotId = 0;
-            Robot[] robots = new Robot[] { };
+            Robot robot = new Robot();
             
             using (var reader = message.GetReader())
             {
                 try
                 {
                     robotId = reader.ReadByte();
-                    robots = reader.ReadSerializables<Robot>();
+                    robot = reader.ReadSerializable<Robot>();
                 }
                 catch (Exception exception)
                 {
@@ -451,7 +451,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Headquarters
             
             try
             {
-                _database.DataLayer.SetPlayerRobots(username, robots, () => {});
+                _database.DataLayer.SetPlayerRobot(username, robotId, robot, () => {});
             }
             catch
             {
@@ -542,7 +542,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Headquarters
             ushort queueNumber = 0;
             byte robotId = 0;
             long startTime = 0;
-            Robot[] robots = new Robot[] { };
+            Robot robot = new Robot();
             uint energy = 0;
 
             // Receive queue number
@@ -555,7 +555,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Headquarters
                     startTime = reader.ReadInt64();
                     if (isFinished)
                     {
-                        robots = reader.ReadSerializables<Robot>();
+                        robot = reader.ReadSerializable<Robot>();
                     }
                     else
                     {
@@ -606,7 +606,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Headquarters
                 }
                 try
                 {
-                    _database.DataLayer.SetPlayerRobots(username, robots, () => { });
+                    _database.DataLayer.SetPlayerRobot(username, robotId, robot, () => { });
                 }
                 catch
                 {
