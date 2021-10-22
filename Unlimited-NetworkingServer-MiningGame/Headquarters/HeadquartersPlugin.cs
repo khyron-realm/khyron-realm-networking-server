@@ -99,7 +99,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Headquarters
 
                     case HeadquartersTags.GameData:
                     {
-                        SendGameData(client);
+                        SendGameData(client, message);
                         break;
                     }
                     
@@ -191,28 +191,46 @@ namespace Unlimited_NetworkingServer_MiningGame.Headquarters
                 }
             });
         }
-        
+
         /// <summary>
         ///     Sends game data to the client
         /// </summary>
         /// <param name="client">The connected client</param>
-        private void SendGameData(IClient client)
+        /// <param name="message">The message received</param>
+        private void SendGameData(IClient client, Message message)
         {
             string username = GetPlayerUsername(client);
             
             if (_debug) Logger.Info("Getting game data for player: " + username);
+
+            ushort version = 0;
+
+            using (var reader = message.GetReader())
+            {
+                try
+                {
+                    version = reader.ReadUInt16();
+                }
+                catch (Exception exception)
+                {
+                    InvalidData(client, HeadquartersTags.RequestFailed, exception, "Invalid data packages received");
+                }
+            }
             
             _database.DataLayer.GetGameData(gameData =>
             {
                 if (gameData != null)
                 {
-                    using (var newPlayerWriter = DarkRiftWriter.Create())
+                    if (version < gameData.Version)
                     {
-                        newPlayerWriter.Write(gameData);
-
-                        using (var newPlayerMessage = Message.Create(HeadquartersTags.GameData, newPlayerWriter))
+                        using (var newPlayerWriter = DarkRiftWriter.Create())
                         {
-                            client.SendMessage(newPlayerMessage, SendMode.Reliable);
+                            newPlayerWriter.Write(gameData);
+
+                            using (var newPlayerMessage = Message.Create(HeadquartersTags.GameData, newPlayerWriter))
+                            {
+                                client.SendMessage(newPlayerMessage, SendMode.Reliable);
+                            }
                         }
                     }
                 }

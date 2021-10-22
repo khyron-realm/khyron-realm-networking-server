@@ -199,7 +199,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Database
         /// </summary>
         /// <param name="callback">Action executed</param>
         void GetGameData(Action<GameData> callback);
-
+        
         /// <summary>
         ///     Retrieves the game data
         /// </summary>
