@@ -609,6 +609,9 @@ namespace Unlimited_NetworkingServer_MiningGame.Headquarters
             {
                 try
                 {
+                    // TO-DO
+                    // Update the next available robot build task, not the robot build task id + 1 
+                    
                     _database.DataLayer.UpdateNextTask(username, queueNumber, robotId, startTime, () => {});
                 }
                 catch

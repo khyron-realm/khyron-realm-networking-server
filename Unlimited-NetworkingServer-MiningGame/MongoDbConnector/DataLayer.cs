@@ -199,7 +199,7 @@ namespace Unlimited_NetworkingServer_MiningGame.MongoDbConnector
             var filter = Builders<PlayerData>.Filter.And(
                 Builders<PlayerData>.Filter.Eq(u => u.Id, username),
                 Builders<PlayerData>.Filter.ElemMatch(u => u.TaskQueue, Builders<BuildTask>.Filter.And(
-                    Builders<BuildTask>.Filter.Eq(b => b.Id, id+1),
+                    Builders<BuildTask>.Filter.Gt(b => b.Id, id),
                     Builders<BuildTask>.Filter.Eq(b => b.Type, type)))
                 );
             var update = Builders<PlayerData>.Update.Set(b => b.TaskQueue[-1].StartTime, time);
