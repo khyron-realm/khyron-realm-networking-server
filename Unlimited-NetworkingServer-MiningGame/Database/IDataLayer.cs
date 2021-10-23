@@ -143,45 +143,36 @@ namespace Unlimited_NetworkingServer_MiningGame.Database
         /// <param name="robots">The new player robots</param>
         /// <param name="callback">Action executed</param>
         void SetPlayerRobots(string username, Robot[] robots, Action callback);
-        
-        /// <summary>
-        ///     Returns true if 
-        /// </summary>
-        /// <param name="username">The user name</param>
-        /// <param name="id">The task number in queue</param>
-        /// <param name="type">The robot type</param>
-        /// <param name="callback">Action executed</param>
-        void TaskAvailable(string username, ushort id, byte type,  Action<bool> callback);
 
         /// <summary>
         ///     Adds a task
         /// </summary>
+        /// <param name="taskType">The type of the task</param>
         /// <param name="username">The user name</param>
         /// <param name="id">The number in the queue</param>
-        /// <param name="type">The task type</param>
         /// <param name="element">The selected element</param>
         /// <param name="time">The start time</param>
         /// <param name="callback">Action executed</param>
-        void AddTask(string username, ushort id, byte type, byte element, long time, Action callback);
+        void AddTask(TaskType taskType, string username, ushort id, byte element, long time, Action callback);
 
         /// <summary>
         ///     Finish a task
         /// </summary>
+        /// <param name="taskType">The type of the task</param>
         /// <param name="username">The user name</param>
         /// <param name="id">The task id</param>
-        /// <param name="type">The task type</param>
         /// <param name="callback">Action executed</param>
-        void FinishTask(string username, ushort id, byte type, Action callback);
+        void FinishTask(TaskType taskType, string username, ushort id, Action callback);
 
         /// <summary>
         ///     Updated following tasks
         /// </summary>
+        /// <param name="taskType">The type of the task</param>
         /// <param name="username">The user name</param>
         /// <param name="id">The number in the queue</param>
-        /// <param name="type">The task type</param>
         /// <param name="time">The start time</param>
         /// <param name="callback">Action executed</param>
-        void UpdateNextTask(string username, ushort id, byte type, long time, Action callback);
+        void UpdateNextTask(TaskType taskType, string username, ushort id, long time, Action callback);
 
         #endregion
 

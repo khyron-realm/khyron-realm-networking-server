@@ -127,7 +127,6 @@
         <Compile Include="Database\DatabaseProxy.cs" />
         <Compile Include="Database\IDataLayer.cs" />
         <Compile Include="Database\IUser.cs" />
-        <Compile Include="Game\GameConstants.cs" />
         <Compile Include="Game\GamePlugin.cs" />
         <Compile Include="Game\GameData.cs" />
         <Compile Include="Game\LevelDetails.cs" />
@@ -138,6 +137,7 @@
         <Compile Include="Headquarters\Resource.cs" />
         <Compile Include="Headquarters\Robot.cs" />
         <Compile Include="Headquarters\HeadquartersPlugin.cs" />
+        <Compile Include="Headquarters\TaskType.cs" />
         <Compile Include="Headquarters\User.cs" />
         <Compile Include="Login\Encryption.cs" />
         <Compile Include="Login\LoginPlugin.cs" />

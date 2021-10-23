@@ -160,49 +160,89 @@ namespace Unlimited_NetworkingServer_MiningGame.MongoDbConnector
         }
 
         /// <inheritdoc />
-        public async void TaskAvailable(string username, ushort id, byte type, Action<bool> callback)
+        public async void AddTask(TaskType taskType, string username, ushort id, byte element, long time, Action callback)
         {
-            var filter = Builders<PlayerData>.Filter.And(
-                Builders<PlayerData>.Filter.Eq(u => u.Id, username),
-                Builders<PlayerData>.Filter.ElemMatch(u => u.TaskQueue, Builders<BuildTask>.Filter.And(
-                        Builders<BuildTask>.Filter.Eq(b => b.Id, id),
-                        Builders<BuildTask>.Filter.Eq(b => b.Type, type)))
-            );
-            callback(await _database.PlayerData.Find(filter).FirstOrDefaultAsync() == null);
-        }
-        
-        /// <inheritdoc />
-        public async void AddTask(string username, ushort id, byte type, byte element, long time, Action callback)
-        {
-            var upgrade = new BuildTask(id, type, element, time);
+            var upgrade = new BuildTask(id, element, time);
             var filter = Builders<PlayerData>.Filter.Eq(u => u.Id, username);
-            var update = Builders<PlayerData>.Update.AddToSet(u => u.TaskQueue, upgrade);
+            UpdateDefinition<PlayerData> update = null;
+            switch (taskType)
+            {
+                case TaskType.Conversion:
+                {
+                    update = Builders<PlayerData>.Update.AddToSet(u => u.ConversionQueue, upgrade);
+                    break;
+                }
+                case TaskType.Upgrade:
+                {
+                    update = Builders<PlayerData>.Update.AddToSet(u => u.BuildQueue, upgrade);
+                    break;
+                }
+                case TaskType.Build:
+                {
+                    update = Builders<PlayerData>.Update.AddToSet(u => u.UpgradeQueue, upgrade);
+                    break;
+                }
+            }
             await _database.PlayerData.UpdateOneAsync(filter, update);
             callback();
         }
 
         /// <inheritdoc />
-        public async void FinishTask(string username, ushort id, byte type, Action callback)
+        public async void FinishTask(TaskType taskType, string username, ushort id, Action callback)
         {
             var filter = Builders<PlayerData>.Filter.Eq(u => u.Id, username);
-            var update = Builders<PlayerData>.Update.PullFilter( u => u.TaskQueue, 
-                Builders<BuildTask>.Filter.And(Builders<BuildTask>.Filter.Lte(b => b.Id, id),
-                    Builders<BuildTask>.Filter.Eq(b => b.Type, type)
-                ));
+            UpdateDefinition<PlayerData> update = null;
+            switch (taskType)
+            {
+                case TaskType.Conversion:
+                {
+                    update = Builders<PlayerData>.Update.PullFilter(u => u.ConversionQueue,
+                            Builders<BuildTask>.Filter.Eq(b => b.Id, id));
+                    break;
+                }
+                case TaskType.Upgrade:
+                {
+                    update = Builders<PlayerData>.Update.PullFilter(u => u.UpgradeQueue,
+                            Builders<BuildTask>.Filter.Eq(b => b.Id, id));
+                    break;
+                }
+                case TaskType.Build:
+                {
+                    update = Builders<PlayerData>.Update.PullFilter(u => u.BuildQueue,
+                            Builders<BuildTask>.Filter.Lte(b => b.Id, id));
+                    break;
+                }
+            }
             await _database.PlayerData.UpdateOneAsync(filter, update);
             callback();
         }
         
         /// <inheritdoc />
-        public async void UpdateNextTask(string username, ushort id, byte type, long time, Action callback)
+        public async void UpdateNextTask(TaskType taskType, string username, ushort id, long time, Action callback)
         {
-            var filter = Builders<PlayerData>.Filter.And(
-                Builders<PlayerData>.Filter.Eq(u => u.Id, username),
-                Builders<PlayerData>.Filter.ElemMatch(u => u.TaskQueue, Builders<BuildTask>.Filter.And(
-                    Builders<BuildTask>.Filter.Gt(b => b.Id, id),
-                    Builders<BuildTask>.Filter.Eq(b => b.Type, type)))
-                );
-            var update = Builders<PlayerData>.Update.Set(b => b.TaskQueue[-1].StartTime, time);
+            FilterDefinition<PlayerData> filter = null;
+            switch (taskType)
+            {
+                case TaskType.Conversion:
+                {
+                    filter = Builders<PlayerData>.Filter.Eq(u => u.Id, username) &
+                             Builders<PlayerData>.Filter.ElemMatch(u => u.BuildQueue, b => b.Id == id);
+                    break;
+                }
+                case TaskType.Upgrade:
+                {
+                    filter = Builders<PlayerData>.Filter.Eq(u => u.Id, username) &
+                             Builders<PlayerData>.Filter.ElemMatch(u => u.BuildQueue, b => b.Id == id);
+                    break;
+                }
+                case TaskType.Build:
+                {
+                    filter = Builders<PlayerData>.Filter.Eq(u => u.Id, username) &
+                             Builders<PlayerData>.Filter.ElemMatch(u => u.BuildQueue, b => b.Id > id);
+                    break;
+                }
+            }
+            var update = Builders<PlayerData>.Update.Set(b => b.BuildQueue[-1].StartTime, time);
             await _database.PlayerData.UpdateOneAsync(filter, update);
             callback();
         }

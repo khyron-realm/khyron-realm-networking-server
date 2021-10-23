@@ -169,10 +169,12 @@ namespace Unlimited_NetworkingServer_MiningGame.Login
             }
             
             // Create tasks queue
-            BuildTask[] taskQueue = {};
+            BuildTask[] conversionQueue = {};
+            BuildTask[] upgradeQueue = {};
+            BuildTask[] buildQueue = {};
 
             // Create player object
-            return new PlayerData(id, level, experience, energy, resources, robots, taskQueue);
+            return new PlayerData(id, level, experience, energy, resources, robots, conversionQueue, upgradeQueue, buildQueue);
         }
 
         #region ReceivedCalls

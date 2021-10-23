@@ -275,7 +275,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Headquarters
 
             try
             {
-                _database.DataLayer.AddTask(username, 0, GameConstants.ConversionTask, 0, startTime, () => {});
+                _database.DataLayer.AddTask(TaskType.Conversion, username, 0, 0, startTime, () => {});
             }
             catch
             {
@@ -333,7 +333,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Headquarters
             
             try
             {
-                _database.DataLayer.FinishTask(username, 0, GameConstants.ConversionTask, () => {});
+                _database.DataLayer.FinishTask(TaskType.Conversion, username, 0, () => {});
             }
             catch
             {
@@ -394,7 +394,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Headquarters
             
             try
             {
-                _database.DataLayer.AddTask(username, 0, GameConstants.UpgradeTask, robotId, startTime, () => { });
+                _database.DataLayer.AddTask(TaskType.Upgrade, username, 0, robotId, startTime, () => { });
             }
             catch
             {
@@ -453,7 +453,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Headquarters
             
             try
             {
-                _database.DataLayer.FinishTask(username, 0, GameConstants.UpgradeTask, () => {});
+                _database.DataLayer.FinishTask(TaskType.Upgrade, username, 0, () => {});
             }
             catch
             {
@@ -516,7 +516,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Headquarters
             
             try
             {
-                _database.DataLayer.AddTask(username, queueNumber, GameConstants.BuildTask, robotId, startTime, () => { });
+                _database.DataLayer.AddTask(TaskType.Build, username, queueNumber, robotId, startTime, () => { });
             }
             catch
             {
@@ -591,7 +591,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Headquarters
 
             try
             {
-                _database.DataLayer.FinishTask(username, queueNumber, GameConstants.BuildTask, () => { });
+                _database.DataLayer.FinishTask(TaskType.Build, username, queueNumber, () => { });
             }
             catch
             {
@@ -609,10 +609,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Headquarters
             {
                 try
                 {
-                    // TO-DO
-                    // Update the next available robot build task, not the robot build task id + 1 
-                    
-                    _database.DataLayer.UpdateNextTask(username, queueNumber, robotId, startTime, () => {});
+                    _database.DataLayer.UpdateNextTask(TaskType.Build, username, queueNumber, startTime, () => {});
                 }
                 catch
                 {
@@ -647,7 +644,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Headquarters
                 {
                     try
                     {
-                        _database.DataLayer.UpdateNextTask(username, queueNumber, robotId, startTime, () => {});
+                        _database.DataLayer.UpdateNextTask(TaskType.Build, username, queueNumber, startTime, () => {});
                     }
                     catch
                     {
