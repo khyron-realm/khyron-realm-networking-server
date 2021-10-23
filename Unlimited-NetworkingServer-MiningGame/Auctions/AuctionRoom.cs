@@ -34,6 +34,12 @@ namespace Unlimited_NetworkingServer_MiningGame.Auctions
 
         public void Deserialize(DeserializeEvent e)
         {
+            Id = e.Reader.ReadUInt16();
+            Name = e.Reader.ReadString();
+            HasStarted = e.Reader.ReadBoolean();
+            IsVisible = e.Reader.ReadBoolean();
+            StartTime = e.Reader.ReadInt64();
+            EndTime = e.Reader.ReadInt64();
         }
 
         public void Serialize(SerializeEvent e)
