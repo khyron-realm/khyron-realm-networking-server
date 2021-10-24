@@ -135,19 +135,25 @@ namespace Unlimited_NetworkingServer_MiningGame.Headquarters
                     
                     case HeadquartersTags.FinishBuild:
                     {
-                        FinishBuildRobot(client, message, true);
+                        FinishBuildRobot(client, message, false, true);
+                        break;
+                    }
+
+                    case HeadquartersTags.FinishBuildMultiple:
+                    {
+                        FinishBuildRobot(client, message, true, true);
                         break;
                     }
                     
                     case HeadquartersTags.CancelInProgressBuild:
                     {
-                        FinishBuildRobot(client, message, false);
+                        FinishBuildRobot(client, message, false, false);
                         break;
                     }
                     
                     case HeadquartersTags.CancelOnHoldBuild:
                     {
-                        FinishBuildRobot(client, message, false, false);
+                        FinishBuildRobot(client, message, false, false, false);
                         break;
                     }
                 }
@@ -552,15 +558,17 @@ namespace Unlimited_NetworkingServer_MiningGame.Headquarters
         /// </summary>
         /// <param name="client">The connected client</param>
         /// <param name="message">The message received</param>
+        /// <param name="multipleRobots">True if multiple robots are updated and false if only a single robot is updated</param>
         /// <param name="isFinished">True if the task is finished and false if the task is cancelled</param>
         /// <param name="inProgress">True if the task is in progress or false otherwise</param>
-        private void FinishBuildRobot(IClient client, Message message, bool isFinished, bool inProgress = true)
+        private void FinishBuildRobot(IClient client, Message message, bool multipleRobots, bool isFinished, bool inProgress = true)
         {
             string username = GetPlayerUsername(client);
             ushort queueNumber = 0;
             byte robotId = 0;
             long startTime = 0;
             Robot robot = new Robot();
+            Robot[] robots = new Robot[] {};
             uint energy = 0;
 
             // Receive queue number
@@ -573,7 +581,8 @@ namespace Unlimited_NetworkingServer_MiningGame.Headquarters
                     startTime = reader.ReadInt64();
                     if (isFinished)
                     {
-                        robot = reader.ReadSerializable<Robot>();
+                        if(!multipleRobots) robot = reader.ReadSerializable<Robot>();
+                        else robots = reader.ReadSerializables<Robot>();
                     }
                     else
                     {
@@ -586,8 +595,8 @@ namespace Unlimited_NetworkingServer_MiningGame.Headquarters
                 }
             }
 
-            Logger.Info((isFinished ? "Finished" : "Cancelled") + " build robot " + robotId + " with task " +
-                        queueNumber + " for player: " + username);
+            Logger.Info((isFinished ? "Finished" : "Cancelled") + " build " + (multipleRobots ? "robots " : "robot ") +
+                        robotId + " with task " + queueNumber + " for player: " + username);
 
             try
             {
@@ -624,7 +633,8 @@ namespace Unlimited_NetworkingServer_MiningGame.Headquarters
                 }
                 try
                 {
-                    _database.DataLayer.SetPlayerRobot(username, robotId, robot, () => { });
+                    if(!multipleRobots) _database.DataLayer.SetPlayerRobot(username, robotId, robot, () => { });
+                    else _database.DataLayer.SetPlayerRobots(username, robots, () => { });
                 }
                 catch
                 {

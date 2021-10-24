@@ -213,7 +213,7 @@ namespace Unlimited_NetworkingServer_MiningGame.MongoDbConnector
                     break;
                 }
             }
-            await _database.PlayerData.UpdateOneAsync(filter, update);
+            await _database.PlayerData.UpdateManyAsync(filter, update);
             callback();
         }
         
