@@ -121,7 +121,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Login
 
                     case LoginTags.LogoutUser:
                     {
-                        LogoutUser(client);
+                        LogoutUser(client, 1);
                         break;
                     }
 
@@ -146,7 +146,6 @@ namespace Unlimited_NetworkingServer_MiningGame.Login
             byte nrRobots = 3;
             string[] robotNames = {"Worker", "Probe", "Crusher"};
             byte[] robotsInitialCount = {0, 0, 0};
-            
             
             // Create player data
             string id = username;
@@ -216,6 +215,12 @@ namespace Unlimited_NetworkingServer_MiningGame.Login
 
             if (_clients.ContainsKey(username))
             {
+                Logger.Info("Removing old client");
+                // Removing old client
+                var oldClient = _clients[username];
+                LogoutUser(oldClient, 1);
+                
+                /*
                 // Username is already in use, return Error 3
                 using (var writer = DarkRiftWriter.Create())
                 {
@@ -226,8 +231,9 @@ namespace Unlimited_NetworkingServer_MiningGame.Login
                         client.SendMessage(msg, SendMode.Reliable);
                     }
                 }
-
+                
                 return;
+                */
             }
 
             try
@@ -274,7 +280,8 @@ namespace Unlimited_NetworkingServer_MiningGame.Login
         ///     Logs the user out
         /// </summary>
         /// <param name="client">The connected client</param>
-        private void LogoutUser(IClient client)
+        /// <param name="logoutType">The type of the logout (0 for normal and 1 for forced)</param>
+        private void LogoutUser(IClient client, byte logoutType)
         {
             var username = _usersLoggedIn[client];
             _usersLoggedIn[client] = null;
@@ -283,9 +290,14 @@ namespace Unlimited_NetworkingServer_MiningGame.Login
             
             if (_debug) Logger.Info("User " + username + " logged out!");
 
-            using (var msg = Message.CreateEmpty(LoginTags.LogoutSuccess))
+            using (var writer = DarkRiftWriter.Create())
             {
-                client.SendMessage(msg, SendMode.Reliable);
+                writer.Write(logoutType);
+
+                using (var msg = Message.Create(LoginTags.LogoutSuccess, writer))
+                {
+                    client.SendMessage(msg, SendMode.Reliable);
+                }
             }
         }
 
