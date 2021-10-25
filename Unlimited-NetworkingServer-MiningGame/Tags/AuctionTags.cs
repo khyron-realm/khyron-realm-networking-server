@@ -1,7 +1,7 @@
 namespace Unlimited_NetworkingServer_MiningGame.Tags
 {
     /// <summary>
-    ///     
+    ///     Tags for auction plugin
     /// </summary>
     public static class AuctionTags
     {
@@ -27,5 +27,8 @@ namespace Unlimited_NetworkingServer_MiningGame.Tags
         public const ushort StartAuction = 12 + Shift;
         public const ushort StartAuctionSuccess = 13 + Shift;
         public const ushort StartAuctionFailed = 14 + Shift;
+
+        public const ushort AddBid = 15 + Shift;
+        public const ushort AddBidFailed = 16+ Shift;
     }
 }

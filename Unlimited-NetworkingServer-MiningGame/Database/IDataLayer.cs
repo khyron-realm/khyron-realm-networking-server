@@ -18,7 +18,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Database
         /// </summary>
         /// <param name="username">The user name</param>
         /// <param name="callback">Action executed</param>
-        void GetUser(string username, Action<IUser> callback);
+        void GetUser(string username, Action<User> callback);
 
         /// <summary>
         ///     Checks if a username is available on the database
@@ -44,7 +44,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Database
 
         #endregion
 
-        #region Game
+        #region Headquarters
 
         /// <summary>
         ///     Initializes player data for new users

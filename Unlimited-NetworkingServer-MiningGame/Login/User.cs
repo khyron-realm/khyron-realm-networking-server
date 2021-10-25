@@ -6,7 +6,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Headquarters
     /// <summary>
     ///     User class for storing data into the database
     /// </summary>
-    public class User : IUser
+    public class User
     {
         public User(string username, string password)
         {

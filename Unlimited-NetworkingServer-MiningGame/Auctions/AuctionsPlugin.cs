@@ -4,6 +4,7 @@ using System.Linq;
 using DarkRift;
 using DarkRift.Server;
 using Unlimited_NetworkingServer_MiningGame.Login;
+using Unlimited_NetworkingServer_MiningGame.Mines;
 using Unlimited_NetworkingServer_MiningGame.Tags;
 
 namespace Unlimited_NetworkingServer_MiningGame.Auctions
@@ -91,7 +92,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Auctions
                 {
                     case AuctionTags.Create:
                     {
-                        CreatePrivateAuctionRoom(client, message);
+                        CreateAuctionRoom(client, message);
                         break;
                     }
 
@@ -109,12 +110,19 @@ namespace Unlimited_NetworkingServer_MiningGame.Auctions
 
                     case AuctionTags.GetOpenRooms:
                     {
-                        
+                        GetOpenRooms(client);
                         break;
                     }
 
                     case AuctionTags.StartAuction:
                     {
+                        StartAuction(client, message);
+                        break;
+                    }
+
+                    case AuctionTags.AddBid:
+                    {
+                        AddBid(client, message);
                         break;
                     }
                 }
@@ -128,7 +136,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Auctions
         /// </summary>
         /// <param name="client">The connected client</param>
         /// <param name="message">The message received</param>
-        private void CreatePrivateAuctionRoom(IClient client, Message message)
+        private void CreateAuctionRoom(IClient client, Message message)
         {
             string roomName;
             bool isVisible;
@@ -150,7 +158,12 @@ namespace Unlimited_NetworkingServer_MiningGame.Auctions
 
             roomName = AdjustAuctionRoomName(roomName, _loginPlugin.GetPlayerUsername(client));
             var roomId = GenerateAuctionRoomId();
-            var room = new AuctionRoom(roomId, roomName, false, isVisible, DateTime.Now.ToBinary(), DateTime.Now.ToBinary());
+            var startTime = DateTime.UtcNow.ToBinary();             // TO-DO
+            var endTime = DateTime.UtcNow.ToBinary();               // TO-DO
+            uint startingPrice = 100;                                    // TO-DO
+            uint increasePrice = 100;                                    // TO-DO
+            var auction = new Auction(roomId, new Mine(), new Bid[] { }, startTime, endTime, startingPrice, increasePrice);
+            var room = new AuctionRoom(roomId, roomName, false, isVisible, DateTime.Now.ToBinary(), DateTime.Now.ToBinary(), auction);
             var player = new Player(client.ID, _loginPlugin.GetPlayerUsername(client), true);
 
             room.AddPlayer(player, client);
@@ -448,6 +461,34 @@ namespace Unlimited_NetworkingServer_MiningGame.Auctions
             }
         }
 
+        /// <summary>
+        ///     
+        /// </summary>
+        /// <param name="client">The connected client</param>
+        /// <param name="message">The message received</param>
+        private void AddBid(IClient client, Message message)
+        {
+            ushort roomId = 0;
+            
+            try
+            {
+                using (var reader = message.GetReader())
+                {
+                    roomId = reader.ReadUInt16();
+                }
+            }
+            catch (Exception ex)
+            {
+                // Return error 0 for invalid data packages received
+                _loginPlugin.InvalidData(client, AuctionTags.AddBidFailed, ex, "Room join failed");
+            }
+            
+            var username = _loginPlugin.GetPlayerUsername(client);
+            var player = AuctionRoomList[roomId].PlayerList.FirstOrDefault(p => p.Name == username);
+
+            AuctionRoomList[roomId].AddBid(player, client, roomId);
+        }
+        
         #endregion
 
         #region Helpers

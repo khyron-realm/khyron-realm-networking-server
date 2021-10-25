@@ -121,12 +121,17 @@
         </Reference>
     </ItemGroup>
     <ItemGroup>
+        <Compile Include="Auctions\Auction.cs" />
         <Compile Include="Auctions\AuctionRoom.cs" />
         <Compile Include="Auctions\AuctionsPlugin.cs" />
+        <Compile Include="Auctions\Bid.cs" />
         <Compile Include="Auctions\Player.cs" />
+        <Compile Include="Chat\ChatGroup.cs" />
+        <Compile Include="Chat\ChatPlugin.cs" />
         <Compile Include="Database\DatabaseProxy.cs" />
         <Compile Include="Database\IDataLayer.cs" />
-        <Compile Include="Database\IUser.cs" />
+        <Compile Include="Game\FriendList.cs" />
+        <Compile Include="Game\FriendListDto.cs" />
         <Compile Include="Game\GamePlugin.cs" />
         <Compile Include="Game\GameData.cs" />
         <Compile Include="Game\LevelDetails.cs" />
@@ -138,12 +143,14 @@
         <Compile Include="Headquarters\Robot.cs" />
         <Compile Include="Headquarters\HeadquartersPlugin.cs" />
         <Compile Include="Headquarters\TaskType.cs" />
-        <Compile Include="Headquarters\User.cs" />
         <Compile Include="Login\Encryption.cs" />
         <Compile Include="Login\LoginPlugin.cs" />
+        <Compile Include="Login\User.cs" />
+        <Compile Include="Mines\Mine.cs" />
         <Compile Include="MongoDbConnector\DataLayer.cs" />
         <Compile Include="MongoDbConnector\MongoDbPlugin.cs" />
         <Compile Include="Tags\AuctionTags.cs" />
+        <Compile Include="Tags\ChatTags.cs" />
         <Compile Include="Tags\HeadquartersTags.cs" />
         <Compile Include="Tags\LoginTags.cs" />
         <Compile Include="Tags\Tags.cs" />

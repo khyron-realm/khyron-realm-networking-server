@@ -23,7 +23,7 @@ namespace Unlimited_NetworkingServer_MiningGame.MongoDbConnector
         #region Login
 
         /// <inheritdoc />
-        public async void GetUser(string username, Action<IUser> callback)
+        public async void GetUser(string username, Action<User> callback)
         {
             var user = await _database.Users.Find(u => u.Username == username).FirstOrDefaultAsync();
             callback(user);

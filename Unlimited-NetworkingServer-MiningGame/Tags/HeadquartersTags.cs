@@ -1,5 +1,8 @@
 namespace Unlimited_NetworkingServer_MiningGame.Tags
 {
+    /// <summary>
+    ///     Tags for headquarters plugin
+    /// </summary>
     public static class HeadquartersTags
     {
         private const ushort Shift = Tags.Headquarters * Tags.TagsPerPlugin;

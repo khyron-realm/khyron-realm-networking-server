@@ -1,5 +1,8 @@
 namespace Unlimited_NetworkingServer_MiningGame.Tags
 {
+    /// <summary>
+    ///     Tags for login plugin
+    /// </summary>
     public static class LoginTags
     {
         private const ushort Shift = Tags.Login * Tags.TagsPerPlugin;
