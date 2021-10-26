@@ -134,9 +134,6 @@
         <Compile Include="Game\FriendListDto.cs" />
         <Compile Include="Game\GamePlugin.cs" />
         <Compile Include="Game\GameData.cs" />
-        <Compile Include="Game\LevelDetails.cs" />
-        <Compile Include="Game\ResourceDetails.cs" />
-        <Compile Include="Game\RobotDetails.cs" />
         <Compile Include="Headquarters\BuildTask.cs" />
         <Compile Include="Headquarters\PlayerData.cs" />
         <Compile Include="Headquarters\Resource.cs" />

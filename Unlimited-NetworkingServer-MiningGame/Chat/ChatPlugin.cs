@@ -19,7 +19,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Chat
 
         public override Command[] Commands => new[]
         {
-            new Command("Groups", "Show all chatgroups", "groups [username]", GetChatGroupsCommand)
+            new Command("Groups", "Show all chat groups", "groups [username]", GetChatGroupsCommand)
         };
 
         public ChatPlugin(PluginLoadData pluginLoadData) : base(pluginLoadData)

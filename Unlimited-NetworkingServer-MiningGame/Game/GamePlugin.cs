@@ -60,27 +60,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Game
 
             var version = Convert.ToUInt16(e.Arguments[0]);
             
-            ResourceDetails[] resources =
-            {
-                new ResourceDetails(0, "Silicon", 400, 10000),
-                new ResourceDetails(1, "Lithium", 200, 10000),
-                new ResourceDetails(2, "Titanium", 100, 10000)
-            };
-
-            RobotDetails[] robots =
-            {
-                new RobotDetails(0, "Worker", 1000, 10, 20, 5, 5, 100, 1000, 1),
-                new RobotDetails(1, "Probe", 1000, 0, 20, 10, 8, 150, 1500, 2),
-                new RobotDetails(2, "Crusher", 2000, 5, 40, 30, 15, 300, 3000, 4)
-            };
-
-            LevelDetails[] formulas =
-            {
-                new LevelDetails(0, 1, 1, 1)
-            };
-
-            _data = new Game.GameData(version, 100, 10, 100000, 60000, 
-                30, 5, resources, robots, formulas);
+            _data = new Game.GameData(version);
             
             Logger.Info("Initialized the game data to default values for the version " + version);
         }
