@@ -26,6 +26,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Login
         private DatabaseProxy _database;
         private bool _debug = true;
         private string _privateKey;
+        private const ushort INITIAL_ENERGY = 10000;
 
         public LoginPlugin(PluginLoadData pluginLoadData) : base(pluginLoadData)
         {
@@ -151,7 +152,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Login
             string id = username;
             byte level = 1;
             ushort experience = 1;
-            uint energy = 10000;
+            uint energy = INITIAL_ENERGY;
 
             // Create resources
             Resource[] resources = new Resource[nrResources];

@@ -79,7 +79,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Game
                 new LevelDetails(0, 1, 1, 1)
             };
 
-            _data = new Game.GameData(version, 30, 10, 100000, 60000, 
+            _data = new Game.GameData(version, 100, 10, 100000, 60000, 
                 30, 5, resources, robots, formulas);
             
             Logger.Info("Initialized the game data to default values for the version " + version);
