@@ -18,5 +18,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Tags
         public const ushort LeaveGroupFailed = 8 + Shift;
         public const ushort GetActiveGroups = 9 + Shift;
         public const ushort GetActiveGroupsFailed = 10 + Shift;
+        
+        public const ushort RequestFailed = 11 + Shift;
     }
 }

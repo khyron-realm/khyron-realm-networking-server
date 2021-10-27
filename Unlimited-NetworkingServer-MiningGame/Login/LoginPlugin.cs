@@ -26,7 +26,14 @@ namespace Unlimited_NetworkingServer_MiningGame.Login
         private DatabaseProxy _database;
         private bool _debug = true;
         private string _privateKey;
-        private const ushort INITIAL_ENERGY = 10000;
+        private const ushort InitialEnergy = 10000;
+        
+        #region Events
+
+        public delegate void LogoutEventHandler(string username);
+        public event LogoutEventHandler onLogout;
+
+        #endregion
 
         public LoginPlugin(PluginLoadData pluginLoadData) : base(pluginLoadData)
         {
@@ -94,7 +101,11 @@ namespace Unlimited_NetworkingServer_MiningGame.Login
             {
                 _usersLoggedIn.TryRemove(e.Client, out var username);
 
-                if (username != null) _clients.TryRemove(username, out _);
+                if (username != null)
+                {
+                    _clients.TryRemove(username, out _);
+                    onLogout?.Invoke(username);
+                }
             }
         }
 
@@ -152,7 +163,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Login
             string id = username;
             byte level = 1;
             ushort experience = 1;
-            uint energy = INITIAL_ENERGY;
+            uint energy = InitialEnergy;
 
             // Create resources
             Resource[] resources = new Resource[nrResources];
@@ -199,6 +210,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Login
 
             var username = "";
             var password = "";
+            var loginType = (byte) 0;
 
             using (var reader = message.GetReader())
             {
@@ -206,6 +218,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Login
                 {
                     username = reader.ReadString();
                     password = Encryption.Decrypt(reader.ReadBytes(), _privateKey);
+                    loginType = reader.ReadByte();
                 }
                 catch (Exception exception)
                 {
@@ -216,25 +229,11 @@ namespace Unlimited_NetworkingServer_MiningGame.Login
 
             if (_clients.ContainsKey(username))
             {
-                Logger.Info("Removing old client");
+                Logger.Info("New connection, removing old client");
+                
                 // Removing old client
                 var oldClient = _clients[username];
                 LogoutUser(oldClient, 1);
-                
-                /*
-                // Username is already in use, return Error 3
-                using (var writer = DarkRiftWriter.Create())
-                {
-                    writer.Write((byte) 3);
-
-                    using (var msg = Message.Create(LoginTags.LoginFailed, writer))
-                    {
-                        client.SendMessage(msg, SendMode.Reliable);
-                    }
-                }
-                
-                return;
-                */
             }
 
             try
@@ -245,10 +244,15 @@ namespace Unlimited_NetworkingServer_MiningGame.Login
                     {
                         _usersLoggedIn[client] = username;
                         _clients[username] = client;
-
-                        using (var msg = Message.CreateEmpty(LoginTags.LoginSuccess))
+                        
+                        using (var writer = DarkRiftWriter.Create())
                         {
-                            client.SendMessage(msg, SendMode.Reliable);
+                            writer.Write(loginType);
+
+                            using (var msg = Message.Create(LoginTags.LoginSuccess, writer))
+                            {
+                                client.SendMessage(msg, SendMode.Reliable);
+                            }
                         }
 
                         if (_debug) Logger.Info("Successful login: " + client.ID + ").");
@@ -300,6 +304,8 @@ namespace Unlimited_NetworkingServer_MiningGame.Login
                     client.SendMessage(msg, SendMode.Reliable);
                 }
             }
+            
+            onLogout?.Invoke(username);
         }
 
         /// <summary>
@@ -381,14 +387,35 @@ namespace Unlimited_NetworkingServer_MiningGame.Login
         #region Helpers
 
         /// <summary>
-        /// Returns the player username
+        ///     Get the player username
         /// </summary>
-        /// <param name="client"></param>
-        /// <returns></returns>
+        /// <param name="client">The client object</param>
+        /// <returns>Player username</returns>
         public string GetPlayerUsername(IClient client)
         {
             return _usersLoggedIn[client];
         }
+        
+        /// <summary>
+        ///     Check if the client exists 
+        /// </summary>
+        /// <param name="username">The player username</param>
+        /// <returns>True if the client exists or false otherwise</returns>
+        public bool ClientExistent(string username)
+        {
+            return _clients.ContainsKey(username);
+        }
+        
+        /// <summary>
+        ///     Get the client object
+        /// </summary>
+        /// <param name="username">The player username</param>
+        /// <returns>The client object</returns>
+        public IClient GetClient(string username)
+        {
+            return _clients[username];
+        }
+
 
         #endregion
 

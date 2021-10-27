@@ -10,7 +10,7 @@ using Unlimited_NetworkingServer_MiningGame.Tags;
 namespace Unlimited_NetworkingServer_MiningGame.Auctions
 {
     /// <summary>
-    ///     
+    ///     Auctions manager that handles the auction and rooms messages
     /// </summary>
     public class AuctionsPlugin : Plugin
     {
@@ -37,12 +37,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Auctions
             ClientManager.ClientConnected += OnPlayerConnected;
             ClientManager.ClientDisconnected += OnPlayerDisconnected;
         }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
+        
         private void OnPlayerConnected(object sender, ClientConnectedEventArgs e)
         {
             if (_loginPlugin == null)
@@ -58,22 +53,12 @@ namespace Unlimited_NetworkingServer_MiningGame.Auctions
 
             e.Client.MessageReceived += OnMessageReceived;
         }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
+        
         private void OnPlayerDisconnected(object sender, ClientDisconnectedEventArgs e)
         {
-            
+            LeaveAuctionRoom(e.Client);
         }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
+        
         private void OnMessageReceived(object sender, MessageReceivedEventArgs e)
         {
             using (var message = e.GetMessage())
@@ -104,7 +89,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Auctions
 
                     case AuctionTags.Leave:
                     {
-                        LeaveAuctionRoom(client, message);
+                        LeaveAuctionRoom(client);
                         break;
                     }
 
@@ -163,7 +148,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Auctions
             uint startingPrice = 100;                                    // TO-DO
             uint increasePrice = 100;                                    // TO-DO
             var auction = new Auction(roomId, new Mine(), new Bid[] { }, startTime, endTime, startingPrice, increasePrice);
-            var room = new AuctionRoom(roomId, roomName, false, isVisible, DateTime.Now.ToBinary(), DateTime.Now.ToBinary(), auction);
+            var room = new AuctionRoom(roomId, roomName, false, DateTime.Now.ToBinary(), DateTime.Now.ToBinary());
             var player = new Player(client.ID, _loginPlugin.GetPlayerUsername(client), true);
 
             room.AddPlayer(player, client);
@@ -317,8 +302,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Auctions
         /// 
         /// </summary>
         /// <param name="client">The connected client</param>
-        /// <param name="message">The message received</param>
-        private void LeaveAuctionRoom(IClient client, Message message)
+        private void LeaveAuctionRoom(IClient client)
         {
             var id = client.ID;
             if(!_playersInRooms.ContainsKey(id)) return;
@@ -486,7 +470,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Auctions
             var username = _loginPlugin.GetPlayerUsername(client);
             var player = AuctionRoomList[roomId].PlayerList.FirstOrDefault(p => p.Name == username);
 
-            AuctionRoomList[roomId].AddBid(player, client, roomId);
+            //AuctionRoomList[roomId].AddBid(player, client, roomId);
         }
         
         #endregion

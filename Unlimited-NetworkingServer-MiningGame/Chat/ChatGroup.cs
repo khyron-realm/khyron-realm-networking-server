@@ -2,10 +2,12 @@ using System.Collections.Generic;
 using System.Linq;
 using DarkRift;
 using DarkRift.Server;
-using Unlimited_NetworkingServer_MiningGame.Headquarters;
 
 namespace Unlimited_NetworkingServer_MiningGame.Chat
 {
+    /// <summary>
+    ///     A chat group of players
+    /// </summary>
     public class ChatGroup : IDarkRiftSerializable
     {
         public string Name;

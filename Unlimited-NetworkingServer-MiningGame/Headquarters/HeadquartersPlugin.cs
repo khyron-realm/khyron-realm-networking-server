@@ -3,14 +3,13 @@ using System.Linq;
 using DarkRift;
 using DarkRift.Server;
 using Unlimited_NetworkingServer_MiningGame.Database;
-using Unlimited_NetworkingServer_MiningGame.Game;
 using Unlimited_NetworkingServer_MiningGame.Login;
 using Unlimited_NetworkingServer_MiningGame.Tags;
 
 namespace Unlimited_NetworkingServer_MiningGame.Headquarters
 {
     /// <summary>
-    ///     Player manager that handles the game messages
+    ///     Player manager that handles the headquarter messages
     /// </summary>
     public class HeadquartersPlugin : Plugin
     {
