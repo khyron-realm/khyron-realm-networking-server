@@ -110,6 +110,12 @@ namespace Unlimited_NetworkingServer_MiningGame.Auction
                         AddBid(client, message);
                         break;
                     }
+
+                    case AuctionTags.AddScan:
+                    {
+                        AddScan(client, message);
+                        break;
+                    }
                 }
             }
         }
@@ -474,12 +480,9 @@ namespace Unlimited_NetworkingServer_MiningGame.Auction
             if (AuctionRoomList[roomId].AddBid(player.Id, newAmount, client))
             {
                 // Send confirmation to the client
-                using (var writer = DarkRiftWriter.Create())
+                using (var msg = Message.CreateEmpty(AuctionTags.AddBidSuccessful))
                 {
-                    using (var msg = Message.Create(AuctionTags.AddBidSuccessful, writer))
-                    {
-                        client.SendMessage(msg, SendMode.Reliable);
-                    }
+                    client.SendMessage(msg, SendMode.Reliable);
                 }
             
                 // Let the other clients know
@@ -498,13 +501,55 @@ namespace Unlimited_NetworkingServer_MiningGame.Auction
             }
             else
             {
-                // Send confirmation to the client
-                using (var writer = DarkRiftWriter.Create())
+                // Send add fail to the client
+                using (var msg = Message.CreateEmpty(AuctionTags.AddBidFailed))
                 {
-                    using (var msg = Message.Create(AuctionTags.AddBidFailed, writer))
-                    {
-                        client.SendMessage(msg, SendMode.Reliable);
-                    }
+                    client.SendMessage(msg, SendMode.Reliable);
+                }
+            }
+        }
+        
+        /// <summary>
+        ///     Add a scan to the auction mine
+        /// </summary>
+        /// <param name="client">The connected client</param>
+        /// <param name="message">The message received</param>
+        private void AddScan(IClient client, Message message)
+        {
+            ushort roomId = 0;
+            ushort x = 0;
+            ushort y = 0;
+            
+            try
+            {
+                using (var reader = message.GetReader())
+                {
+                    roomId = reader.ReadUInt16();
+                    x = reader.ReadUInt16();
+                    y = reader.ReadUInt16();
+                }
+            }
+            catch (Exception ex)
+            {
+                // Return error 0 for invalid data packages received
+                _loginPlugin.InvalidData(client, AuctionTags.AddBidFailed, ex, "Room join failed");
+            }
+            
+            var username = _loginPlugin.GetPlayerUsername(client);
+            var room = AuctionRoomList[roomId];
+            var player = room.PlayerList.FirstOrDefault(p => p.Name == username);
+            
+            // Add a new scan
+            if (AuctionRoomList[roomId].AddScan(player.Id, new Block(x, y), client))
+            {
+                // TO-DO add the scan to the database
+            }
+            else
+            {
+                // Send add failed to the client
+                using (var msg = Message.CreateEmpty(AuctionTags.AddScanFailed))
+                {
+                    client.SendMessage(msg, SendMode.Reliable);
                 }
             }
         }

@@ -8,5 +8,6 @@ namespace Unlimited_NetworkingServer_MiningGame.Tags
         public const byte Headquarters = 1;
         public const byte Auctions = 2;
         public const byte Chat = 3;
+        public const byte Mine = 4;
     }
 }

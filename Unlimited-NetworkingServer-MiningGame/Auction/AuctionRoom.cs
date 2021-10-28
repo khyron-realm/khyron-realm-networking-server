@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using DarkRift;
 using DarkRift.Server;
+using Unlimited_NetworkingServer_MiningGame.Game;
 using Unlimited_NetworkingServer_MiningGame.Mine;
 
 namespace Unlimited_NetworkingServer_MiningGame.Auction
@@ -32,7 +33,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Auction
             HasStarted = false;
             IsVisible = isVisible;
             Mine = mine;
-            LastBid = new Bid(0, 0, AuctionConstants.InitialBid);
+            LastBid = new Bid(0, 0, Constants.InitialBid);
             EndTime = 0;
         }
 
@@ -45,6 +46,9 @@ namespace Unlimited_NetworkingServer_MiningGame.Auction
             e.Writer.Write(Name);
             e.Writer.Write(MaxPlayers);
             e.Writer.Write((byte) PlayerList.Count);
+            e.Writer.Write(Mine);
+            e.Writer.Write(LastBid);
+            e.Writer.Write(EndTime);
         }
 
         /// <summary>
@@ -67,7 +71,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Auction
         ///     Removes a player from a room
         /// </summary>
         /// <param name="client">The client object</param>
-        /// <returns></returns>
+        /// <returns>True if the player is removed and false otherwise</returns>
         internal bool RemovePlayer(IClient client)
         {
             if (PlayerList.All(p => p.Id != client.ID) && !Clients.Contains(client))
@@ -84,7 +88,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Auction
         /// <param name="playerId">The player id of the bidder</param>
         /// <param name="amount">The amount of the new bid</param>
         /// <param name="client">The client object</param>
-        /// <returns></returns>
+        /// <returns>True if the bid is added or false otherwise</returns>
         public bool AddBid(ushort playerId, uint amount, IClient client)
         {
             if (PlayerList.All(p => p.Id != client.ID) && !Clients.Contains(client))
@@ -100,6 +104,25 @@ namespace Unlimited_NetworkingServer_MiningGame.Auction
             }
             
             return false;
+        }
+
+        /// <summary>
+        ///     Adds a scan to the auction mine
+        /// </summary>
+        /// <param name="scanId">The scan number</param>
+        /// <param name="block">The location of the scan</param>
+        /// <param name="client">The client object</param>
+        /// <returns>True if the scan is added or false otherwise</returns>
+        public bool AddScan(ushort scanId, Block block, IClient client)
+        {
+            if (PlayerList.All(p => p.Id != client.ID) && !Clients.Contains(client))
+                return false;
+
+            if (scanId >= Constants.NrMineScans)
+                return false;
+            
+            Mine.Scans[scanId] = block;
+            return true;
         }
     }
 }
