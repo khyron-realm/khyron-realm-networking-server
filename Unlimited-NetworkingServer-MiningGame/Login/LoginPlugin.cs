@@ -31,7 +31,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Login
         #region Events
 
         public delegate void LogoutEventHandler(string username);
-        public event LogoutEventHandler onLogout;
+        public event LogoutEventHandler OnLogout;
 
         #endregion
 
@@ -104,7 +104,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Login
                 if (username != null)
                 {
                     _clients.TryRemove(username, out _);
-                    onLogout?.Invoke(username);
+                    OnLogout?.Invoke(username);
                 }
             }
         }
@@ -197,17 +197,6 @@ namespace Unlimited_NetworkingServer_MiningGame.Login
         /// <param name="message">The received message</param>
         private void LoginUser(IClient client, Message message)
         {
-            // If users is already logged in
-            if (_usersLoggedIn[client] != null)
-            {
-                using (var msg = Message.CreateEmpty(LoginTags.LoginSuccess))
-                {
-                    client.SendMessage(msg, SendMode.Reliable);
-                }
-
-                return;
-            }
-
             var username = "";
             var password = "";
             var loginType = (byte) 0;
@@ -225,6 +214,22 @@ namespace Unlimited_NetworkingServer_MiningGame.Login
                     // Return error 0 for Invalid Data Packages Received
                     InvalidData(client, LoginTags.LoginFailed, exception, "Failed to log in!");
                 }
+            }
+            
+            // If users is already logged in
+            if (_usersLoggedIn[client] != null)
+            {
+                using (var writer = DarkRiftWriter.Create())
+                {
+                    writer.Write(loginType);
+
+                    using (var msg = Message.Create(LoginTags.LoginSuccess, writer))
+                    {
+                        client.SendMessage(msg, SendMode.Reliable);
+                    }
+                }
+
+                return;
             }
 
             if (_clients.ContainsKey(username))
@@ -305,7 +310,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Login
                 }
             }
             
-            onLogout?.Invoke(username);
+            OnLogout?.Invoke(username);
         }
 
         /// <summary>

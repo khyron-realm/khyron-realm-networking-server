@@ -2,8 +2,9 @@ using System.Collections.Generic;
 using System.Linq;
 using DarkRift;
 using DarkRift.Server;
+using Unlimited_NetworkingServer_MiningGame.Mine;
 
-namespace Unlimited_NetworkingServer_MiningGame.Auctions
+namespace Unlimited_NetworkingServer_MiningGame.Auction
 {
     /// <summary>
     ///     Auction room details
@@ -14,21 +15,25 @@ namespace Unlimited_NetworkingServer_MiningGame.Auctions
         public string Name { get; }
         public byte MaxPlayers { get; } = 50;
         public bool HasStarted { get; set; }
-        public bool IsVisible { get; set; }
-        public long StartTime { get; set; }
+        public bool IsVisible { get; }
+        public MineData Mine { get; set; }
+        public Bid LastBid { get; set; }
         public long EndTime { get; set; }
 
         public List<IClient> Clients = new List<IClient>();
         public List<Player> PlayerList = new List<Player>();
         
-        public AuctionRoom(ushort id, string name, bool isVisible, long startTime, long endTime)
+        private static readonly object BidLock = new object();
+        
+        public AuctionRoom(ushort id, string name, bool isVisible, MineData mine)
         {
             Id = id;
             Name = name;
             HasStarted = false;
             IsVisible = isVisible;
-            StartTime = startTime;
-            EndTime = endTime;
+            Mine = mine;
+            LastBid = new Bid(0, 0, AuctionConstants.InitialBid);
+            EndTime = 0;
         }
 
         public void Deserialize(DeserializeEvent e)
@@ -76,19 +81,25 @@ namespace Unlimited_NetworkingServer_MiningGame.Auctions
         /// <summary>
         ///     Adds a bid to the auction
         /// </summary>
-        /// <param name="player">The player which makes the bid</param>
+        /// <param name="playerId">The player id of the bidder</param>
+        /// <param name="amount">The amount of the new bid</param>
         /// <param name="client">The client object</param>
         /// <returns></returns>
-        public bool AddBid(Player player, IClient client)
+        public bool AddBid(ushort playerId, uint amount, IClient client)
         {
             if (PlayerList.All(p => p.Id != client.ID) && !Clients.Contains(client))
                 return false;
-            /*
-            Bid newBid = new Bid(0, player.Id, );
-            int bidListSize = Auction.Bids.Length;
-            Auction.Bids[bidListSize] = newBid;
-            */
-            return true;
+
+            lock (BidLock)
+            {
+                if (LastBid.Amount < amount)
+                {
+                    LastBid.AddBid(playerId, amount);
+                    return true;
+                }
+            }
+            
+            return false;
         }
     }
 }

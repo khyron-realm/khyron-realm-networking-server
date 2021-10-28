@@ -3,7 +3,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Tags
     /// <summary>
     ///     Tags for chat plugin
     /// </summary>
-    public class ChatTags
+    public static class ChatTags
     {
         private const ushort Shift = Tags.Chat * Tags.TagsPerPlugin;
 

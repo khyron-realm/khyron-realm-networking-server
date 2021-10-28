@@ -121,11 +121,11 @@
         </Reference>
     </ItemGroup>
     <ItemGroup>
-        <Compile Include="Auctions\Auction.cs" />
-        <Compile Include="Auctions\AuctionRoom.cs" />
-        <Compile Include="Auctions\AuctionsPlugin.cs" />
-        <Compile Include="Auctions\Bid.cs" />
-        <Compile Include="Auctions\Player.cs" />
+        <Compile Include="Auction\AuctionConstants.cs" />
+        <Compile Include="Auction\AuctionRoom.cs" />
+        <Compile Include="Auction\AuctionsPlugin.cs" />
+        <Compile Include="Auction\Bid.cs" />
+        <Compile Include="Auction\Player.cs" />
         <Compile Include="Chat\ChatGroup.cs" />
         <Compile Include="Chat\ChatPlugin.cs" />
         <Compile Include="Database\DatabaseProxy.cs" />
@@ -143,7 +143,8 @@
         <Compile Include="Login\Encryption.cs" />
         <Compile Include="Login\LoginPlugin.cs" />
         <Compile Include="Login\User.cs" />
-        <Compile Include="Mines\Mine.cs" />
+        <Compile Include="Mine\MineData.cs" />
+        <Compile Include="Mine\MineSeed.cs" />
         <Compile Include="MongoDbConnector\DataLayer.cs" />
         <Compile Include="MongoDbConnector\MongoDbPlugin.cs" />
         <Compile Include="Tags\AuctionTags.cs" />

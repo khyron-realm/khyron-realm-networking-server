@@ -1,10 +1,10 @@
 using System;
 using DarkRift;
 
-namespace Unlimited_NetworkingServer_MiningGame.Auctions
+namespace Unlimited_NetworkingServer_MiningGame.Auction
 {
     /// <summary>
-    ///     
+    ///     Auction player
     /// </summary>
     public class Player : IDarkRiftSerializable
     {
@@ -19,17 +19,17 @@ namespace Unlimited_NetworkingServer_MiningGame.Auctions
             Name = name;
         }
 
+        /// <summary>
+        ///     Sets the host of the room
+        /// </summary>
+        /// <param name="isHost">True if the player is the host and false otherwise</param>
         public void SetHost(bool isHost)
         {
             IsHost = isHost;
         }
         
         public void Deserialize(DeserializeEvent e)
-        {
-            Id = e.Reader.ReadUInt16();
-            Name = e.Reader.ReadString();
-            IsHost = e.Reader.ReadBoolean();
-        }
+        { }
 
         public void Serialize(SerializeEvent e)
         {

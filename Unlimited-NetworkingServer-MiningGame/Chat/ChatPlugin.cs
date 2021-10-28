@@ -2,10 +2,9 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text.RegularExpressions;
 using DarkRift;
 using DarkRift.Server;
-using Unlimited_NetworkingServer_MiningGame.Auctions;
+using Unlimited_NetworkingServer_MiningGame.Auction;
 using Unlimited_NetworkingServer_MiningGame.Login;
 using Unlimited_NetworkingServer_MiningGame.Tags;
 
@@ -50,7 +49,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Chat
                     {
                         _loginPlugin = PluginManager.GetPluginByType<LoginPlugin>();
                         _auctionsPlugin = PluginManager.GetPluginByType<AuctionsPlugin>();
-                        _loginPlugin.onLogout += RemovePlayerFromChatGroup;
+                        _loginPlugin.OnLogout += RemovePlayerFromChatGroup;
                         ChatGroups["General"] = new ChatGroup("General");
                     }
                 }

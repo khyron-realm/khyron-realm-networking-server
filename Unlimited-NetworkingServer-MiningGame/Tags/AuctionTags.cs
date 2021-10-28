@@ -29,6 +29,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Tags
         public const ushort StartAuctionFailed = 14 + Shift;
 
         public const ushort AddBid = 15 + Shift;
-        public const ushort AddBidFailed = 16+ Shift;
+        public const ushort AddBidSuccessful = 16 + Shift;
+        public const ushort AddBidFailed = 17 + Shift;
     }
 }

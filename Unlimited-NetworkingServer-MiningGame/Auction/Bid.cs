@@ -1,6 +1,6 @@
 using DarkRift;
 
-namespace Unlimited_NetworkingServer_MiningGame.Auctions
+namespace Unlimited_NetworkingServer_MiningGame.Auction
 {
     /// <summary>
     /// 
@@ -18,10 +18,15 @@ namespace Unlimited_NetworkingServer_MiningGame.Auctions
         public ushort UserId { get; set; }
         public uint Amount { get; set; }
 
-        public void Deserialize(DeserializeEvent e)
+        public void AddBid(ushort userId, uint amount)
         {
-            throw new System.NotImplementedException();
+            Id += 1;
+            UserId = userId;
+            Amount = Amount;
         }
+
+        public void Deserialize(DeserializeEvent e)
+        { }
 
         public void Serialize(SerializeEvent e)
         {

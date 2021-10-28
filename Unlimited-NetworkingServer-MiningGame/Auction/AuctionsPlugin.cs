@@ -4,10 +4,10 @@ using System.Linq;
 using DarkRift;
 using DarkRift.Server;
 using Unlimited_NetworkingServer_MiningGame.Login;
-using Unlimited_NetworkingServer_MiningGame.Mines;
+using Unlimited_NetworkingServer_MiningGame.Mine;
 using Unlimited_NetworkingServer_MiningGame.Tags;
 
-namespace Unlimited_NetworkingServer_MiningGame.Auctions
+namespace Unlimited_NetworkingServer_MiningGame.Auction
 {
     /// <summary>
     ///     Auctions manager that handles the auction and rooms messages
@@ -117,7 +117,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Auctions
         #region ReceivedCalls
 
         /// <summary>
-        /// 
+        ///     Create a new user generated auction room
         /// </summary>
         /// <param name="client">The connected client</param>
         /// <param name="message">The message received</param>
@@ -143,12 +143,9 @@ namespace Unlimited_NetworkingServer_MiningGame.Auctions
 
             roomName = AdjustAuctionRoomName(roomName, _loginPlugin.GetPlayerUsername(client));
             var roomId = GenerateAuctionRoomId();
-            var startTime = DateTime.UtcNow.ToBinary();             // TO-DO
-            var endTime = DateTime.UtcNow.ToBinary();               // TO-DO
-            uint startingPrice = 100;                                    // TO-DO
-            uint increasePrice = 100;                                    // TO-DO
-            var auction = new Auction(roomId, new Mine(), new Bid[] { }, startTime, endTime, startingPrice, increasePrice);
-            var room = new AuctionRoom(roomId, roomName, false, DateTime.Now.ToBinary(), DateTime.Now.ToBinary());
+            var seed = new MineSeed(0, 0, 0, 0);            // TO-DO
+            var mine = new MineData(0, 9000, seed);                           // TO-DO
+            var room = new AuctionRoom(roomId, roomName, isVisible, mine);          
             var player = new Player(client.ID, _loginPlugin.GetPlayerUsername(client), true);
 
             room.AddPlayer(player, client);
@@ -168,12 +165,12 @@ namespace Unlimited_NetworkingServer_MiningGame.Auctions
 
             if (_debug)
             {
-                Logger.Info("Creating auction room + " + room.Name);
+                Logger.Info("Creating auction room " + roomId + ": " + room.Name);
             }
         }
         
         /// <summary>
-        /// 
+        ///     Join an available auction room
         /// </summary>
         /// <param name="client">The connected client</param>
         /// <param name="message">The message received</param>
@@ -299,7 +296,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Auctions
         }
         
         /// <summary>
-        /// 
+        ///     Leave an auction room
         /// </summary>
         /// <param name="client">The connected client</param>
         private void LeaveAuctionRoom(IClient client)
@@ -366,7 +363,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Auctions
         }
         
         /// <summary>
-        /// 
+        ///     Get the available auction rooms
         /// </summary>
         /// <param name="client">The connected client</param>
         private void GetOpenRooms(IClient client)
@@ -446,19 +443,21 @@ namespace Unlimited_NetworkingServer_MiningGame.Auctions
         }
 
         /// <summary>
-        ///     
+        ///     Add a bid to the auction room
         /// </summary>
         /// <param name="client">The connected client</param>
         /// <param name="message">The message received</param>
         private void AddBid(IClient client, Message message)
         {
             ushort roomId = 0;
+            uint newAmount = 0;
             
             try
             {
                 using (var reader = message.GetReader())
                 {
                     roomId = reader.ReadUInt16();
+                    newAmount = reader.ReadUInt32();
                 }
             }
             catch (Exception ex)
@@ -468,9 +467,46 @@ namespace Unlimited_NetworkingServer_MiningGame.Auctions
             }
             
             var username = _loginPlugin.GetPlayerUsername(client);
-            var player = AuctionRoomList[roomId].PlayerList.FirstOrDefault(p => p.Name == username);
+            var room = AuctionRoomList[roomId];
+            var player = room.PlayerList.FirstOrDefault(p => p.Name == username);
+            
+            // Add a new bid
+            if (AuctionRoomList[roomId].AddBid(player.Id, newAmount, client))
+            {
+                // Send confirmation to the client
+                using (var writer = DarkRiftWriter.Create())
+                {
+                    using (var msg = Message.Create(AuctionTags.AddBidSuccessful, writer))
+                    {
+                        client.SendMessage(msg, SendMode.Reliable);
+                    }
+                }
+            
+                // Let the other clients know
+                using (var writer = DarkRiftWriter.Create())
+                {
+                    writer.Write(AuctionRoomList[roomId].LastBid);
 
-            //AuctionRoomList[roomId].AddBid(player, client, roomId);
+                    using (var msg = Message.Create(AuctionTags.AddBid, writer))
+                    {
+                        foreach (var cl in room.Clients.Where(c => c.ID != client.ID))
+                        {
+                            cl.SendMessage(msg, SendMode.Reliable);
+                        }
+                    }
+                }
+            }
+            else
+            {
+                // Send confirmation to the client
+                using (var writer = DarkRiftWriter.Create())
+                {
+                    using (var msg = Message.Create(AuctionTags.AddBidFailed, writer))
+                    {
+                        client.SendMessage(msg, SendMode.Reliable);
+                    }
+                }
+            }
         }
         
         #endregion
