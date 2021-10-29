@@ -93,6 +93,15 @@ namespace Unlimited_NetworkingServer_MiningGame.Database
         void SetPlayerExperience(string username, uint experience, Action callback);
 
         /// <summary>
+        ///     Updates the player experience
+        /// </summary>
+        /// <param name="username">The user name</param>
+        /// <param name="level">The new player experience</param>
+        /// <param name="experience">The new player experience</param>
+        /// <param name="callback">Action executed</param>
+        void SetPlayerLevelExperience(string username, byte level, uint experience, Action callback);
+
+        /// <summary>
         ///     Retrieves player energy from the database 
         /// </summary>
         /// <param name="username">The user name</param>

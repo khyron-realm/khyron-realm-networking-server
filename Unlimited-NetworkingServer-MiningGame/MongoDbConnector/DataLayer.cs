@@ -86,6 +86,15 @@ namespace Unlimited_NetworkingServer_MiningGame.MongoDbConnector
             await _database.PlayerData.UpdateOneAsync(filter, update);
             callback();
         }
+        
+        /// <inheritdoc />
+        public async void SetPlayerLevelExperience(string username, byte level, uint experience, Action callback)
+        {
+            var filter = Builders<PlayerData>.Filter.Eq(u => u.Id, username);
+            var update = Builders<PlayerData>.Update.Set(u => u.Level, level).Set(u => u.Experience, experience);
+            await _database.PlayerData.UpdateOneAsync(filter, update);
+            callback();
+        }
 
         /// <inheritdoc />
         public async void GetPlayerExperience(string username, Action<uint> callback)

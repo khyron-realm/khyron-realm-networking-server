@@ -101,6 +101,12 @@ namespace Unlimited_NetworkingServer_MiningGame.Headquarters
                         break;
                     }
                     
+                    case HeadquartersTags.UpdateLevel:
+                    {
+                        UpdateLevel(client, message);
+                        break;
+                    }
+                    
                     case HeadquartersTags.ConvertResources:
                     {
                         ConvertResources(client, message);
@@ -248,6 +254,48 @@ namespace Unlimited_NetworkingServer_MiningGame.Headquarters
                     }
                 }
             });
+        }
+        
+        /// <summary>
+        ///     Updates the player level and remaining experience
+        /// </summary>
+        /// <param name="client">The connected client</param>
+        /// <param name="message">The message received</param>
+        private void UpdateLevel(IClient client, Message message)
+        {
+            string username = GetPlayerUsername(client);
+            
+            if (_debug) Logger.Info("Updating level for player: " + username);
+
+            byte level = 0;
+            uint experience = 0;
+
+            using (var reader = message.GetReader())
+            {
+                try
+                {
+                    level = reader.ReadByte();
+                    experience = reader.ReadUInt32();
+                }
+                catch (Exception exception)
+                {
+                    InvalidData(client, HeadquartersTags.RequestFailed, exception, "Invalid data packages received");
+                }
+            }
+
+            try
+            {
+                _database.DataLayer.SetPlayerLevelExperience(username, level, experience, () => { });
+            }
+            catch
+            {
+                if (_debug) Logger.Info("Update level error for user " + GetPlayerUsername(client));
+                    
+                using (var msg = Message.CreateEmpty(HeadquartersTags.UpdateLevelError))
+                {
+                    client.SendMessage(msg, SendMode.Reliable);
+                }
+            }
         }
 
         /// <summary>
