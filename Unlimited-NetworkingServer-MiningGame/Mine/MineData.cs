@@ -9,12 +9,12 @@ namespace Unlimited_NetworkingServer_MiningGame.Mine
     /// </summary>
     public class MineData : IDarkRiftSerializable
     {
-        public uint Id { get; }
-        public uint Size { get; }
+        public ushort Id { get; }
+        public ushort Size { get; }
         public MineSeed Seed { get; }
-        public Block[] Scans { get; set; }
+        public Block[] Scans { get; }
 
-        public MineData(uint id, uint size, MineSeed seed)
+        public MineData(ushort id, ushort size, MineSeed seed)
         {
             Id = id;
             Size = size;
