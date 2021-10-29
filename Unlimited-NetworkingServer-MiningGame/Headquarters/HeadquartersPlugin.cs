@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Linq;
 using DarkRift;
 using DarkRift.Server;
 using Unlimited_NetworkingServer_MiningGame.Database;
@@ -323,12 +322,14 @@ namespace Unlimited_NetworkingServer_MiningGame.Headquarters
             if (_debug) Logger.Info("Finish resource conversion for player " + username);
 
             uint energy = 0;
-            
+            uint experience = 0;
+
             using (var reader = message.GetReader())
             {
                 try
                 {
                     energy = reader.ReadUInt32();
+                    experience = reader.ReadUInt32();
                 }
                 catch (Exception exception)
                 {
@@ -355,6 +356,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Headquarters
             try
             {
                 _database.DataLayer.SetPlayerEnergy(username, energy, () => {});
+                _database.DataLayer.SetPlayerExperience(username, experience, () => {});
             }
             catch
             {
@@ -440,6 +442,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Headquarters
             string username = GetPlayerUsername(client);
             byte robotId = 0;
             Robot robot = new Robot();
+            uint experience = 0;
             
             using (var reader = message.GetReader())
             {
@@ -447,6 +450,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Headquarters
                 {
                     robotId = reader.ReadByte();
                     robot = reader.ReadSerializable<Robot>();
+                    experience = reader.ReadUInt32();
                 }
                 catch (Exception exception)
                 {
@@ -475,6 +479,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Headquarters
             try
             {
                 _database.DataLayer.SetPlayerRobot(username, robotId, robot, () => {});
+                _database.DataLayer.SetPlayerExperience(username, experience, () => {});
             }
             catch
             {

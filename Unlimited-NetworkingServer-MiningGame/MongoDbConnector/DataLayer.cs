@@ -1,7 +1,10 @@
 using System;
 using MongoDB.Driver;
+using Unlimited_NetworkingServer_MiningGame.Auction;
 using Unlimited_NetworkingServer_MiningGame.Database;
+using Unlimited_NetworkingServer_MiningGame.Game;
 using Unlimited_NetworkingServer_MiningGame.Headquarters;
+using Unlimited_NetworkingServer_MiningGame.Mine;
 
 namespace Unlimited_NetworkingServer_MiningGame.MongoDbConnector
 {
@@ -51,8 +54,8 @@ namespace Unlimited_NetworkingServer_MiningGame.MongoDbConnector
 
         #endregion
 
-        #region Game
-        
+        #region Headquarters
+
         /// <inheritdoc />
         public async void AddPlayerData(PlayerData player, Action callback)
         {
@@ -67,6 +70,7 @@ namespace Unlimited_NetworkingServer_MiningGame.MongoDbConnector
             callback(playerData);
         }
 
+        /// <inheritdoc />
         public async void GetPlayerLevel(string username, Action<uint> callback)
         {
             var level = await _database.PlayerData.Find(u => u.Id == username).Project(u => u.Level)
@@ -92,7 +96,7 @@ namespace Unlimited_NetworkingServer_MiningGame.MongoDbConnector
         }
 
         /// <inheritdoc />
-        public async void SetPlayerExperience(string username, ushort experience, Action callback)
+        public async void SetPlayerExperience(string username, uint experience, Action callback)
         {
             var filter = Builders<PlayerData>.Filter.Eq(u => u.Id, username);
             var update = Builders<PlayerData>.Update.Set(u => u.Experience, experience);
@@ -255,17 +259,17 @@ namespace Unlimited_NetworkingServer_MiningGame.MongoDbConnector
         #region Parameters
 
         /// <inheritdoc />
-        public async void AddGameData(Game.GameData data, Action callback)
+        public async void AddGameData(GameData data, Action callback)
         {
             await _database.GameData.InsertOneAsync(data);
             callback();
         }
         
         /// <inheritdoc />
-        public async void GetGameData(Action<Game.GameData> callback)
+        public async void GetGameData(Action<GameData> callback)
         {
-            var filter = Builders<Game.GameData>.Filter.Empty;
-            var sort = Builders<Game.GameData>.Sort.Descending(p => p.Version);
+            var filter = Builders<GameData>.Filter.Empty;
+            var sort = Builders<GameData>.Sort.Descending(p => p.Version);
             var gameData = await _database.GameData.Find(filter).Sort(sort).FirstOrDefaultAsync();
             callback(gameData);
         }
@@ -275,6 +279,48 @@ namespace Unlimited_NetworkingServer_MiningGame.MongoDbConnector
         {
             var gameData = await _database.GameData.Find(p => p.Version == version).FirstOrDefaultAsync();
             callback(gameData);
+        }
+        
+        #endregion
+
+        #region Auctions
+
+        /// <inheritdoc />
+        public async void AddAuction(AuctionRoom auction, Action callback)
+        {
+            await _database.AuctionRoom.InsertOneAsync(auction);
+            callback();
+        }
+
+        /// <inheritdoc />
+        public async void GetAuction(ushort auctionId, Action<AuctionRoom> callback)
+        {
+            var auctionRoom = await _database.AuctionRoom.Find(a => a.Id == auctionId).FirstOrDefaultAsync();
+            callback(auctionRoom);
+        }
+
+        /// <inheritdoc />
+        public async void RemoveAuction(ushort auctionId, Action callback)
+        {
+            await _database.AuctionRoom.DeleteOneAsync(a => a.Id == auctionId);
+            callback();
+        }
+
+        /// <inheritdoc />
+        public async void GetMine(ushort auctionId, Action<MineData> callback)
+        {
+            var mine = await _database.AuctionRoom.Find(a => a.Id == auctionId).Project(a => a.Mine).FirstOrDefaultAsync();
+            callback(mine);
+        }
+
+        /// <inheritdoc />
+        public async void AddScan(ushort auctionId, Block block, Action callback)
+        {
+            var filter = Builders<AuctionRoom>.Filter.Eq(u => u.Id, auctionId);
+            var update = Builders<AuctionRoom>.Update.AddToSet(a => a.Mine.Scans, block);
+            
+            await _database.AuctionRoom.UpdateOneAsync(filter, update);
+            callback();
         }
 
         #endregion

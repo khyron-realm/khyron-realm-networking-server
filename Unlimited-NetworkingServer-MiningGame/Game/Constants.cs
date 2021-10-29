@@ -7,6 +7,8 @@ namespace Unlimited_NetworkingServer_MiningGame.Game
         public const uint InitialBid = 1000;
         public const uint IncrementBid = 100;
 
+        public const uint AuctionDuration = 10;         // minutes
+
         #endregion
 
         #region Mine

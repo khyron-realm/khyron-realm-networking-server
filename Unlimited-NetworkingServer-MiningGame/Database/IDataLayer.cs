@@ -1,6 +1,8 @@
 using System;
+using Unlimited_NetworkingServer_MiningGame.Auction;
 using Unlimited_NetworkingServer_MiningGame.Game;
 using Unlimited_NetworkingServer_MiningGame.Headquarters;
+using Unlimited_NetworkingServer_MiningGame.Mine;
 
 namespace Unlimited_NetworkingServer_MiningGame.Database
 {
@@ -88,7 +90,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Database
         /// <param name="username">The user name</param>
         /// <param name="experience">The new player experience</param>
         /// <param name="callback">Action executed</param>
-        void SetPlayerExperience(string username, ushort experience, Action callback);
+        void SetPlayerExperience(string username, uint experience, Action callback);
 
         /// <summary>
         ///     Retrieves player energy from the database 
@@ -197,6 +199,46 @@ namespace Unlimited_NetworkingServer_MiningGame.Database
         /// <param name="version">The game data version</param>
         /// <param name="callback">Action executed</param>
         void GetGameData(ushort version, Action<GameData> callback);
+
+        #endregion
+
+        #region Auctions
+
+        /// <summary>
+        ///     Adds a new auction to the database
+        /// </summary>
+        /// <param name="auction">The auction object</param>
+        /// <param name="callback">Action executed</param>
+        void AddAuction(AuctionRoom auction, Action callback);
+
+        /// <summary>
+        ///     Retrieves player data from the database
+        /// </summary>
+        /// <param name="auctionId">The auction id</param>
+        /// <param name="callback">Action executed</param>
+        void GetAuction(ushort auctionId, Action<AuctionRoom> callback);
+        
+        /// <summary>
+        ///     Removes an auction from the database
+        /// </summary>
+        /// <param name="auctionId">The auction id</param>
+        /// <param name="callback">Action executed</param>
+        void RemoveAuction(ushort auctionId, Action callback);
+        
+        /// <summary>
+        ///     Retrieves a mine from the database
+        /// </summary>
+        /// <param name="auctionId">The auction id</param>
+        /// <param name="callback">Action executed</param>
+        void GetMine(ushort auctionId, Action<MineData> callback);
+        
+        /// <summary>
+        ///     Adds a scan to the database
+        /// </summary>
+        /// <param name="auctionId">The auction id</param>
+        /// <param name="block">The location of the scan</param>
+        /// <param name="callback">Action executed</param>
+        void AddScan(ushort auctionId, Block block, Action callback);
 
         #endregion
     }

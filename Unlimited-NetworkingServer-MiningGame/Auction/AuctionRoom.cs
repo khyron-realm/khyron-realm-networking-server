@@ -1,9 +1,13 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Timers;
 using DarkRift;
 using DarkRift.Server;
+using MongoDB.Bson.Serialization.Attributes;
 using Unlimited_NetworkingServer_MiningGame.Game;
 using Unlimited_NetworkingServer_MiningGame.Mine;
+using Timer = System.Timers.Timer;
 
 namespace Unlimited_NetworkingServer_MiningGame.Auction
 {
@@ -20,11 +24,25 @@ namespace Unlimited_NetworkingServer_MiningGame.Auction
         public MineData Mine { get; set; }
         public Bid LastBid { get; set; }
         public long EndTime { get; set; }
-
-        public List<IClient> Clients = new List<IClient>();
-        public List<Player> PlayerList = new List<Player>();
         
+        [BsonIgnore]
+        public List<IClient> Clients = new List<IClient>();
+        [BsonIgnore]
+        public List<Player> PlayerList = new List<Player>();
+        [BsonIgnore] private Timer endTimer;
+        [BsonIgnore]
         private static readonly object BidLock = new object();
+        
+        public event EventHandler<AuctionFinishedEventArgs> OnAuctionFinished;
+        
+        protected virtual void OnThresholdReached(AuctionFinishedEventArgs e)
+        {
+            EventHandler<AuctionFinishedEventArgs> handler = OnAuctionFinished;
+            if (handler != null)
+            {
+                handler(this, e);
+            }
+        }
         
         public AuctionRoom(ushort id, string name, bool isVisible, MineData mine)
         {
@@ -49,6 +67,38 @@ namespace Unlimited_NetworkingServer_MiningGame.Auction
             e.Writer.Write(Mine);
             e.Writer.Write(LastBid);
             e.Writer.Write(EndTime);
+        }
+
+        /// <summary>
+        ///     Starts the auction and activates the end timer
+        /// </summary>
+        internal void StartAuction()
+        {
+            HasStarted = true;
+
+            DateTime scheduledTime = DateTime.Now.AddMinutes(Constants.AuctionDuration);
+            EndTime = scheduledTime.ToBinary();
+            double tickTime = (double)(scheduledTime - DateTime.Now).TotalMilliseconds;
+            
+            endTimer = new Timer(tickTime);
+            endTimer.Elapsed += new ElapsedEventHandler(AuctionFinished);
+            endTimer.AutoReset = false;
+            endTimer.Start();
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void AuctionFinished(object sender, ElapsedEventArgs e)
+        {
+            endTimer.Stop();
+            
+            AuctionFinishedEventArgs args = new AuctionFinishedEventArgs();
+            args.AuctionId = Id;
+            args.endTime = EndTime;
+            OnThresholdReached(args);
         }
 
         /// <summary>
@@ -89,7 +139,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Auction
         /// <param name="amount">The amount of the new bid</param>
         /// <param name="client">The client object</param>
         /// <returns>True if the bid is added or false otherwise</returns>
-        public bool AddBid(ushort playerId, uint amount, IClient client)
+        internal bool AddBid(ushort playerId, uint amount, IClient client)
         {
             if (PlayerList.All(p => p.Id != client.ID) && !Clients.Contains(client))
                 return false;
@@ -113,7 +163,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Auction
         /// <param name="block">The location of the scan</param>
         /// <param name="client">The client object</param>
         /// <returns>True if the scan is added or false otherwise</returns>
-        public bool AddScan(ushort scanId, Block block, IClient client)
+        internal bool AddScan(ushort scanId, Block block, IClient client)
         {
             if (PlayerList.All(p => p.Id != client.ID) && !Clients.Contains(client))
                 return false;
@@ -124,5 +174,11 @@ namespace Unlimited_NetworkingServer_MiningGame.Auction
             Mine.Scans[scanId] = block;
             return true;
         }
+    }
+    
+    public class AuctionFinishedEventArgs : EventArgs
+    {
+        public ushort AuctionId { get; set; }
+        public long endTime { get; set; }
     }
 }

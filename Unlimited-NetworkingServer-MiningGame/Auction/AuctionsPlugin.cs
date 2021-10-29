@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using System.Linq;
 using DarkRift;
 using DarkRift.Server;
+using Unlimited_NetworkingServer_MiningGame.Database;
 using Unlimited_NetworkingServer_MiningGame.Login;
 using Unlimited_NetworkingServer_MiningGame.Mine;
 using Unlimited_NetworkingServer_MiningGame.Tags;
@@ -24,13 +25,13 @@ namespace Unlimited_NetworkingServer_MiningGame.Auction
 
         public ConcurrentDictionary<ushort, AuctionRoom> AuctionRoomList { get; } =
             new ConcurrentDictionary<ushort, AuctionRoom>();
-
-        private static readonly object InitializeLock = new object();
-
         private readonly ConcurrentDictionary<ushort, AuctionRoom> _playersInRooms =
             new ConcurrentDictionary<ushort, AuctionRoom>();
-        private bool _debug = true;
+
+        private static readonly object InitializeLock = new object();
         private LoginPlugin _loginPlugin;
+        private DatabaseProxy _database;
+        private bool _debug = true;
 
         public AuctionsPlugin(PluginLoadData pluginLoadData) : base(pluginLoadData)
         {
@@ -41,7 +42,6 @@ namespace Unlimited_NetworkingServer_MiningGame.Auction
         private void OnPlayerConnected(object sender, ClientConnectedEventArgs e)
         {
             if (_loginPlugin == null)
-            {
                 lock (InitializeLock)
                 {
                     if (_loginPlugin == null)
@@ -49,7 +49,12 @@ namespace Unlimited_NetworkingServer_MiningGame.Auction
                         _loginPlugin = PluginManager.GetPluginByType<LoginPlugin>();
                     }
                 }
-            }
+            if (_database == null)
+                lock (InitializeLock)
+                {
+                    if (_database == null)
+                        _database = PluginManager.GetPluginByType<DatabaseProxy>();
+                }
 
             e.Client.MessageReceived += OnMessageReceived;
         }
@@ -167,6 +172,9 @@ namespace Unlimited_NetworkingServer_MiningGame.Auction
                 {
                     client.SendMessage(msg, SendMode.Reliable);
                 }
+                
+                // Add auction room to the database
+                _database.DataLayer.AddAuction(room, () => {});
             }
 
             if (_debug)
@@ -437,7 +445,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Auction
             }
             
             // Start game
-            AuctionRoomList[roomId].HasStarted = true;
+            AuctionRoomList[roomId].StartAuction();
 
             using (var msg = Message.CreateEmpty(AuctionTags.StartAuctionSuccess))
             {
@@ -446,6 +454,8 @@ namespace Unlimited_NetworkingServer_MiningGame.Auction
                     cl.SendMessage(msg, SendMode.Reliable);
                 }
             }
+
+            AuctionRoomList[roomId].OnAuctionFinished += AuctionFinished;
         }
 
         /// <summary>
@@ -538,11 +548,12 @@ namespace Unlimited_NetworkingServer_MiningGame.Auction
             var username = _loginPlugin.GetPlayerUsername(client);
             var room = AuctionRoomList[roomId];
             var player = room.PlayerList.FirstOrDefault(p => p.Name == username);
+            var scanPosition = new Block(x, y);
             
             // Add a new scan
-            if (AuctionRoomList[roomId].AddScan(player.Id, new Block(x, y), client))
+            if (AuctionRoomList[roomId].AddScan(player.Id, scanPosition, client))
             {
-                // TO-DO add the scan to the database
+                _database.DataLayer.AddScan(roomId, scanPosition, () => {});
             }
             else
             {
@@ -554,6 +565,15 @@ namespace Unlimited_NetworkingServer_MiningGame.Auction
             }
         }
         
+        #endregion
+
+        #region Events
+
+        private void AuctionFinished(object sender, AuctionFinishedEventArgs e)
+        {
+            Logger.Info("Auction finished");
+        }
+
         #endregion
 
         #region Helpers
