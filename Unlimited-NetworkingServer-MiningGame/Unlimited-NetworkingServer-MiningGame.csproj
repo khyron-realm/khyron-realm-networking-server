@@ -153,6 +153,7 @@
         <Compile Include="MongoDbConnector\MongoDbPlugin.cs" />
         <Compile Include="Tags\AuctionTags.cs" />
         <Compile Include="Tags\ChatTags.cs" />
+        <Compile Include="Tags\FriendsTags.cs" />
         <Compile Include="Tags\HeadquartersTags.cs" />
         <Compile Include="Tags\LoginTags.cs" />
         <Compile Include="Tags\MineTags.cs" />
