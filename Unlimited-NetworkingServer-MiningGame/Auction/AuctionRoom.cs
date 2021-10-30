@@ -16,11 +16,12 @@ namespace Unlimited_NetworkingServer_MiningGame.Auction
     /// </summary>
     public class AuctionRoom : IDarkRiftSerializable
     {
-        public ushort Id { get; }
-        public string Name { get; }
-        public byte MaxPlayers { get; } = 50;
+        [BsonId]
+        public ushort Id { get; set; }
+        public string Name { get; set; }
+        public byte MaxPlayers { get; }
         public bool HasStarted { get; set; }
-        public bool IsVisible { get; }
+        public bool IsVisible { get; set;  }
         public MineData Mine { get; set; }
         public Bid LastBid { get; set; }
         public long EndTime { get; set; }
@@ -48,6 +49,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Auction
         {
             Id = id;
             Name = name;
+            MaxPlayers = Constants.MaxAuctionPlayers;
             HasStarted = false;
             IsVisible = isVisible;
             Mine = mine;
@@ -168,10 +170,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Auction
             if (PlayerList.All(p => p.Id != client.ID) && !Clients.Contains(client))
                 return false;
 
-            if (scanId >= Constants.NrMineScans)
-                return false;
-            
-            Mine.Scans[scanId] = block;
+            Mine.Scans = Mine.Scans.Append(block);
             return true;
         }
     }
@@ -180,5 +179,19 @@ namespace Unlimited_NetworkingServer_MiningGame.Auction
     {
         public ushort AuctionId { get; set; }
         public long endTime { get; set; }
+    }
+    
+    public static class Extensions
+    {
+        public static T[] Append<T>(this T[] array, T item)
+        {
+            if (array == null || array.Length == 0) {
+                return new T[] { item };
+            }
+            Array.Resize(ref array, array.Length + 1);
+            array[array.Length - 1] = item;
+ 
+            return array;
+        }
     }
 }

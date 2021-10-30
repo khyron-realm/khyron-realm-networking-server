@@ -1,4 +1,5 @@
 using DarkRift;
+using MongoDB.Bson.Serialization.Attributes;
 
 namespace Unlimited_NetworkingServer_MiningGame.Mine
 {
@@ -7,10 +8,10 @@ namespace Unlimited_NetworkingServer_MiningGame.Mine
     /// </summary>
     public class MineSeed : IDarkRiftSerializable
     {
-        private short Global { get; }
-        private short Silicon { get; }
-        private short Lithium { get; }
-        private short Titanium { get; }
+        public short Global { get; set; }
+        public short Silicon { get; set; }
+        public short Lithium { get; set; }
+        public short Titanium { get; set; }
         
         public MineSeed(short global, short silicon, short lithium, short titanium)
         {

@@ -20,7 +20,13 @@ namespace Unlimited_NetworkingServer_MiningGame.Auction
 
         public override Command[] Commands => new[]
         {
-            new Command("AuctionRooms", "Show all auction rooms", "", GetRoomsCommand)
+            new Command("AuctionRooms", "Show all auction rooms", "", GetRoomsCommand),
+
+            #region Testcommands
+            new Command("StartAuctionTest", "Test for auction timers", "", StartAuctionTest),
+            new Command("AddAuctionTest", "Test for adding an auction to the database", "", AddAuctionTest),
+            new Command("RemoveAuctionTest", "Test for removing an auction from the database", "", RemoveAuctionTest)
+            #endregion
         };
 
         public ConcurrentDictionary<ushort, AuctionRoom> AuctionRoomList { get; } =
@@ -527,16 +533,14 @@ namespace Unlimited_NetworkingServer_MiningGame.Auction
         private void AddScan(IClient client, Message message)
         {
             ushort roomId = 0;
-            ushort x = 0;
-            ushort y = 0;
+            Block scanPosition = new Block();
             
             try
             {
                 using (var reader = message.GetReader())
                 {
                     roomId = reader.ReadUInt16();
-                    x = reader.ReadUInt16();
-                    y = reader.ReadUInt16();
+                    scanPosition = reader.ReadSerializable<Block>();
                 }
             }
             catch (Exception ex)
@@ -548,8 +552,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Auction
             var username = _loginPlugin.GetPlayerUsername(client);
             var room = AuctionRoomList[roomId];
             var player = room.PlayerList.FirstOrDefault(p => p.Name == username);
-            var scanPosition = new Block(x, y);
-            
+
             // Add a new scan
             if (AuctionRoomList[roomId].AddScan(player.Id, scanPosition, client))
             {
@@ -579,7 +582,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Auction
         #region Helpers
 
         /// <summary>
-        /// 
+        ///     Sets the auction room name
         /// </summary>
         /// <param name="roomName"></param>
         /// <param name="playerName"></param>
@@ -595,7 +598,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Auction
         }
 
         /// <summary>
-        /// 
+        ///     Generates a new id for the auction room
         /// </summary>
         /// <returns></returns>
         private ushort GenerateAuctionRoomId()
@@ -616,7 +619,57 @@ namespace Unlimited_NetworkingServer_MiningGame.Auction
 
         #region Commands
 
+        /// <summary>
+        ///     Command for showing all the available rooms
+        /// </summary>
+        /// <param name="sender">The sender object</param>
+        /// <param name="e">The client object</param>
         private void GetRoomsCommand(object sender, CommandEventArgs e)
+        {
+            
+        }
+        
+        private void StartAuctionTest(object sender, CommandEventArgs e)
+        {
+            var roomId = GenerateAuctionRoomId();
+            var seed = new MineSeed(0, 0, 0, 0);            
+            var mine = new MineData(0, 9000, seed);                           
+            var room = new AuctionRoom(roomId, "test", true, mine);
+            
+            room.StartAuction();
+
+            room.OnAuctionFinished += AuctionFinished;
+        }
+        
+        private void AddAuctionTest(object sender, CommandEventArgs e)
+        {
+            if (_database == null)
+                lock (InitializeLock)
+                {
+                    if (_database == null) _database = PluginManager.GetPluginByType<DatabaseProxy>();
+                }
+            
+            ushort id = 14;
+            var seed = new MineSeed(10, 20, 30, 40);      
+            var mine = new MineData(id, 9000, seed);
+            var miningRobots = new[] {
+                new MiningRobot(0, 10, new Block(1, 2)),
+                new MiningRobot(1, 10, new Block(1, 2)),
+                new MiningRobot(2, 10, new Block(1, 2))
+            };
+            mine.AddRobots(miningRobots);
+            var room = new AuctionRoom(id, "test", true, mine);
+            room.AddScan(0, new Block(0, 1), null);
+            room.AddScan(1, new Block(1, 1), null);
+            room.AddScan(2, new Block(2, 1), null);
+            room.AddScan(3, new Block(3, 2), null);
+
+            _database.DataLayer.AddAuction(room, () => {});
+            
+            Logger.Info("Added auction to the database");
+        }
+
+        private void RemoveAuctionTest(object sender, CommandEventArgs e)
         {
             
         }

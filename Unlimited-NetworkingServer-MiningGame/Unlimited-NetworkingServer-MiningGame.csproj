@@ -129,6 +129,7 @@
         <Compile Include="Chat\ChatPlugin.cs" />
         <Compile Include="Database\DatabaseProxy.cs" />
         <Compile Include="Database\IDataLayer.cs" />
+        <Compile Include="Friends\FriendsPlugin.cs" />
         <Compile Include="Game\Constants.cs" />
         <Compile Include="Game\FriendList.cs" />
         <Compile Include="Game\FriendListDto.cs" />
@@ -146,6 +147,7 @@
         <Compile Include="Mine\MineData.cs" />
         <Compile Include="Mine\Block.cs" />
         <Compile Include="Mine\MinePlugin.cs" />
+        <Compile Include="Mine\MiningRobot.cs" />
         <Compile Include="Mine\Seed.cs" />
         <Compile Include="MongoDbConnector\DataLayer.cs" />
         <Compile Include="MongoDbConnector\MongoDbPlugin.cs" />

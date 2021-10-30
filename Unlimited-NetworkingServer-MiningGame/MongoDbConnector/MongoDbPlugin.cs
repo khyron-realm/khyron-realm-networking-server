@@ -7,6 +7,7 @@ using Unlimited_NetworkingServer_MiningGame.Auction;
 using Unlimited_NetworkingServer_MiningGame.Database;
 using Unlimited_NetworkingServer_MiningGame.Game;
 using Unlimited_NetworkingServer_MiningGame.Headquarters;
+using Unlimited_NetworkingServer_MiningGame.Mine;
 
 namespace Unlimited_NetworkingServer_MiningGame.MongoDbConnector
 {
@@ -51,8 +52,10 @@ namespace Unlimited_NetworkingServer_MiningGame.MongoDbConnector
 
         public IMongoCollection<User> Users { get; private set; }
         public IMongoCollection<PlayerData> PlayerData { get; private set; }
+        public IMongoCollection<FriendList> FriendList { get; private set; }
         public IMongoCollection<GameData> GameData { get; private set; }
         public IMongoCollection<AuctionRoom> AuctionRoom { get; private set; }
+        public IMongoCollection<MineData> MineData { get; private set; }
 
         /// <summary>
         ///     Create or load the config document for setting the database connection
@@ -130,8 +133,10 @@ namespace Unlimited_NetworkingServer_MiningGame.MongoDbConnector
         {
             Users = _mongoDatabase.GetCollection<User>("Users");
             PlayerData = _mongoDatabase.GetCollection<PlayerData>("PlayerData");
+            FriendList = _mongoDatabase.GetCollection<FriendList>("FriendList");
             GameData = _mongoDatabase.GetCollection<Game.GameData>("GameData");
             AuctionRoom = _mongoDatabase.GetCollection<AuctionRoom>("AuctionRoom");
+            MineData = _mongoDatabase.GetCollection<MineData>("MineData");
         }
 
         #region Commands
@@ -146,10 +151,12 @@ namespace Unlimited_NetworkingServer_MiningGame.MongoDbConnector
             if (_database == null)
                 lock (InitializeLock)
                 {
-                    if (_database == null) _database = PluginManager.GetPluginByType<DatabaseProxy>();
+                    if (_database == null)
+                    {
+                        _database = PluginManager.GetPluginByType<DatabaseProxy>();
+                        _database.SetDatabase(_dataLayer);
+                    }
                 }
-
-            _database.SetDatabase(_dataLayer);
         }
 
         #endregion
