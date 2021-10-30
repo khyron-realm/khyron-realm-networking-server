@@ -292,6 +292,12 @@ namespace Unlimited_NetworkingServer_MiningGame.MongoDbConnector
         
         #endregion
 
+        #region Friends
+
+        
+
+        #endregion
+
         #region Auctions
 
         /// <inheritdoc />
@@ -331,6 +337,12 @@ namespace Unlimited_NetworkingServer_MiningGame.MongoDbConnector
             await _database.AuctionRoom.UpdateOneAsync(filter, update);
             callback();
         }
+
+        #endregion
+
+        #region Mine
+
+        
 
         #endregion
     }

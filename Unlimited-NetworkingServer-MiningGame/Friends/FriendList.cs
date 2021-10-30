@@ -1,8 +1,7 @@
 using System.Collections.Generic;
 using MongoDB.Bson.Serialization.Attributes;
-using Unlimited_NetworkingServer_MiningGame.Headquarters;
 
-namespace Unlimited_NetworkingServer_MiningGame.Game
+namespace Unlimited_NetworkingServer_MiningGame.Friends
 {
     public class FriendList
     {

@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace Unlimited_NetworkingServer_MiningGame.Game
+namespace Unlimited_NetworkingServer_MiningGame.Friends
 {
     public class FriendListDto
     {

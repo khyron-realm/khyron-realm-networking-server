@@ -5,6 +5,7 @@ using DarkRift.Server;
 using MongoDB.Driver;
 using Unlimited_NetworkingServer_MiningGame.Auction;
 using Unlimited_NetworkingServer_MiningGame.Database;
+using Unlimited_NetworkingServer_MiningGame.Friends;
 using Unlimited_NetworkingServer_MiningGame.Game;
 using Unlimited_NetworkingServer_MiningGame.Headquarters;
 using Unlimited_NetworkingServer_MiningGame.Mine;

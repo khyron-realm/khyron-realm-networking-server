@@ -114,6 +114,8 @@ namespace Unlimited_NetworkingServer_MiningGame.Chat
             }
         }
 
+        #region ReceivedCalls
+
         /// <summary>
         ///     Sends the private message to the receiver
         /// </summary>
@@ -487,6 +489,8 @@ namespace Unlimited_NetworkingServer_MiningGame.Chat
             ChatGroupsOfPlayer.TryRemove(username, out _);
         }
 
+        #endregion
+        
         #region Commands
         
         /// <summary>

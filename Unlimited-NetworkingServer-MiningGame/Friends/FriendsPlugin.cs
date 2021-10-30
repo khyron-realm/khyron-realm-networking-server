@@ -14,5 +14,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Friends
         public FriendsPlugin(PluginLoadData pluginLoadData) : base(pluginLoadData)
         {
         }
+        
+        
     }
 }
