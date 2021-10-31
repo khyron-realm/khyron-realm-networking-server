@@ -1,5 +1,7 @@
 using System;
+using System.Collections.Generic;
 using Unlimited_NetworkingServer_MiningGame.Auction;
+using Unlimited_NetworkingServer_MiningGame.Friends;
 using Unlimited_NetworkingServer_MiningGame.Game;
 using Unlimited_NetworkingServer_MiningGame.Headquarters;
 using Unlimited_NetworkingServer_MiningGame.Mine;
@@ -20,7 +22,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Database
         /// </summary>
         /// <param name="username">The user name</param>
         /// <param name="callback">Action executed</param>
-        void GetUser(string username, Action<User> callback);
+        void GetUser(string username, Action<IUser> callback);
 
         /// <summary>
         ///     Checks if a username is available on the database
@@ -248,6 +250,55 @@ namespace Unlimited_NetworkingServer_MiningGame.Database
         /// <param name="block">The location of the scan</param>
         /// <param name="callback">Action executed</param>
         void AddScan(ushort auctionId, Block block, Action callback);
+
+        #endregion
+
+        #region Friends
+        
+        /// <summary>
+        ///     Adds a friend request to the database
+        /// </summary>
+        /// <param name="sender">The sender of the request</param>
+        /// <param name="receiver">The receiver of the request</param>
+        /// <param name="callback">Action executed</param>
+        void AddRequest(string sender, string receiver, Action callback);
+        
+        /// <summary>
+        ///     Removes a friend request from the database
+        /// </summary>
+        /// <param name="sender">The sender of the request</param>
+        /// <param name="receiver">The receiver of the request</param>
+        /// <param name="callback">Action executed</param>
+        void RemoveRequest(string sender, string receiver, Action callback);
+        
+        /// <summary>
+        ///     Adds a player friend to the database
+        /// </summary>
+        /// <param name="sender">The sender of the request</param>
+        /// <param name="receiver">The receiver of the request</param>
+        /// <param name="callback">Action executed</param>
+        void AddFriend(string sender, string receiver, Action callback);
+        
+        /// <summary>
+        ///     Removes a player friend from the database
+        /// </summary>
+        /// <param name="sender">The sender of the request</param>
+        /// <param name="receiver">The receiver of the request</param>
+        /// <param name="callback">Action executed</param>
+        void RemoveFriend(string sender, string receiver, Action callback);
+        
+        /// <summary>
+        ///     Get the friends of the player from the database
+        /// </summary>
+        /// <param name="username">The player username</param>
+        /// <param name="callback">Action executed</param>
+        void GetFriends(string username, Action<IFriendList> callback);
+
+        #endregion
+
+        #region Mine
+
+
 
         #endregion
     }

@@ -1,8 +1,9 @@
 using System.Collections.Generic;
+using Unlimited_NetworkingServer_MiningGame.Database;
 
 namespace Unlimited_NetworkingServer_MiningGame.Friends
 {
-    public class FriendListDto
+    public class FriendListDto : IFriendList
     {
         public List<string> Friends { get; }
         public List<string> OpenFriendRequests { get; }
