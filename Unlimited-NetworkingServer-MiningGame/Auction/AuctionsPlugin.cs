@@ -496,11 +496,16 @@ namespace Unlimited_NetworkingServer_MiningGame.Auction
             if (AuctionRoomList[roomId].AddBid(player.Id, newAmount, client))
             {
                 // Send confirmation to the client
-                using (var msg = Message.CreateEmpty(AuctionTags.AddBidSuccessful))
+                using (var writer = DarkRiftWriter.Create())
                 {
-                    client.SendMessage(msg, SendMode.Reliable);
+                    writer.Write(AuctionRoomList[roomId].LastBid);
+
+                    using (var msg = Message.Create(AuctionTags.AddBidSuccessful, writer))
+                    {
+                        client.SendMessage(msg, SendMode.Reliable);
+                    }
                 }
-            
+
                 // Let the other clients know
                 using (var writer = DarkRiftWriter.Create())
                 {
@@ -626,7 +631,13 @@ namespace Unlimited_NetworkingServer_MiningGame.Auction
         /// <param name="e">The client object</param>
         private void GetRoomsCommand(object sender, CommandEventArgs e)
         {
-            
+            Logger.Info("Active rooms: ");
+
+            var rooms = AuctionRoomList.Values.ToList();
+            foreach (var room in rooms)
+            {
+                Logger.Info(room.Name + " [" + room.Id + "] - " + room.PlayerList.Count + "/" + room.MaxPlayers);
+            }
         }
         
         private void StartAuctionTest(object sender, CommandEventArgs e)
