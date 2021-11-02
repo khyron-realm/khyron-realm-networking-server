@@ -458,7 +458,7 @@ namespace Unlimited_NetworkingServer_MiningGame.MongoDbConnector
         }
 
         /// <inheritdoc />
-        public async void GetAuction(ushort auctionId, Action<AuctionRoom> callback)
+        public async void GetAuction(uint auctionId, Action<AuctionRoom> callback)
         {
             var auctionRoom = await _database.AuctionRoom.Find(a => a.Id == auctionId).FirstOrDefaultAsync();
             callback(auctionRoom);
@@ -472,24 +472,24 @@ namespace Unlimited_NetworkingServer_MiningGame.MongoDbConnector
         }
 
         /// <inheritdoc />
-        public void RemoveAuction(ushort auctionId, Action callback)
+        public void RemoveAuction(uint auctionId, Action callback)
         {
             _database.AuctionRoom.DeleteOne(a => a.Id == auctionId);
             callback();
         }
 
         /// <inheritdoc />
-        public async void GetMine(ushort auctionId, Action<MineData> callback)
+        public async void GetMine(uint auctionId, Action<MineData> callback)
         {
-            var mine = await _database.AuctionRoom.Find(a => a.Id == auctionId).Project(a => a.Mine).FirstOrDefaultAsync();
+            var mine = await _database.MineData.Find(m => m.Id == auctionId).FirstOrDefaultAsync();
             callback(mine);
         }
         
         /// <inheritdoc />
-        public async void AddScan(ushort auctionId, MineScan scan, Action callback)
+        public async void AddScan(uint auctionId, MineScan scan, Action callback)
         {
             var filter = Builders<AuctionRoom>.Filter.Eq(u => u.Id, auctionId);
-            var update = Builders<AuctionRoom>.Update.AddToSet(a => a.AllMineScans, scan);
+            var update = Builders<AuctionRoom>.Update.AddToSet(a => a.MineScans, scan);
             
             await _database.AuctionRoom.UpdateOneAsync(filter, update);
             callback();

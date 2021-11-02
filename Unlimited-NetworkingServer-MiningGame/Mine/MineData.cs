@@ -1,5 +1,3 @@
-using System;
-using System.Linq;
 using DarkRift;
 using MongoDB.Bson.Serialization.Attributes;
 using Unlimited_NetworkingServer_MiningGame.Auction;
@@ -12,39 +10,36 @@ namespace Unlimited_NetworkingServer_MiningGame.Mine
     public class MineData : IDarkRiftSerializable
     {
         [BsonId]
-        public ushort Id { get; set; }
-        public ushort Size { get; set; }
+        public uint Id { get; set; }
+        public string Name { get; set; }
+        public string Owner { get; set; }
         public MineGenerationValues GenerationValues { get; set; }
         public bool[] BlocksValues { get; set; }
         public MineScan[] Scans { get; set; }
-        public string Winner { get; set; }
 
         public MineData()
         { }
 
-        public MineData(ushort id, ushort size)
+        public MineData(uint id, string name, string owner)
         {
             Id = id;
-            Size = size;
+            Name = name;
+            Owner = owner;
             GenerationValues = new MineGenerationValues();
             BlocksValues = new bool[] { };
             Scans = new MineScan[] { };
-            Winner = "";
         }
 
         public void Deserialize(DeserializeEvent e)
-        {
-            Id = e.Reader.ReadUInt16();
-            Size = e.Reader.ReadUInt16();
-            GenerationValues = e.Reader.ReadSerializable<MineGenerationValues>();
-            BlocksValues = e.Reader.ReadBooleans();
-        }
+        { }
 
         public void Serialize(SerializeEvent e)
         {
             e.Writer.Write(Id);
-            e.Writer.Write(Size);
+            e.Writer.Write(Name);
             e.Writer.Write(GenerationValues);
+            e.Writer.Write(BlocksValues);
+            e.Writer.Write(Scans);
         }
     }
 }

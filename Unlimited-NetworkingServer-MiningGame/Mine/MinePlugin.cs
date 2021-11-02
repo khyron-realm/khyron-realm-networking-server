@@ -24,13 +24,13 @@ namespace Unlimited_NetworkingServer_MiningGame.Mine
         
         public MinePlugin(PluginLoadData pluginLoadData) : base(pluginLoadData)
         {
-            //ClientManager.ClientConnected += OnPlayerConnected;
-            //ClientManager.ClientDisconnected += OnPlayerDisconnected;
+            ClientManager.ClientConnected += OnPlayerConnected;
+            ClientManager.ClientDisconnected += OnPlayerDisconnected;
         }
         
         private void OnPlayerConnected(object sender, ClientConnectedEventArgs e)
         {
-            //e.Client.MessageReceived += OnMessageReceived;
+            e.Client.MessageReceived += OnMessageReceived;
         }
         
         private void OnPlayerDisconnected(object sender, ClientDisconnectedEventArgs e)
@@ -54,7 +54,8 @@ namespace Unlimited_NetworkingServer_MiningGame.Mine
                 {
                     case MineTags.GetMine:
                     {
-                        break;   
+                        GetMine(client, message);
+                        break;
                     }
 
                     case MineTags.FinishMine:
@@ -73,17 +74,15 @@ namespace Unlimited_NetworkingServer_MiningGame.Mine
         /// </summary>
         /// <param name="client">The connected client</param>
         /// <param name="message">The message received</param>
-        private void CreateAuctionRoom(IClient client, Message message)
+        private void GetMine(IClient client, Message message)
         {
-            string roomName;
-            bool isVisible;
+            ushort roomId;
 
             try
             {
                 using (var reader = message.GetReader())
                 {
-                    roomName = reader.ReadString();
-                    isVisible = reader.ReadBoolean();
+                    roomId = reader.ReadUInt16();
                 }
             }
             catch (Exception ex)

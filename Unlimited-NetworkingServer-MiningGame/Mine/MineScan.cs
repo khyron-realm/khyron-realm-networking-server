@@ -1,7 +1,7 @@
 ﻿using DarkRift;
 using MongoDB.Bson.Serialization.Attributes;
 
-namespace Unlimited_NetworkingServer_MiningGame.Auction
+namespace Unlimited_NetworkingServer_MiningGame.Mine
 {
     /// <summary>
     ///     Mine block

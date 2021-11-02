@@ -9,15 +9,17 @@ namespace Unlimited_NetworkingServer_MiningGame.Auction
     { 
         public uint Id { get; set; }
         public uint UserId { get; set; }
+        public string Username { get; set; }
         public uint Amount { get; set; }
 
         public Bid()
         { }
         
-        public Bid(uint id, uint userId, uint amount)
+        public Bid(uint id, uint userId, string username, uint amount)
         {
             Id = id;
             UserId = userId;
+            Username = username;
             Amount = amount;
         }
         
@@ -36,10 +38,11 @@ namespace Unlimited_NetworkingServer_MiningGame.Auction
         /// </summary>
         /// <param name="userId">The user that made the bid</param>
         /// <param name="amount">The amount</param>
-        public void AddBid(uint userId, uint amount)
+        public void AddBid(uint userId, string username, uint amount)
         {
             Id += 1;
             UserId = userId;
+            Username = username;
             Amount = amount;
         }
 

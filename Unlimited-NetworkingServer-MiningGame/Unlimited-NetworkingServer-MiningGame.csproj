@@ -125,7 +125,6 @@
         <Compile Include="Auction\AuctionsPlugin.cs" />
         <Compile Include="Auction\Bid.cs" />
         <Compile Include="Auction\Player.cs" />
-        <Compile Include="Auction\MineScan.cs" />
         <Compile Include="Chat\ChatGroup.cs" />
         <Compile Include="Chat\ChatPlugin.cs" />
         <Compile Include="Database\DatabaseProxy.cs" />
@@ -151,6 +150,7 @@
         <Compile Include="Mine\MineData.cs" />
         <Compile Include="Mine\MinePlugin.cs" />
         <Compile Include="Mine\MineGenerationValues.cs" />
+        <Compile Include="Mine\MineScan.cs" />
         <Compile Include="Mine\ResourcesData.cs" />
         <Compile Include="MongoDbConnector\DataLayer.cs" />
         <Compile Include="MongoDbConnector\MongoDbPlugin.cs" />
