@@ -46,6 +46,9 @@ namespace Unlimited_NetworkingServer_MiningGame.Auction
             }
         }
         
+        public AuctionRoom()
+        { }
+
         public AuctionRoom(ushort id, string name, bool isVisible, MineData mine)
         {
             Id = id;
@@ -54,7 +57,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Auction
             HasStarted = false;
             IsVisible = isVisible;
             Mine = mine;
-            LastBid = new Bid(0, 0, Constants.InitialBid);
+            LastBid = new Bid((uint)0, (uint)0, Constants.InitialBid);
             EndTime = 0;
         }
 
@@ -66,7 +69,17 @@ namespace Unlimited_NetworkingServer_MiningGame.Auction
             e.Writer.Write(Id);
             e.Writer.Write(Name);
             e.Writer.Write(MaxPlayers);
-            e.Writer.Write((byte) PlayerList.Count);
+            byte playerCount;
+            try
+            {
+                if (PlayerList != null) playerCount = (byte) PlayerList.Count;
+                else playerCount = 0;
+            }
+            catch (Exception exception)
+            {
+                playerCount = 0;
+            }
+            e.Writer.Write(playerCount);
             e.Writer.Write(Mine);
             e.Writer.Write(LastBid);
             e.Writer.Write(EndTime);
@@ -75,11 +88,11 @@ namespace Unlimited_NetworkingServer_MiningGame.Auction
         /// <summary>
         ///     Starts the auction and activates the end timer
         /// </summary>
-        internal void StartAuction()
+        internal void StartAuction(ushort delay)
         {
             HasStarted = true;
 
-            DateTime scheduledTime = DateTime.Now.AddMinutes(Constants.AuctionDuration);
+            DateTime scheduledTime = DateTime.Now.AddMinutes(Constants.AuctionDuration).AddSeconds(delay);
             EndTime = scheduledTime.ToBinary();
             double tickTime = (double)(scheduledTime - DateTime.Now).TotalMilliseconds;
             
@@ -134,6 +147,17 @@ namespace Unlimited_NetworkingServer_MiningGame.Auction
             Clients.Remove(client);
             return true;
         }
+        
+        /// <summary>
+        ///     Gets a player username
+        /// </summary>
+        /// <param name="playerId">The player id</param>
+        /// <returns>The player username</returns>
+        internal string GetPlayerUsername(uint playerId)
+        {
+            var username = PlayerList.Find(p => p.Id == playerId).Name;
+            return username;
+        }
 
         /// <summary>
         ///     Adds a bid to the auction
@@ -142,7 +166,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Auction
         /// <param name="amount">The amount of the new bid</param>
         /// <param name="client">The client object</param>
         /// <returns>True if the bid is added or false otherwise</returns>
-        internal bool AddBid(ushort playerId, uint amount, IClient client)
+        internal bool AddBid(uint playerId, uint amount, IClient client)
         {
             if (PlayerList.All(p => p.Id != client.ID) && !Clients.Contains(client))
                 return false;

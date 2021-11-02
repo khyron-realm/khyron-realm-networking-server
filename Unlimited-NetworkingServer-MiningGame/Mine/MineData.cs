@@ -17,6 +17,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Mine
         public MineGenerationValues GenerationValues { get; set; }
         public bool[] BlocksValues { get; set; }
         public MineScan[] Scans { get; set; }
+        public string Winner { get; set; }
 
         public MineData()
         { }
@@ -28,6 +29,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Mine
             GenerationValues = new MineGenerationValues();
             BlocksValues = new bool[] { };
             Scans = new MineScan[] { };
+            Winner = "";
         }
 
         public void Deserialize(DeserializeEvent e)

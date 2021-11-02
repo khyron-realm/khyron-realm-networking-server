@@ -5,7 +5,7 @@
     /// </summary>
     public static class FriendsTags
     {
-        private const ushort Shift = Tags.Mine * Tags.TagsPerPlugin;
+        private const ushort Shift = Tags.Friends * Tags.TagsPerPlugin;
         
         public const ushort FriendRequest = 0 + Shift;
         public const ushort RequestFailed = 1 + Shift;

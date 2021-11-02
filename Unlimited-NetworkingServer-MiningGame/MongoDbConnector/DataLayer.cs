@@ -472,9 +472,9 @@ namespace Unlimited_NetworkingServer_MiningGame.MongoDbConnector
         }
 
         /// <inheritdoc />
-        public async void RemoveAuction(ushort auctionId, Action callback)
+        public void RemoveAuction(ushort auctionId, Action callback)
         {
-            await _database.AuctionRoom.DeleteOneAsync(a => a.Id == auctionId);
+            _database.AuctionRoom.DeleteOne(a => a.Id == auctionId);
             callback();
         }
 
@@ -499,7 +499,19 @@ namespace Unlimited_NetworkingServer_MiningGame.MongoDbConnector
 
         #region Mine
 
+        /// <inheritdoc />
+        public async void AddMine(MineData mine, Action callback)
+        {
+            await _database.MineData.InsertOneAsync(mine);
+            callback();
+        }
         
+        /// <inheritdoc />
+        public void RemoveMine(ushort mineId, Action callback)
+        {
+            _database.MineData.DeleteOne(a => a.Id == mineId);
+            callback();
+        }
 
         #endregion
     }

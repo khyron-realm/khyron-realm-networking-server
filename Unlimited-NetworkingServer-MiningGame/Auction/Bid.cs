@@ -7,14 +7,14 @@ namespace Unlimited_NetworkingServer_MiningGame.Auction
     /// </summary>
     public class Bid : IDarkRiftSerializable
     { 
-        public ushort Id { get; set; }
-        public ushort UserId { get; set; }
+        public uint Id { get; set; }
+        public uint UserId { get; set; }
         public uint Amount { get; set; }
 
         public Bid()
         { }
         
-        public Bid(ushort id, ushort userId, uint amount)
+        public Bid(uint id, uint userId, uint amount)
         {
             Id = id;
             UserId = userId;
@@ -36,11 +36,11 @@ namespace Unlimited_NetworkingServer_MiningGame.Auction
         /// </summary>
         /// <param name="userId">The user that made the bid</param>
         /// <param name="amount">The amount</param>
-        public void AddBid(ushort userId, uint amount)
+        public void AddBid(uint userId, uint amount)
         {
             Id += 1;
             UserId = userId;
-            Amount = Amount;
+            Amount = amount;
         }
 
     }

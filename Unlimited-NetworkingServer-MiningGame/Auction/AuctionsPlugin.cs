@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using DarkRift;
 using DarkRift.Server;
@@ -34,9 +35,9 @@ namespace Unlimited_NetworkingServer_MiningGame.Auction
 
         public ConcurrentDictionary<ushort, AuctionRoom> AuctionRoomList { get; } =
             new ConcurrentDictionary<ushort, AuctionRoom>();
-        private readonly ConcurrentDictionary<ushort, AuctionRoom> _playersInRooms =
-            new ConcurrentDictionary<ushort, AuctionRoom>();
-        
+        private readonly ConcurrentDictionary<uint, ushort> _playersInRooms =
+            new ConcurrentDictionary<uint, ushort>();
+
         private LoginPlugin _loginPlugin;
         private DatabaseProxy _database;
         private bool _debug = true;
@@ -47,7 +48,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Auction
             if (_loginPlugin == null) _loginPlugin = PluginManager.GetPluginByType<LoginPlugin>();
             
             RestoreAuctionRooms();
-            
+
             var nrAuctionRooms = (ushort) AuctionRoomList.Count;
             var difference = (ushort) (Constants.InitialNrAuctions - nrAuctionRooms);
             if (AuctionRoomList != null && nrAuctionRooms < Constants.InitialNrAuctions)
@@ -65,8 +66,6 @@ namespace Unlimited_NetworkingServer_MiningGame.Auction
 
         private void OnPlayerConnected(object sender, ClientConnectedEventArgs e)
         {
-            Logger.Info("OnPlayerConnectedLoading");
-
             e.Client.MessageReceived += OnMessageReceived;
         }
         
@@ -86,7 +85,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Auction
                 var client = e.Client;
 
                 // If player isn't logged in, return error 1
-                if (!_loginPlugin.PlayerLoggedIn(client, Tags.AuctionTags.RequestFailed, "Player not logged in."))
+                if (!_loginPlugin.PlayerLoggedIn(client, AuctionTags.RequestFailed, "Player not logged in."))
                     return;
 
                 switch (message.Tag)
@@ -177,7 +176,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Auction
 
             room.AddPlayer(player, client);
             AuctionRoomList.TryAdd(roomId, room);
-            _playersInRooms.TryAdd(client.ID, room);
+            _playersInRooms.TryAdd(client.ID, roomId);
 
             using (var writer = DarkRiftWriter.Create())
             {
@@ -269,7 +268,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Auction
             // Try to join room
             if (room.AddPlayer(newPlayer, client))
             {
-                _playersInRooms[client.ID] = room;
+                _playersInRooms[client.ID] = roomId;
 
                 using (var writer = DarkRiftWriter.Create())
                 {
@@ -335,7 +334,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Auction
             var id = client.ID;
             if(!_playersInRooms.ContainsKey(id)) return;
 
-            var room = _playersInRooms[id];
+            var room = AuctionRoomList[_playersInRooms[id]];
             var leaverName = room.PlayerList.FirstOrDefault(p => p.Id == client.ID)?.Name;
             _playersInRooms.TryRemove(id, out _);
 
@@ -399,13 +398,16 @@ namespace Unlimited_NetworkingServer_MiningGame.Auction
         /// <param name="client">The connected client</param>
         private void GetOpenRooms(IClient client)
         {
-            var availableRooms = AuctionRoomList.Values.Where(r => r.IsVisible && !r.HasStarted).ToList();
+            Logger.Info("Getting open rooms");
+            //var availableRooms = AuctionRoomList.Values.Where(r => r.IsVisible && !r.HasStarted).ToList();
+            var availableRooms = AuctionRoomList.Values.Where(r => r.IsVisible).ToList();
 
             using (var writer = DarkRiftWriter.Create())
             {
                 foreach (var room in availableRooms)
                 {
                     writer.Write(room);
+                    Logger.Info("Sending room: " + room.Id);
                 }
 
                 using (var msg = Message.Create(AuctionTags.GetOpenRooms, writer))
@@ -413,6 +415,8 @@ namespace Unlimited_NetworkingServer_MiningGame.Auction
                     client.SendMessage(msg, SendMode.Reliable);
                 }
             }
+            
+            Logger.Info("Finished getting open rooms");
         }
         
         /// <summary>
@@ -462,7 +466,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Auction
             }
             
             // Start game
-            AuctionRoomList[roomId].StartAuction();
+            AuctionRoomList[roomId].StartAuction(0);
 
             using (var msg = Message.CreateEmpty(AuctionTags.StartAuctionSuccess))
             {
@@ -590,7 +594,38 @@ namespace Unlimited_NetworkingServer_MiningGame.Auction
 
         private void AuctionFinished(object sender, AuctionFinishedEventArgs e)
         {
-            Logger.Info("Auction finished");
+            var winner = AuctionRoomList[e.AuctionId].LastBid.UserId;
+            
+            using (var writer = DarkRiftWriter.Create())
+            {
+                writer.Write(e.AuctionId);
+                writer.Write(winner);
+
+                using (var msg = Message.Create(AuctionTags.AuctionFinished, writer))
+                {
+                    foreach (var client in AuctionRoomList[e.AuctionId].Clients)
+                    {
+                        AuctionRoomList[e.AuctionId].RemovePlayer(client);
+                        client.SendMessage(msg, SendMode.Reliable);
+                    }
+                }
+            }
+            
+            if (AuctionRoomList[e.AuctionId].LastBid.Id >= 1)
+            {
+                AuctionRoomList[e.AuctionId].Mine.Winner = AuctionRoomList[e.AuctionId].GetPlayerUsername(winner);
+                _database.DataLayer.AddMine(AuctionRoomList[e.AuctionId].Mine, () => { });
+            }
+
+            AuctionRoomList.TryRemove(AuctionRoomList.FirstOrDefault(r => r.Key == e.AuctionId).Key, out _);
+            
+            _database.DataLayer.RemoveAuction(e.AuctionId, () => { });
+
+            if (_debug)
+            {
+                Logger.Info("Auction " + e.AuctionId + " finished");
+            }
+            
             GenerateAuctionRooms(1);
         }
 
@@ -620,15 +655,18 @@ namespace Unlimited_NetworkingServer_MiningGame.Auction
         /// <returns></returns>
         private ushort GenerateAuctionRoomId()
         {
-            ushort i = 0;
-            while (true)
+            try
             {
-                if (!AuctionRoomList.ContainsKey(i))
-                {
-                    return i;
-                }
+                var maxKey = AuctionRoomList.Keys.Max();
 
-                i++;
+                if (maxKey > 65534)
+                    return 0;
+                else
+                    return (ushort) (maxKey + 1);
+            }
+            catch (InvalidOperationException e)
+            {
+                return 0;
             }
         }
 
@@ -648,26 +686,31 @@ namespace Unlimited_NetworkingServer_MiningGame.Auction
                         // TO-DO
                         // Actions needed before deleting the auction
                         
-                        Logger.Info("Auction deleted" + auctionRoom.Id);
+                        Logger.Info("Auction deleted " + auctionRoom.Id);
                         _database.DataLayer.RemoveAuction(auctionRoom.Id, () => {});
                     }
                     else
                     {
-                        Logger.Info("Auction restored" + auctionRoom.Id);
+                        Logger.Info("Auction restored " + auctionRoom.Id);
                         AuctionRoomList.TryAdd(auctionRoom.Id, auctionRoom);
+                        AuctionRoomList[auctionRoom.Id].OnAuctionFinished += AuctionFinished;
                     }
                 }
             });
         }
         
-        private void GenerateAuctionRooms(ushort nrMines)
+        private void GenerateAuctionRooms(ushort nrAuctions)
         {
-            for (ushort i = 0; i < nrMines; i++)
+            for (ushort i = 0; i < nrAuctions; i++)
             {
                 var roomName = NameGenerator.RandName();
                 var roomId = GenerateAuctionRoomId();
                 var mine = new MineData(roomId, Constants.MineSize);
-                var room = new AuctionRoom(roomId, roomName, true, mine);          
+                var room = new AuctionRoom(roomId, roomName, true, mine);
+                
+                room.StartAuction(i);
+                
+                room.OnAuctionFinished += AuctionFinished;
                 
                 AuctionRoomList.TryAdd(roomId, room);
 
@@ -723,7 +766,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Auction
             var mine = new MineData(0, 9000);                           
             var room = new AuctionRoom(roomId, "test", true, mine);
             
-            room.StartAuction();
+            room.StartAuction(0);
 
             room.OnAuctionFinished += AuctionFinished;
         }

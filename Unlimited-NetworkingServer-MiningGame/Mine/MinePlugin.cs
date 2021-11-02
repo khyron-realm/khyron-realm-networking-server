@@ -1,4 +1,5 @@
 ﻿using System;
+using DarkRift;
 using DarkRift.Server;
 using Unlimited_NetworkingServer_MiningGame.Database;
 using Unlimited_NetworkingServer_MiningGame.Login;
@@ -23,13 +24,13 @@ namespace Unlimited_NetworkingServer_MiningGame.Mine
         
         public MinePlugin(PluginLoadData pluginLoadData) : base(pluginLoadData)
         {
-            ClientManager.ClientConnected += OnPlayerConnected;
-            ClientManager.ClientDisconnected += OnPlayerDisconnected;
+            //ClientManager.ClientConnected += OnPlayerConnected;
+            //ClientManager.ClientDisconnected += OnPlayerDisconnected;
         }
         
         private void OnPlayerConnected(object sender, ClientConnectedEventArgs e)
         {
-            e.Client.MessageReceived += OnMessageReceived;
+            //e.Client.MessageReceived += OnMessageReceived;
         }
         
         private void OnPlayerDisconnected(object sender, ClientDisconnectedEventArgs e)
@@ -51,9 +52,50 @@ namespace Unlimited_NetworkingServer_MiningGame.Mine
 
                 switch (message.Tag)
                 {
-                    
+                    case MineTags.GetMine:
+                    {
+                        break;   
+                    }
+
+                    case MineTags.FinishMine:
+                    {
+                        break;
+                    }
                 }
             }
         }
+
+        #region ReceivedCalls
+
+        
+        /// <summary>
+        ///     Create a new user generated auction room
+        /// </summary>
+        /// <param name="client">The connected client</param>
+        /// <param name="message">The message received</param>
+        private void CreateAuctionRoom(IClient client, Message message)
+        {
+            string roomName;
+            bool isVisible;
+
+            try
+            {
+                using (var reader = message.GetReader())
+                {
+                    roomName = reader.ReadString();
+                    isVisible = reader.ReadBoolean();
+                }
+            }
+            catch (Exception ex)
+            {
+                // Return Error 0 for Invalid Data Packages Received
+                _loginPlugin.InvalidData(client, MineTags.RequestFailed, ex, "Auction room create failed");
+                return;
+            }
+
+           
+        }
+
+        #endregion
     }
 }

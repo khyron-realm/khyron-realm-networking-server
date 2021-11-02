@@ -304,7 +304,19 @@ namespace Unlimited_NetworkingServer_MiningGame.Database
 
         #region Mine
 
-
+        /// <summary>
+        ///     Adds a mine to the database
+        /// </summary>
+        /// <param name="mine">The mine object</param>
+        /// <param name="callback">Action executed</param>
+        void AddMine(MineData mine, Action callback);
+        
+        /// <summary>
+        ///     Removes an auction from the database
+        /// </summary>
+        /// <param name="mineId">The mine id</param>
+        /// <param name="callback">Action executed</param>
+        void RemoveMine(ushort mineId, Action callback);
 
         #endregion
     }
