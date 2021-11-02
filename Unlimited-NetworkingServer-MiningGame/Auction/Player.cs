@@ -8,8 +8,8 @@ namespace Unlimited_NetworkingServer_MiningGame.Auction
     /// </summary>
     public class Player : IDarkRiftSerializable
     {
-        public ushort Id { get; set; }
-        public string Name { get; set; }
+        public ushort Id { get; }
+        public string Name { get; }
         public bool IsHost { get; private set; }
         
         public Player(ushort id, string name, bool isHost)
@@ -19,15 +19,6 @@ namespace Unlimited_NetworkingServer_MiningGame.Auction
             Name = name;
         }
 
-        /// <summary>
-        ///     Sets the host of the room
-        /// </summary>
-        /// <param name="isHost">True if the player is the host and false otherwise</param>
-        public void SetHost(bool isHost)
-        {
-            IsHost = isHost;
-        }
-        
         public void Deserialize(DeserializeEvent e)
         { }
 
@@ -36,6 +27,15 @@ namespace Unlimited_NetworkingServer_MiningGame.Auction
             e.Writer.Write(Id);
             e.Writer.Write(Name);
             e.Writer.Write(IsHost);
+        }
+        
+        /// <summary>
+        ///     Sets the host of the room
+        /// </summary>
+        /// <param name="isHost">True if the player is the host and false otherwise</param>
+        public void SetHost(bool isHost)
+        {
+            IsHost = isHost;
         }
     }
 }

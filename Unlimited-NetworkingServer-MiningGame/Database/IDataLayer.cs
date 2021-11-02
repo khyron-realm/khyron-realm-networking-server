@@ -223,11 +223,17 @@ namespace Unlimited_NetworkingServer_MiningGame.Database
         void AddAuction(AuctionRoom auction, Action callback);
 
         /// <summary>
-        ///     Retrieves player data from the database
+        ///     Retrieves an auction from the database
         /// </summary>
         /// <param name="auctionId">The auction id</param>
         /// <param name="callback">Action executed</param>
         void GetAuction(ushort auctionId, Action<AuctionRoom> callback);
+
+        /// <summary>
+        ///     Retrieves all auctions from the database
+        /// </summary>
+        /// <param name="callback">Action executed</param>
+        void GetAuctions(Action<List<AuctionRoom>> callback);
         
         /// <summary>
         ///     Removes an auction from the database
@@ -247,9 +253,9 @@ namespace Unlimited_NetworkingServer_MiningGame.Database
         ///     Adds a scan to the database
         /// </summary>
         /// <param name="auctionId">The auction id</param>
-        /// <param name="block">The location of the scan</param>
+        /// <param name="scan">The location of the scan</param>
         /// <param name="callback">Action executed</param>
-        void AddScan(ushort auctionId, Block block, Action callback);
+        void AddScan(ushort auctionId, MineScan scan, Action callback);
 
         #endregion
 

@@ -17,8 +17,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Chat
     {
         public override Version Version => new Version(1, 0, 0);
         public override bool ThreadSafe => true;
-
-        private static readonly object InitializeLock = new object();
+        
         private bool _debug = true;
         private LoginPlugin _loginPlugin;
         private AuctionsPlugin _auctionsPlugin;
@@ -34,27 +33,21 @@ namespace Unlimited_NetworkingServer_MiningGame.Chat
             new Command("Groups", "Show all chat groups", "groups [username]", GetChatGroupsCommand)
         };
 
+        protected override void Loaded(LoadedEventArgs args)
+        {
+            if (_auctionsPlugin == null) _auctionsPlugin = PluginManager.GetPluginByType<AuctionsPlugin>();
+            if (_loginPlugin == null) _loginPlugin = PluginManager.GetPluginByType<LoginPlugin>();
+            _loginPlugin.OnLogout += RemovePlayerFromChatGroup;
+            ChatGroups["General"] = new ChatGroup("General");
+        }
+        
         public ChatPlugin(PluginLoadData pluginLoadData) : base(pluginLoadData)
         {
             ClientManager.ClientConnected += OnPlayerConnected;
         }
 
         private void OnPlayerConnected(object sender, ClientConnectedEventArgs e)
-        {
-            if (_loginPlugin == null)
-            {
-                lock (InitializeLock)
-                {
-                    if (_loginPlugin == null)
-                    {
-                        _loginPlugin = PluginManager.GetPluginByType<LoginPlugin>();
-                        _auctionsPlugin = PluginManager.GetPluginByType<AuctionsPlugin>();
-                        _loginPlugin.OnLogout += RemovePlayerFromChatGroup;
-                        ChatGroups["General"] = new ChatGroup("General");
-                    }
-                }
-            }
-
+        { 
             e.Client.MessageReceived += OnMessageReceived;
         }
 

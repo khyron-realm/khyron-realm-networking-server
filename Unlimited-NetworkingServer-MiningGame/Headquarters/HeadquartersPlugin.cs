@@ -12,12 +12,16 @@ namespace Unlimited_NetworkingServer_MiningGame.Headquarters
     /// </summary>
     public class HeadquartersPlugin : Plugin
     {
-        private static readonly object InitializeLock = new object();
-
         private LoginPlugin _loginPlugin;
         private DatabaseProxy _database;
         private bool _debug = true;
 
+        protected override void Loaded(LoadedEventArgs args)
+        {
+            if (_database == null) _database = PluginManager.GetPluginByType<DatabaseProxy>();
+            if (_loginPlugin == null) _loginPlugin = PluginManager.GetPluginByType<LoginPlugin>();
+        }
+        
         public HeadquartersPlugin(PluginLoadData pluginLoadData) : base(pluginLoadData)
         {
             ClientManager.ClientConnected += OnPlayerConnected;
@@ -39,19 +43,6 @@ namespace Unlimited_NetworkingServer_MiningGame.Headquarters
         /// <param name="e">The client object</param>
         private void OnPlayerConnected(object sender, ClientConnectedEventArgs e)
         {
-            if (_loginPlugin == null)
-                lock (InitializeLock)
-                {
-                    if (_loginPlugin == null)
-                        _loginPlugin = PluginManager.GetPluginByType<LoginPlugin>();
-                }
-            if (_database == null)
-                lock (InitializeLock)
-                {
-                    if (_database == null)
-                        _database = PluginManager.GetPluginByType<DatabaseProxy>();
-                }
-
             using (var msg = Message.CreateEmpty(HeadquartersTags.PlayerConnected))
             {
                 e.Client.SendMessage(msg, SendMode.Reliable);

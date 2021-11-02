@@ -6,5 +6,7 @@
     public static class MineTags
     {
         private const ushort Shift = Tags.Mine * Tags.TagsPerPlugin;
+
+        public const ushort RequestFailed = 0 + Shift;
     }
 }

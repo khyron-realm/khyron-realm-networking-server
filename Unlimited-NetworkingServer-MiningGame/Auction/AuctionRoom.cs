@@ -25,7 +25,8 @@ namespace Unlimited_NetworkingServer_MiningGame.Auction
         public MineData Mine { get; set; }
         public Bid LastBid { get; set; }
         public long EndTime { get; set; }
-        
+        public MineScan[] AllMineScans { get; set; }
+
         [BsonIgnore]
         public List<IClient> Clients = new List<IClient>();
         [BsonIgnore]
@@ -99,7 +100,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Auction
             
             AuctionFinishedEventArgs args = new AuctionFinishedEventArgs();
             args.AuctionId = Id;
-            args.endTime = EndTime;
+            args.EndTime = EndTime;
             OnThresholdReached(args);
         }
 
@@ -157,20 +158,19 @@ namespace Unlimited_NetworkingServer_MiningGame.Auction
             
             return false;
         }
-
+        
         /// <summary>
         ///     Adds a scan to the auction mine
         /// </summary>
-        /// <param name="scanId">The scan number</param>
-        /// <param name="block">The location of the scan</param>
+        /// <param name="scan">The scan made by the players</param>
         /// <param name="client">The client object</param>
-        /// <returns>True if the scan is added or false otherwise</returns>
-        internal bool AddScan(ushort scanId, Block block, IClient client)
+        /// <returns>True if the bid is added or false otherwise</returns>
+        internal bool AddScan(MineScan scan, IClient client)
         {
             if (PlayerList.All(p => p.Id != client.ID) && !Clients.Contains(client))
                 return false;
 
-            Mine.Scans = Mine.Scans.Append(block);
+            AllMineScans = AllMineScans.Append(scan);
             return true;
         }
     }
@@ -178,14 +178,15 @@ namespace Unlimited_NetworkingServer_MiningGame.Auction
     public class AuctionFinishedEventArgs : EventArgs
     {
         public ushort AuctionId { get; set; }
-        public long endTime { get; set; }
+        public long EndTime { get; set; }
     }
     
     public static class Extensions
     {
         public static T[] Append<T>(this T[] array, T item)
         {
-            if (array == null || array.Length == 0) {
+            if (array == null || array.Length == 0) 
+            {
                 return new T[] { item };
             }
             Array.Resize(ref array, array.Length + 1);

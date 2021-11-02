@@ -51,6 +51,16 @@ namespace Unlimited_NetworkingServer_MiningGame.MongoDbConnector
         {
             new Command("LoadMongo", "Loads MongoDB Database", "", LoadDbCommand)
         };
+        
+        protected override void Loaded(LoadedEventArgs args)
+        {
+            if (_database == null)
+            {
+                _database = PluginManager.GetPluginByType<DatabaseProxy>();
+                _database.SetDatabase(_dataLayer);
+            }
+            Logger.Info("Loaded Database: MongoDB");
+        }
 
         public IMongoCollection<User> Users { get; private set; }
         public IMongoCollection<PlayerData> PlayerData { get; private set; }
@@ -116,17 +126,7 @@ namespace Unlimited_NetworkingServer_MiningGame.MongoDbConnector
         /// <param name="sender">The sender object</param>
         /// <param name="e">The client object</param>
         private void OnPlayerConnected(object sender, ClientConnectedEventArgs e)
-        {
-            if (_database == null)
-                lock (InitializeLock)
-                {
-                    if (_database == null)
-                    {
-                        _database = PluginManager.GetPluginByType<DatabaseProxy>();
-                        _database.SetDatabase(_dataLayer);
-                    }
-                }
-        }
+        { }
 
         /// <summary>
         ///     Initializes the database collections

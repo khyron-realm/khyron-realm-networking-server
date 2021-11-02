@@ -13,6 +13,11 @@ namespace Unlimited_NetworkingServer_MiningGame.Game
         private DatabaseProxy _database;
         private GameData _data;
 
+        protected override void Loaded(LoadedEventArgs args)
+        {
+            if (_database == null) _database = PluginManager.GetPluginByType<DatabaseProxy>();
+        }
+        
         public GamePlugin(PluginLoadData pluginLoadData) : base(pluginLoadData)
         {
         }
@@ -29,19 +34,6 @@ namespace Unlimited_NetworkingServer_MiningGame.Game
             new Command("GetGameData", "Get the game data parameters from the database for the specified version", "GetGameData [version]",
                 ExtractGameData)
         };
-
-        /// <summary>
-        ///     Initialize the database object with the DB plugin
-        /// </summary>
-        private void InitializeDb()
-        {
-            if (_database == null)
-                lock (InitializeLock)
-                {
-                    if (_database == null)
-                        _database = PluginManager.GetPluginByType<DatabaseProxy>();
-                }
-        }
 
         #region Commands
         
@@ -72,8 +64,6 @@ namespace Unlimited_NetworkingServer_MiningGame.Game
         /// <param name="e">The command event object</param>
         private void StoreGameData(object sender, CommandEventArgs e)
         {
-            InitializeDb();
-
             if(_data != null)
             {
                 _database.DataLayer.AddGameData(_data, () => { Logger.Info("Adding game data"); });
@@ -92,8 +82,6 @@ namespace Unlimited_NetworkingServer_MiningGame.Game
         /// <param name="e">The command event object</param>
         private void ExtractGameData(object sender, CommandEventArgs e)
         {
-            InitializeDb();
-
             if (e.Arguments.Length > 1)
             {
                 Logger.Warning("Invalid arguments. Enter GetGameData [version]");

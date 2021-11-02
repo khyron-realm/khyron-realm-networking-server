@@ -1,28 +1,34 @@
 ﻿using DarkRift;
-using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 
-namespace Unlimited_NetworkingServer_MiningGame.Mine
+namespace Unlimited_NetworkingServer_MiningGame.Auction
 {
     /// <summary>
     ///     Mine block
     /// </summary>
-    public class Block : IDarkRiftSerializable
+    public class MineScan : IDarkRiftSerializable
     {
+        [BsonId]
+        public ushort Player { get; set; }
         public ushort X { get; set; }
         public ushort Y { get; set; }
         
-        public Block(ushort x, ushort y)
+        public MineScan()
+        { }
+
+        public MineScan(ushort player, ushort x, ushort y)
         {
+            Player = player;
             X = x;
             Y = y;
         }
-
-        public Block()
-        { }
-
+        
         public void Deserialize(DeserializeEvent e)
-        { }
+        {
+            Player = e.Reader.ReadUInt16();
+            X = e.Reader.ReadUInt16();
+            Y = e.Reader.ReadUInt16();
+        }
 
         public void Serialize(SerializeEvent e)
         {

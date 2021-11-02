@@ -125,6 +125,7 @@
         <Compile Include="Auction\AuctionsPlugin.cs" />
         <Compile Include="Auction\Bid.cs" />
         <Compile Include="Auction\Player.cs" />
+        <Compile Include="Auction\MineScan.cs" />
         <Compile Include="Chat\ChatGroup.cs" />
         <Compile Include="Chat\ChatPlugin.cs" />
         <Compile Include="Database\DatabaseProxy.cs" />
@@ -137,6 +138,7 @@
         <Compile Include="Game\Constants.cs" />
         <Compile Include="Game\GamePlugin.cs" />
         <Compile Include="Game\GameData.cs" />
+        <Compile Include="Game\NameGenerator.cs" />
         <Compile Include="Headquarters\BuildTask.cs" />
         <Compile Include="Headquarters\PlayerData.cs" />
         <Compile Include="Headquarters\Resource.cs" />
@@ -147,10 +149,9 @@
         <Compile Include="Login\LoginPlugin.cs" />
         <Compile Include="Login\User.cs" />
         <Compile Include="Mine\MineData.cs" />
-        <Compile Include="Mine\Block.cs" />
         <Compile Include="Mine\MinePlugin.cs" />
-        <Compile Include="Mine\MiningRobot.cs" />
-        <Compile Include="Mine\Seed.cs" />
+        <Compile Include="Mine\MineGenerationValues.cs" />
+        <Compile Include="Mine\ResourcesData.cs" />
         <Compile Include="MongoDbConnector\DataLayer.cs" />
         <Compile Include="MongoDbConnector\MongoDbPlugin.cs" />
         <Compile Include="Tags\AuctionTags.cs" />

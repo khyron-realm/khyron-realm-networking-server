@@ -19,9 +19,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Chat
         }
 
         public void Deserialize(DeserializeEvent e)
-        {
-            
-        }
+        { }
 
         public void Serialize(SerializeEvent e)
         {

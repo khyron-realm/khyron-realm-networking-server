@@ -5,6 +5,7 @@ using System.Linq;
 using DarkRift;
 using DarkRift.Server;
 using Unlimited_NetworkingServer_MiningGame.Database;
+using Unlimited_NetworkingServer_MiningGame.Game;
 using Unlimited_NetworkingServer_MiningGame.Headquarters;
 using Unlimited_NetworkingServer_MiningGame.Tags;
 
@@ -15,25 +16,27 @@ namespace Unlimited_NetworkingServer_MiningGame.Login
     /// </summary>
     public class LoginPlugin : Plugin
     {
-        private const string PrivateKeyPath = @"Plugins/PrivateKey.xml";
-        private static readonly object InitializeLock = new object();
-
         private ConcurrentDictionary<string, IClient> _clients = new ConcurrentDictionary<string, IClient>();
 
         private ConcurrentDictionary<IClient, string> _usersLoggedIn = new ConcurrentDictionary<IClient, string>();
 
+        private const string PrivateKeyPath = @"Plugins/PrivateKey.xml";
         private bool _allowAddUser = true;
         private DatabaseProxy _database;
         private bool _debug = true;
         private string _privateKey;
-        private const ushort InitialEnergy = 10000;
-        
+
         #region Events
 
         public delegate void LogoutEventHandler(string username);
         public event LogoutEventHandler OnLogout;
 
         #endregion
+
+        protected override void Loaded(LoadedEventArgs args)
+        {
+            if (_database == null) _database = PluginManager.GetPluginByType<DatabaseProxy>();
+        }
 
         public LoginPlugin(PluginLoadData pluginLoadData) : base(pluginLoadData)
         {
@@ -79,12 +82,6 @@ namespace Unlimited_NetworkingServer_MiningGame.Login
         /// <param name="e">The client object</param>
         private void OnPlayerConnected(object sender, ClientConnectedEventArgs e)
         {
-            if (_database == null)
-                lock (InitializeLock)
-                {
-                    if (_database == null) _database = PluginManager.GetPluginByType<DatabaseProxy>();
-                }
-
             _usersLoggedIn[e.Client] = null;
 
             e.Client.MessageReceived += OnMessageReceived;
@@ -163,7 +160,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Login
             string id = username;
             byte level = 1;
             ushort experience = 1;
-            uint energy = InitialEnergy;
+            uint energy = Constants.InitialEnergy;
 
             // Create resources
             Resource[] resources = new Resource[nrResources];
@@ -462,9 +459,6 @@ namespace Unlimited_NetworkingServer_MiningGame.Login
         /// <param name="e">The client object</param>
         private void AddUserCommand(object sender, CommandEventArgs e)
         {
-            Logger.Info("Loading db");
-            if (_database == null) _database = PluginManager.GetPluginByType<DatabaseProxy>();
-
             if (e.Arguments.Length != 2)
             {
                 Logger.Warning("Invalid arguments. Enter [AddUser -username -password].");
@@ -507,8 +501,6 @@ namespace Unlimited_NetworkingServer_MiningGame.Login
         /// <param name="e">The client object</param>
         private void DellUserCommand(object sender, CommandEventArgs e)
         {
-            if (_database == null) _database = PluginManager.GetPluginByType<DatabaseProxy>();
-
             if (e.Arguments.Length != 2)
             {
                 Logger.Warning("Invalid arguments. Enter [AddUser -username -password].");

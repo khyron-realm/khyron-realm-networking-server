@@ -1,7 +1,8 @@
-using System.Xml.Schema;
+using System;
+using System.Linq;
 using DarkRift;
 using MongoDB.Bson.Serialization.Attributes;
-using Unlimited_NetworkingServer_MiningGame.Game;
+using Unlimited_NetworkingServer_MiningGame.Auction;
 
 namespace Unlimited_NetworkingServer_MiningGame.Mine
 {
@@ -13,47 +14,35 @@ namespace Unlimited_NetworkingServer_MiningGame.Mine
         [BsonId]
         public ushort Id { get; set; }
         public ushort Size { get; set; }
-        public MineSeed Seed { get; set; }
-        public Block[] Scans { get; set; }
-        public MiningRobot[] Robots { get; set; }
+        public MineGenerationValues GenerationValues { get; set; }
+        public bool[] BlocksValues { get; set; }
+        public MineScan[] Scans { get; set; }
 
-        public MineData(ushort id, ushort size, MineSeed seed)
+        public MineData()
+        { }
+
+        public MineData(ushort id, ushort size)
         {
             Id = id;
             Size = size;
-            Seed = seed;
-            Scans = new Block[] { };
-            Robots = new MiningRobot[] { };
+            GenerationValues = new MineGenerationValues();
+            BlocksValues = new bool[] { };
+            Scans = new MineScan[] { };
         }
 
         public void Deserialize(DeserializeEvent e)
         {
-            
+            Id = e.Reader.ReadUInt16();
+            Size = e.Reader.ReadUInt16();
+            GenerationValues = e.Reader.ReadSerializable<MineGenerationValues>();
+            BlocksValues = e.Reader.ReadBooleans();
         }
 
         public void Serialize(SerializeEvent e)
         {
             e.Writer.Write(Id);
             e.Writer.Write(Size);
-            e.Writer.Write(Seed);
-        }
-        
-        /// <summary>
-        ///     Sets the mine scans
-        /// </summary>
-        /// <param name="scans">The scans performed by the user</param>
-        public void AddScans(Block[] scans)
-        {
-            Scans = scans;
-        }
-
-        /// <summary>
-        ///     Sets the mining robots
-        /// </summary>
-        /// <param name="robots">The robots deployed in the mine</param>
-        public void AddRobots(MiningRobot[] robots)
-        {
-            Robots = robots;
+            e.Writer.Write(GenerationValues);
         }
     }
 }
