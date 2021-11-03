@@ -9,7 +9,7 @@ using Unlimited_NetworkingServer_MiningGame.Friends;
 using Unlimited_NetworkingServer_MiningGame.Game;
 using Unlimited_NetworkingServer_MiningGame.Headquarters;
 using Unlimited_NetworkingServer_MiningGame.Login;
-using Unlimited_NetworkingServer_MiningGame.Mine;
+using Unlimited_NetworkingServer_MiningGame.Mines;
 
 namespace Unlimited_NetworkingServer_MiningGame.MongoDbConnector
 {
@@ -289,7 +289,7 @@ namespace Unlimited_NetworkingServer_MiningGame.MongoDbConnector
         }
 
         /// <inheritdoc />
-        public async void GetGameData(ushort version, Action<Game.GameData> callback)
+        public async void GetGameData(ushort version, Action<GameData> callback)
         {
             var gameData = await _database.GameData.Find(p => p.Version == version).FirstOrDefaultAsync();
             callback(gameData);
@@ -479,12 +479,19 @@ namespace Unlimited_NetworkingServer_MiningGame.MongoDbConnector
         }
 
         /// <inheritdoc />
-        public async void GetMine(uint auctionId, Action<MineData> callback)
+        public async void GetMine(uint auctionId, Action<Mine> callback)
         {
             var mine = await _database.MineData.Find(m => m.Id == auctionId).FirstOrDefaultAsync();
             callback(mine);
         }
         
+        /// <inheritdoc />
+        public void GetMines(string username, Action<List<Mine>> callback)
+        {
+            var mines = _database.MineData.Find(m => m.Owner == username).ToList();
+            callback(mines);
+        }
+
         /// <inheritdoc />
         public async void AddScan(uint auctionId, MineScan scan, Action callback)
         {
@@ -500,14 +507,23 @@ namespace Unlimited_NetworkingServer_MiningGame.MongoDbConnector
         #region Mine
 
         /// <inheritdoc />
-        public async void AddMine(MineData mine, Action callback)
+        public async void AddMine(Mine mine, Action callback)
         {
             await _database.MineData.InsertOneAsync(mine);
             callback();
         }
         
+        public void SaveMineBlocks(uint mineId, bool[] blocks, Action callback)
+        {
+            var filter = Builders<Mine>.Filter.Eq(u => u.Id, mineId);
+            var update = Builders<Mine>.Update.Set(a => a.Blocks, blocks);
+            
+            _database.MineData.UpdateOne(filter, update);
+            callback();
+        }
+        
         /// <inheritdoc />
-        public void RemoveMine(ushort mineId, Action callback)
+        public void RemoveMine(uint mineId, Action callback)
         {
             _database.MineData.DeleteOne(a => a.Id == mineId);
             callback();

@@ -1,18 +1,18 @@
 using DarkRift;
 
-namespace Unlimited_NetworkingServer_MiningGame.Mine
+namespace Unlimited_NetworkingServer_MiningGame.Mines
 {
     /// <summary>
     ///     Mine seed values
     /// </summary>
-    public class MineGenerationValues : IDarkRiftSerializable
+    public class MineGenerator : IDarkRiftSerializable
     {
         public ResourcesData Global { get; set; }
         public ResourcesData Silicon { get; set; }
         public ResourcesData Lithium { get; set; }
         public ResourcesData Titanium { get; set; }
         
-        public MineGenerationValues()
+        public MineGenerator()
         {
             Global = new ResourcesData();
             Silicon = new ResourcesData();

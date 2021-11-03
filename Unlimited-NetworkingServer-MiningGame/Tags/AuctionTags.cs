@@ -42,5 +42,8 @@ namespace Unlimited_NetworkingServer_MiningGame.Tags
         public const ushort AddFriendToAuctionFailed = 23 + Shift;
         
         public const ushort RequestFailed = 24 + Shift;
+        
+        public const ushort GetMines = 25 + Shift;
+        public const ushort GetMinesFailed = 26 + Shift; 
     }
 }

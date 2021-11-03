@@ -9,7 +9,7 @@ using Unlimited_NetworkingServer_MiningGame.Friends;
 using Unlimited_NetworkingServer_MiningGame.Game;
 using Unlimited_NetworkingServer_MiningGame.Headquarters;
 using Unlimited_NetworkingServer_MiningGame.Login;
-using Unlimited_NetworkingServer_MiningGame.Mine;
+using Unlimited_NetworkingServer_MiningGame.Mines;
 
 namespace Unlimited_NetworkingServer_MiningGame.MongoDbConnector
 {
@@ -67,7 +67,7 @@ namespace Unlimited_NetworkingServer_MiningGame.MongoDbConnector
         public IMongoCollection<FriendList> FriendList { get; private set; }
         public IMongoCollection<GameData> GameData { get; private set; }
         public IMongoCollection<AuctionRoom> AuctionRoom { get; private set; }
-        public IMongoCollection<MineData> MineData { get; private set; }
+        public IMongoCollection<Mines.Mine> MineData { get; private set; }
 
         /// <summary>
         ///     Create or load the config document for setting the database connection
@@ -138,7 +138,7 @@ namespace Unlimited_NetworkingServer_MiningGame.MongoDbConnector
             FriendList = _mongoDatabase.GetCollection<FriendList>("FriendList");
             GameData = _mongoDatabase.GetCollection<Game.GameData>("GameData");
             AuctionRoom = _mongoDatabase.GetCollection<AuctionRoom>("AuctionRoom");
-            MineData = _mongoDatabase.GetCollection<MineData>("MineData");
+            MineData = _mongoDatabase.GetCollection<Mines.Mine>("MineData");
         }
 
         #region Commands

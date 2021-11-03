@@ -4,7 +4,7 @@ using Unlimited_NetworkingServer_MiningGame.Auction;
 using Unlimited_NetworkingServer_MiningGame.Friends;
 using Unlimited_NetworkingServer_MiningGame.Game;
 using Unlimited_NetworkingServer_MiningGame.Headquarters;
-using Unlimited_NetworkingServer_MiningGame.Mine;
+using Unlimited_NetworkingServer_MiningGame.Mines;
 
 namespace Unlimited_NetworkingServer_MiningGame.Database
 {
@@ -247,7 +247,14 @@ namespace Unlimited_NetworkingServer_MiningGame.Database
         /// </summary>
         /// <param name="auctionId">The auction id</param>
         /// <param name="callback">Action executed</param>
-        void GetMine(uint auctionId, Action<MineData> callback);
+        void GetMine(uint auctionId, Action<Mines.Mine> callback);
+        
+        /// <summary>
+        ///     Retrieves all mines from the database
+        /// </summary>
+        /// <param name="username">The player username</param>
+        /// <param name="callback">Action executed</param>
+        void GetMines(string username, Action<List<Mines.Mine>> callback);
         
         /// <summary>
         ///     Adds a scan to the database
@@ -309,14 +316,22 @@ namespace Unlimited_NetworkingServer_MiningGame.Database
         /// </summary>
         /// <param name="mine">The mine object</param>
         /// <param name="callback">Action executed</param>
-        void AddMine(MineData mine, Action callback);
+        void AddMine(Mines.Mine mine, Action callback);
+
+        /// <summary>
+        ///     Saves a mine state to the database
+        /// </summary>
+        /// <param name="mineId">The id of the mine</param> 
+        /// <param name="blockValues">The blocks states of the mine</param>
+        /// <param name="callback">Action executed</param>
+        void SaveMineBlocks(uint mineId, bool[] blockValues, Action callback);
         
         /// <summary>
         ///     Removes an auction from the database
         /// </summary>
         /// <param name="mineId">The mine id</param>
         /// <param name="callback">Action executed</param>
-        void RemoveMine(ushort mineId, Action callback);
+        void RemoveMine(uint mineId, Action callback);
 
         #endregion
     }

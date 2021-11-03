@@ -8,7 +8,7 @@ using DarkRift.Server;
 using Unlimited_NetworkingServer_MiningGame.Database;
 using Unlimited_NetworkingServer_MiningGame.Game;
 using Unlimited_NetworkingServer_MiningGame.Login;
-using Unlimited_NetworkingServer_MiningGame.Mine;
+using Unlimited_NetworkingServer_MiningGame.Mines;
 using Unlimited_NetworkingServer_MiningGame.Tags;
 
 namespace Unlimited_NetworkingServer_MiningGame.Auction
@@ -122,6 +122,12 @@ namespace Unlimited_NetworkingServer_MiningGame.Auction
                     case AuctionTags.GetOpenRooms:
                     {
                         GetOpenRooms(client);
+                        break;
+                    }
+                    
+                    case AuctionTags.GetMines:
+                    {
+                        GetMines(client);
                         break;
                     }
 
@@ -414,7 +420,6 @@ namespace Unlimited_NetworkingServer_MiningGame.Auction
                 foreach (var room in availableRooms)
                 {
                     writer.Write(room);
-                    Logger.Info("Sending room: " + room.Id);
                 }
 
                 using (var msg = Message.Create(AuctionTags.GetOpenRooms, writer))
@@ -424,6 +429,34 @@ namespace Unlimited_NetworkingServer_MiningGame.Auction
             }
             
             Logger.Info("Finished getting open rooms");
+        }
+        
+        /// <summary>
+        ///     Get the available mines
+        /// </summary>
+        /// <param name="client">The connected client</param>
+        private void GetMines(IClient client)
+        {
+            Logger.Info("Getting mines");
+            
+            var username = _loginPlugin.GetPlayerUsername(client);
+            
+            _database.DataLayer.GetMines(username, mineList =>
+            {
+                using (var writer = DarkRiftWriter.Create())
+                {
+                    foreach (var mine in mineList)
+                    {
+                        writer.Write(mine);
+                    }
+                    using (var msg = Message.Create(AuctionTags.GetMines, writer))
+                    {
+                        client.SendMessage(msg, SendMode.Reliable);
+                    }
+                }
+            
+                Logger.Info("Finished getting mines"); 
+            });
         }
         
         /// <summary>
@@ -620,7 +653,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Auction
             
             if (AuctionRoomList[e.AuctionId].LastBid.Id > 0)
             {
-                MineData mine = new MineData(e.AuctionId, e.Name, e.Owner);
+                Mines.Mine mine = new Mines.Mine(e.AuctionId, e.Name, e.Owner);
                 _database.DataLayer.AddMine(mine, () => { });   
             }
             
@@ -791,7 +824,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Auction
         
         private void AddMineTest(object sender, CommandEventArgs e)
         {
-            MineData mine = new MineData(1, "test", "gigel");
+            Mines.Mine mine = new Mines.Mine(1, "test", "gigel123");
 
             _database.DataLayer.AddMine(mine, () => {});
             

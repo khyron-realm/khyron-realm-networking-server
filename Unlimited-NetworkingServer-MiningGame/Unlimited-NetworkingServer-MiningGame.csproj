@@ -147,11 +147,11 @@
         <Compile Include="Login\Encryption.cs" />
         <Compile Include="Login\LoginPlugin.cs" />
         <Compile Include="Login\User.cs" />
-        <Compile Include="Mine\MineData.cs" />
-        <Compile Include="Mine\MinePlugin.cs" />
-        <Compile Include="Mine\MineGenerationValues.cs" />
-        <Compile Include="Mine\MineScan.cs" />
-        <Compile Include="Mine\ResourcesData.cs" />
+        <Compile Include="Mines\Mine.cs" />
+        <Compile Include="Mines\MinePlugin.cs" />
+        <Compile Include="Mines\MineGenerator.cs" />
+        <Compile Include="Mines\MineScan.cs" />
+        <Compile Include="Mines\ResourcesData.cs" />
         <Compile Include="MongoDbConnector\DataLayer.cs" />
         <Compile Include="MongoDbConnector\MongoDbPlugin.cs" />
         <Compile Include="Tags\AuctionTags.cs" />

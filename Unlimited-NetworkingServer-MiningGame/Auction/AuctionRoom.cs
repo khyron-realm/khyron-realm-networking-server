@@ -6,7 +6,7 @@ using DarkRift;
 using DarkRift.Server;
 using MongoDB.Bson.Serialization.Attributes;
 using Unlimited_NetworkingServer_MiningGame.Game;
-using Unlimited_NetworkingServer_MiningGame.Mine;
+using Unlimited_NetworkingServer_MiningGame.Mines;
 using Timer = System.Timers.Timer;
 
 namespace Unlimited_NetworkingServer_MiningGame.Auction
@@ -21,7 +21,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Auction
         public string Name { get; set; }
         public bool HasStarted { get; set; }
         public long EndTime { get; set; }
-        public MineGenerationValues MineValues { get; set; }
+        public MineGenerator MineValues { get; set; }
         public MineScan[] MineScans { get; set; }
         public Bid LastBid { get; set; }
 
@@ -53,7 +53,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Auction
             Name = name;
             HasStarted = false;
             EndTime = 0;
-            MineValues = new MineGenerationValues();
+            MineValues = new MineGenerator();
             MineScans = new MineScan[] { };
             LastBid = new Bid(0, 0, "", Constants.InitialBid);
         }
@@ -89,8 +89,8 @@ namespace Unlimited_NetworkingServer_MiningGame.Auction
         {
             HasStarted = true;
 
-            // DateTime scheduledTime = DateTime.Now.AddMinutes(Constants.AuctionDuration).AddSeconds(delay);
-            DateTime scheduledTime = DateTime.Now.AddSeconds(10);
+            DateTime scheduledTime = DateTime.Now.AddMinutes(Constants.AuctionDuration).AddSeconds(delay);
+            //DateTime scheduledTime = DateTime.Now.AddSeconds(10);
             EndTime = scheduledTime.ToBinary();
             double tickTime = (double)(scheduledTime - DateTime.Now).TotalMilliseconds;
             
