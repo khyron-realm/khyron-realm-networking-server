@@ -109,10 +109,12 @@ namespace Unlimited_NetworkingServer_MiningGame.Auction
         {
             endTimer.Stop();
             
-            AuctionFinishedEventArgs args = new AuctionFinishedEventArgs();
-            args.AuctionId = Id;
-            args.Name = Name;
-            args.Owner = LastBid.Username;
+            AuctionFinishedEventArgs args = new AuctionFinishedEventArgs
+            {
+                AuctionId = Id,
+                Name = Name,
+                Owner = LastBid.Username
+            };
             OnThresholdReached(args);
         }
 

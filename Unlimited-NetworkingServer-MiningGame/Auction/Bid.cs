@@ -32,11 +32,12 @@ namespace Unlimited_NetworkingServer_MiningGame.Auction
             e.Writer.Write(UserId);
             e.Writer.Write(Amount);
         }
-        
+
         /// <summary>
         ///     Adds a bew bid
         /// </summary>
         /// <param name="userId">The user that made the bid</param>
+        /// <param name="username">The user name</param>
         /// <param name="amount">The amount</param>
         public void AddBid(uint userId, string username, uint amount)
         {

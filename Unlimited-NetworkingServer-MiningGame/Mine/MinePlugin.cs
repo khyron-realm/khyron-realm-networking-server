@@ -76,13 +76,13 @@ namespace Unlimited_NetworkingServer_MiningGame.Mine
         /// <param name="message">The message received</param>
         private void GetMine(IClient client, Message message)
         {
-            ushort roomId;
+            uint mineId;
 
             try
             {
                 using (var reader = message.GetReader())
                 {
-                    roomId = reader.ReadUInt16();
+                    mineId = reader.ReadUInt16();
                 }
             }
             catch (Exception ex)
