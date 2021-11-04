@@ -98,62 +98,62 @@ See the [open issues](https://github.com/target-software/Unlimited-NetworkingSer
 < PROJECT ROOT >
     |
     |-- Auction
-    |    | -- AuctionRoom.cs                    # Auction room structure
-    |    | -- AuctionPlugin.cs                  # Auction Plugin for handling the auction
-    |    | -- Bid.cs                            # Bid structure
-    |    | -- Player.cs                         # Player structure
+    |    | -- AuctionRoom.cs            # Auction room structure
+    |    | -- AuctionPlugin.cs          # Auction Plugin for handling auctions
+    |    | -- Bid.cs                    # Bid structure
+    |    | -- Player.cs                 # Player structure
     |-- Chat
-    |    | -- ChatGroup.cs                      # Chat group structure
-    |    | -- ChatPlugin.cs                     # Chat Plugin for handling the chat
+    |    | -- ChatGroup.cs              # Chat group structure
+    |    | -- ChatPlugin.cs             # Chat Plugin for handling the chat
     |-- Database
-    |    | -- DatabaseProxy.cs                  # Database connection for reading/writing data
-    |    | -- IDataLayer.cs                     # Interface for the database layer
-    |    | -- IFriendList.cs                    # Interface for the friend list
-    |    | -- IUser.cs                          # Interface for the user
+    |    | -- DatabaseProxy.cs          # DB connection for reading/writing
+    |    | -- IDataLayer.cs             # Interface for the database layer
+    |    | -- IFriendList.cs            # Interface for the friend list
+    |    | -- IUser.cs                  # Interface for the user
     |-- Friends
-    |    | -- FriendsList.cs                    # Friend list structure
-    |    | -- FriendsListDto.cs                 # Friend list DTO
-    |    | -- FriendsPlugin.cs                  # Friends Plugin for handling the friends
+    |    | -- FriendsList.cs            # Friend list structure
+    |    | -- FriendsListDto.cs         # Friend list DTO
+    |    | -- FriendsPlugin.cs          # Friends Plugin for handling friends
     |-- Game
-    |    | -- Constants.cs                      # Constants for the game
-    |    | -- GameData.cs                       # Game data structure
-    |    | -- GamePlugin.cs                     # Game Plugin for handling the game
-    |    | -- NameGenerator.cs                  # Name generator for auction/mine names
+    |    | -- Constants.cs              # Constants for the game
+    |    | -- GameData.cs               # Game data structure
+    |    | -- GamePlugin.cs             # Game Plugin for handling the game
+    |    | -- NameGenerator.cs          # Name generator for auction/mine names
     |-- Headquarters
-    |    | -- BuildTask.cs                      # Build task structure
-    |    | -- HeadquartersPlugin.cs             # Headquarters Plugin for handling the headquarters
-    |    | -- PlayerData.cs                     # Player data structure
-    |    | -- Resource.cs                       # Resource structure
-    |    | -- Robot.cs                          # Robot structure
-    |    | -- TaskType.cs                       # Task type
+    |    | -- BuildTask.cs              # Build task structure
+    |    | -- HeadquartersPlugin.cs     # Headquarters Plugin for handling hq
+    |    | -- PlayerData.cs             # Player data structure
+    |    | -- Resource.cs               # Resource structure
+    |    | -- Robot.cs                  # Robot structure
+    |    | -- TaskType.cs               # Task type
     |-- Login
-    |    | -- Encryption.cs                     # Decryption method
-    |    | -- LoginPlugin.cs                    # Login Plugin for handling the login
-    |    | -- User.cs                           # User structure
+    |    | -- Encryption.cs             # Decryption method
+    |    | -- LoginPlugin.cs            # Login Plugin for handling the login
+    |    | -- User.cs                   # User structure
     |-- Mines
-    |    | -- Mine.cs                           # Mine structure
-    |    | -- MineGenerator.cs                  # Mine generator
-    |    | -- MinePlugin.cs                     # Mine Plugin for handling the mines
-    |    | -- MineScan.cs                       # Mine scan structure
-    |    | -- ResourcesData.cs                  # Resources data structure
+    |    | -- Mine.cs                   # Mine structure
+    |    | -- MineGenerator.cs          # Mine generator
+    |    | -- MinePlugin.cs             # Mine Plugin for handling the mines
+    |    | -- MineScan.cs               # Mine scan structure
+    |    | -- ResourcesData.cs          # Resources data structure
     |-- MongoDBConnector
-    |    | -- DataLayer.cs                      # Data layer for MongoDB database
-    |    | -- MongoDBPlugin.cs                  # MongoDB Plugin for handling the MongoDB database
+    |    | -- DataLayer.cs              # Data layer for MongoDB database
+    |    | -- MongoDBPlugin.cs          # MongoDB Plugin for handling MongoDB
     |-- Tags
-    |    | -- AuctionTags.cs                    # Tags for auction rooms
-    |    | -- ChatTags.cs                       # Tags for game messages
-    |    | -- FriendsTags.cs                    # Tags for login messages
-    |    | -- HeadquartersTags.cs               # Tags for headquarters messages
-    |    | -- LoginTags.cs                      # Tags for login messages
-    |    | -- MineTags.cs                       # Tags for mines
-    |    | -- Tags.cs                           # Tags structure
+    |    | -- AuctionTags.cs            # Tags for auction rooms
+    |    | -- ChatTags.cs               # Tags for game messages
+    |    | -- FriendsTags.cs            # Tags for login messages
+    |    | -- HeadquartersTags.cs       # Tags for headquarters messages
+    |    | -- LoginTags.cs              # Tags for login messages
+    |    | -- MineTags.cs               # Tags for mines
+    |    | -- Tags.cs                   # Tags structure
     |
-    |-- packages.config                         # Configuration for needed packages
+    |-- packages.config                 # Configuration for needed packages
     |
-    |-- Bin / Debug /                           # Server plugin build (dll)
+    |-- Bin / Debug /
     |    | -- Unlimited-NetworkingServer-MiningGame.dll
     |
-    |-- README.MD                               # Readme file
+    |-- README.MD                       # Readme file
     |
     |-- ************************************************************************
 ```
