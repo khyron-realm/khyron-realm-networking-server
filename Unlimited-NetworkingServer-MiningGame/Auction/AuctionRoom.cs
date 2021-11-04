@@ -126,7 +126,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Auction
         /// <returns>True if the player is added or false otherwise</returns>
         internal bool AddPlayer(Player player, IClient client)
         {
-            if (PlayerList.Count >= Constants.MaxAuctionPlayers || HasStarted)
+            if (PlayerList.Count >= Constants.MaxAuctionPlayers)
                 return false;
             
             PlayerList.Add(player);

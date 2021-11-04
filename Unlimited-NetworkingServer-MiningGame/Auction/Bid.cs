@@ -46,6 +46,5 @@ namespace Unlimited_NetworkingServer_MiningGame.Auction
             Username = username;
             Amount = amount;
         }
-
     }
 }

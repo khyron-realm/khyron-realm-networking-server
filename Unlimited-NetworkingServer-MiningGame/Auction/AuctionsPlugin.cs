@@ -1,7 +1,5 @@
 using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using DarkRift;
 using DarkRift.Server;
@@ -287,7 +285,6 @@ namespace Unlimited_NetworkingServer_MiningGame.Auction
                 using (var writer = DarkRiftWriter.Create())
                 {
                     writer.Write(room);
-                    writer.Write(room.MineScans);
 
                     foreach (var player in room.PlayerList)
                     {
@@ -334,7 +331,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Auction
 
                 if (_debug)
                 {
-                    Logger.Info("User " + client.ID + " couldn't join, since Room " + room.Id + " was either full or had started");
+                    Logger.Info("User " + client.ID + " couldn't join, since Room " + room.Id + " is full");
                 }
             }
         }
@@ -824,7 +821,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Auction
         
         private void AddMineTest(object sender, CommandEventArgs e)
         {
-            Mines.Mine mine = new Mines.Mine(1, "test", "gigel123");
+            Mines.Mine mine = new Mines.Mine(2, "test", "gigel123");
 
             _database.DataLayer.AddMine(mine, () => {});
             
