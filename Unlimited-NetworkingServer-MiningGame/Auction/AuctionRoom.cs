@@ -80,7 +80,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Auction
                 if (PlayerList != null) playerCount = (byte) PlayerList.Count;
                 else playerCount = 0;
             }
-            catch (Exception exception)
+            catch (Exception)
             {
                 playerCount = 0;
             }
@@ -108,10 +108,10 @@ namespace Unlimited_NetworkingServer_MiningGame.Auction
         }
 
         /// <summary>
-        /// 
+        ///     Auction finished event
         /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
+        /// <param name="sender">The sender object</param>
+        /// <param name="e">The event args</param>
         private void AuctionFinished(object sender, ElapsedEventArgs e)
         {
             endTimer.Stop();

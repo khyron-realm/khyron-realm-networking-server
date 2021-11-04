@@ -649,7 +649,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Auction
                     _latestRoomKey++;
                 }
             }
-            catch (InvalidOperationException e)
+            catch (InvalidOperationException)
             {
                 _latestRoomKey = 0;
             }
