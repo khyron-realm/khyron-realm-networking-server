@@ -143,48 +143,6 @@ namespace Unlimited_NetworkingServer_MiningGame.Login
             }
         }
         
-        
-        private PlayerData InitializePlayerData(string username)
-        {
-            // Extract game elements
-            //
-            byte nrResources = 3;
-            string[] resourceNames = {"Silicon", "Lithium", "Titanium"};
-            uint[] resourceInitialCount = { 1000, 450, 250 };
-            
-            byte nrRobots = 3;
-            string[] robotNames = {"Worker", "Probe", "Crusher"};
-            byte[] robotsInitialCount = {0, 0, 0};
-            
-            // Create player data
-            string id = username;
-            byte level = 1;
-            ushort experience = 1;
-            uint energy = Constants.InitialEnergy;
-
-            // Create resources
-            Resource[] resources = new Resource[nrResources];
-            foreach (int iterator in Enumerable.Range(0, nrResources))
-            {
-                resources[iterator] = new Resource((byte)iterator, resourceNames[iterator], resourceInitialCount[iterator]);
-            }
-
-            // Create robots
-            Robot[] robots = new Robot[nrRobots];
-            foreach (int iterator in Enumerable.Range(0, nrRobots))
-            {
-                robots[iterator] = new Robot((byte)iterator, robotNames[iterator], level, robotsInitialCount[iterator]);
-            }
-            
-            // Create tasks queue
-            BuildTask[] conversionQueue = {};
-            BuildTask[] upgradeQueue = {};
-            BuildTask[] buildQueue = {};
-
-            // Create player object
-            return new PlayerData(id, level, experience, energy, resources, robots, conversionQueue, upgradeQueue, buildQueue);
-        }
-
         #region ReceivedCalls
 
         /// <summary>
@@ -231,7 +189,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Login
 
             if (_clients.ContainsKey(username))
             {
-                Logger.Info("New connection, removing old client");
+                if(_debug) Logger.Info("New connection, removing old client");
                 
                 // Removing old client
                 var oldClient = _clients[username];
@@ -387,6 +345,50 @@ namespace Unlimited_NetworkingServer_MiningGame.Login
         #endregion
         
         #region Helpers
+        
+        /// <summary>
+        ///     Initializes the player data for a new user
+        /// </summary>
+        /// <param name="username">The player username</param>
+        /// <returns>The PlayerData object</returns>
+        private PlayerData InitializePlayerData(string username)
+        {
+            byte nrResources = 3;
+            string[] resourceNames = {"Silicon", "Lithium", "Titanium"};
+            uint[] resourceInitialCount = { Constants.InitialSilicon, Constants.InitialLithium, Constants.InitialTitanium };
+            
+            byte nrRobots = 3;
+            string[] robotNames = {"Worker", "Probe", "Crusher"};
+            byte[] robotsInitialCount = {0, 0, 0};
+            
+            // Create player data
+            string id = username;
+            byte level = 1;
+            ushort experience = 1;
+            uint energy = Constants.InitialEnergy;
+
+            // Create resources
+            Resource[] resources = new Resource[nrResources];
+            foreach (int iterator in Enumerable.Range(0, nrResources))
+            {
+                resources[iterator] = new Resource((byte)iterator, resourceNames[iterator], resourceInitialCount[iterator]);
+            }
+
+            // Create robots
+            Robot[] robots = new Robot[nrRobots];
+            foreach (int iterator in Enumerable.Range(0, nrRobots))
+            {
+                robots[iterator] = new Robot((byte)iterator, robotNames[iterator], level, robotsInitialCount[iterator]);
+            }
+            
+            // Create tasks queue
+            BuildTask[] conversionQueue = {};
+            BuildTask[] upgradeQueue = {};
+            BuildTask[] buildQueue = {};
+
+            // Create player object
+            return new PlayerData(id, level, experience, energy, resources, robots, conversionQueue, upgradeQueue, buildQueue);
+        }
 
         /// <summary>
         ///     Get the player username
@@ -417,7 +419,6 @@ namespace Unlimited_NetworkingServer_MiningGame.Login
         {
             return _clients[username];
         }
-
 
         #endregion
 
@@ -468,8 +469,6 @@ namespace Unlimited_NetworkingServer_MiningGame.Login
             var username = e.Arguments[0];
             var password = BCrypt.Net.BCrypt.HashPassword(e.Arguments[1], 10);
 
-            Logger.Info("Loaded database");
-
             try
             {
                 _database.DataLayer.UsernameAvailable(username, isAvailable =>
@@ -513,7 +512,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Login
             {
                 _database.DataLayer.DeleteUser(username, () =>
                 {
-                    if (_debug) Logger.Info("Removed user: " + username);
+                    Logger.Info("Removed user: " + username);
                 });
             }
             catch (Exception ex)

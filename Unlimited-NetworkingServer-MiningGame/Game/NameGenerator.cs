@@ -4,7 +4,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Game
 {
     public static class NameGenerator
     {
-        static Random Rand = new Random();
+        private static Random _rand = new Random();
         public static string RandName()
         {
             string[] mineNames = 
@@ -111,7 +111,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Game
                 " Murgador"
             };
             
-            return mineNames[Rand.Next(0, mineNames.Length - 1)];
+            return mineNames[_rand.Next(0, mineNames.Length - 1)];
         }
     }
 }

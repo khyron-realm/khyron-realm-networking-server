@@ -33,7 +33,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Auction
         public List<IClient> Clients = new List<IClient>();
         [BsonIgnore]
         public List<Player> PlayerList = new List<Player>();
-        [BsonIgnore] private Timer endTimer;
+        [BsonIgnore] private Timer _endTimer;
         [BsonIgnore]
         private static readonly object BidLock = new object();
         
@@ -92,19 +92,18 @@ namespace Unlimited_NetworkingServer_MiningGame.Auction
         /// <summary>
         ///     Starts the auction and activates the end timer
         /// </summary>
-        internal void StartAuction(int delay)
+        public void StartAuction(int delay)
         {
             HasStarted = true;
 
-            DateTime scheduledTime = DateTime.Now.AddMinutes(Constants.AuctionDuration).AddSeconds(delay);
-            //DateTime scheduledTime = DateTime.Now.AddSeconds(10);
+            DateTime scheduledTime = DateTime.Now.AddMinutes(Constants.AuctionDurationMinutes).AddSeconds(delay);
             EndTime = scheduledTime.ToBinary();
             double tickTime = (double)(scheduledTime - DateTime.Now).TotalMilliseconds;
             
-            endTimer = new Timer(tickTime);
-            endTimer.Elapsed += new ElapsedEventHandler(AuctionFinished);
-            endTimer.AutoReset = false;
-            endTimer.Start();
+            _endTimer = new Timer(tickTime);
+            _endTimer.Elapsed += new ElapsedEventHandler(AuctionFinished);
+            _endTimer.AutoReset = false;
+            _endTimer.Start();
         }
 
         /// <summary>
@@ -114,7 +113,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Auction
         /// <param name="e">The event args</param>
         private void AuctionFinished(object sender, ElapsedEventArgs e)
         {
-            endTimer.Stop();
+            _endTimer.Stop();
             
             AuctionFinishedEventArgs args = new AuctionFinishedEventArgs
             {
@@ -131,7 +130,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Auction
         /// <param name="player">The player to be added</param>
         /// <param name="client">The client object</param>
         /// <returns>True if the player is added or false otherwise</returns>
-        internal bool AddPlayer(Player player, IClient client)
+        public bool AddPlayer(Player player, IClient client)
         {
             if (PlayerList.Count >= Constants.MaxAuctionPlayers)
                 return false;
@@ -147,7 +146,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Auction
         /// <param name="playerName">The username of the player</param>
         /// <param name="client">The client object</param>
         /// <returns>True if the player is removed and false otherwise</returns>
-        internal bool RemovePlayer(IClient client, string playerName)
+        public bool RemovePlayer(IClient client, string playerName)
         {
             if (PlayerList.All(p => p.Name != playerName) && !Clients.Contains(client))
                 return false;
@@ -164,7 +163,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Auction
         /// <param name="amount">The amount of the new bid</param>
         /// <param name="client">The client object</param>
         /// <returns>True if the bid is added or false otherwise</returns>
-        internal bool AddBid(string username, uint amount, IClient client)
+        public bool AddBid(string username, uint amount, IClient client)
         {
             if (PlayerList.All(p => p.Name != username) && !Clients.Contains(client))
                 return false;
@@ -193,7 +192,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Auction
         /// <param name="client">The client object</param>
         /// <param name="playerName">The username of the player</param>
         /// <returns>True if the bid is added or false otherwise</returns>
-        internal bool AddScan(MineScan scan, IClient client, string playerName)
+        public bool AddScan(MineScan scan, IClient client, string playerName)
         {
             if (PlayerList.All(p => p.Name != playerName) && !Clients.Contains(client))
                 return false;

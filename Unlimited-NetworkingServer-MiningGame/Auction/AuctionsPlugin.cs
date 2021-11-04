@@ -24,13 +24,6 @@ namespace Unlimited_NetworkingServer_MiningGame.Auction
         {
             new Command("AuctionRooms", "Show all auction rooms", "", GetRoomsCommand),
             new Command("AddAuctions", "Add default auction rooms", "", AddDefaultAuctions),
-
-            #region Testcommands
-            new Command("StartAuctionTest", "Test for auction timers", "", StartAuctionTest),
-            new Command("AddAuctionTest", "Test for adding an auction to the database", "", AddAuctionTest),
-            new Command("AddMineTest", "Test for adding a mine to the database", "", AddMineTest),
-            new Command("RestoreAuctionsTest", "Test for restoring auctions from the database", "", RestoreAuctionsTest)
-            #endregion
         };
 
         public ConcurrentDictionary<uint, AuctionRoom> AuctionRoomList { get; } =
@@ -54,7 +47,11 @@ namespace Unlimited_NetworkingServer_MiningGame.Auction
             var difference = Constants.InitialNrAuctions - nrAuctionRooms;
             if (AuctionRoomList != null && nrAuctionRooms < Constants.InitialNrAuctions)
             {
-                Logger.Info("Not enough mines, creating another " + difference + " mines");
+
+                if (_debug)
+                {
+                    Logger.Info("Not enough mines, creating another " + difference + " mines");
+                }
                 GenerateAuctionRooms(difference);                
             }
 
@@ -328,14 +325,14 @@ namespace Unlimited_NetworkingServer_MiningGame.Auction
                 }
             }
         }
-        
+
         /// <summary>
         ///     Leave an auction room
         /// </summary>
         /// <param name="client">The connected client</param>
+        /// <param name="username">The user name</param>
         private void LeaveAuctionRoom(IClient client, string username)
         {
-            //var username = "";//_loginPlugin.GetPlayerUsername(client);
             if(!_playersInRooms.ContainsKey(username)) return;
 
             var room = AuctionRoomList[_playersInRooms[username]];
@@ -385,7 +382,10 @@ namespace Unlimited_NetworkingServer_MiningGame.Auction
         /// <param name="client">The connected client</param>
         private void GetOpenRooms(IClient client)
         {
-            Logger.Info("Getting open rooms");
+            if (_debug)
+            {
+                Logger.Info("Getting open rooms");
+            }
             var availableRooms = AuctionRoomList.Values.Where(r => r.HasStarted).ToList();
 
             using (var writer = DarkRiftWriter.Create())
@@ -400,8 +400,11 @@ namespace Unlimited_NetworkingServer_MiningGame.Auction
                     client.SendMessage(msg, SendMode.Reliable);
                 }
             }
-            
-            Logger.Info("Finished getting open rooms");
+
+            if (_debug)
+            {
+                Logger.Info("Finished getting open rooms");
+            }
         }
         
         /// <summary>
@@ -602,11 +605,21 @@ namespace Unlimited_NetworkingServer_MiningGame.Auction
 
         #region Events
 
+        /// <summary>
+        ///     Auction room finished event
+        /// </summary>
+        /// <param name="sender">The sender object</param>
+        /// <param name="e">The auction finished event args</param>
         private void AuctionFinished(object sender, AuctionFinishedEventArgs e)
         {
             AuctionFinished(e.AuctionId, e.Name, e.Owner);
         }
 
+        /// <summary>
+        ///     On user left actions
+        /// </summary>
+        /// <param name="client">The client connected</param>
+        /// <param name="username">The player username</param>
         private void OnUserLeft(IClient client, string username)
         {
             LeaveAuctionRoom(client, username);
@@ -661,6 +674,9 @@ namespace Unlimited_NetworkingServer_MiningGame.Auction
 
         #region AuctionsGeneration
 
+        /// <summary>
+        ///     Restore the available auction rooms from the database
+        /// </summary>
         private void RestoreAuctionRooms()
         {
             _database.DataLayer.GetAuctions(savedAuctions =>
@@ -668,7 +684,6 @@ namespace Unlimited_NetworkingServer_MiningGame.Auction
                 _latestRoomKey = 0;
                 foreach (var auctionRoom in savedAuctions)
                 {
-                    Logger.Info("auction: " + auctionRoom.Id);
                     AuctionRoomList.TryAdd(auctionRoom.Id, auctionRoom);
                     if (auctionRoom.EndTime != 0 &&
                         DateTime.Compare(DateTime.FromBinary(auctionRoom.EndTime), DateTime.Now) < 0)
@@ -677,7 +692,10 @@ namespace Unlimited_NetworkingServer_MiningGame.Auction
                     }
                     else
                     {
-                        Logger.Info("Auction restored " + auctionRoom.Id + " (ends " + DateTime.FromBinary(auctionRoom.EndTime) + ")");
+                        if (_debug)
+                        {
+                            Logger.Info("Auction restored " + auctionRoom.Id + " (ends " + DateTime.FromBinary(auctionRoom.EndTime) + ")");
+                        }
                         AuctionRoomList[auctionRoom.Id].OnAuctionFinished += AuctionFinished;
                     }
 
@@ -689,6 +707,10 @@ namespace Unlimited_NetworkingServer_MiningGame.Auction
             });
         }
         
+        /// <summary>
+        ///     Generates new auction rooms
+        /// </summary>
+        /// <param name="nrAuctions">The number of new auction rooms</param>
         private void GenerateAuctionRooms(uint nrAuctions)
         {
             for (ushort i = 0; i < nrAuctions; i++)
@@ -709,12 +731,6 @@ namespace Unlimited_NetworkingServer_MiningGame.Auction
                     Logger.Info("Creating auction room " + roomId + ": " + room.Name);
                 }   
             }
-        }
-
-        private void AddScanTest()
-        {
-            MineScan mineScan = new MineScan("gigel", 12, 13);
-            _database.DataLayer.AddScan(1, mineScan, () => {});
         }
 
         /// <summary>
@@ -783,12 +799,18 @@ namespace Unlimited_NetworkingServer_MiningGame.Auction
         /// <param name="e">The client object</param>
         private void GetRoomsCommand(object sender, CommandEventArgs e)
         {
-            Logger.Info("Active rooms: ");
+            if (_debug)
+            {
+                Logger.Info("Active rooms: ");
+            }
 
             var rooms = AuctionRoomList.Values.ToList();
             foreach (var room in rooms)
             {
-                Logger.Info(room.Name + " [" + room.Id + "] - " + room.PlayerList.Count + "/" + Constants.MaxAuctionPlayers);
+                if (_debug)
+                {
+                    Logger.Info(room.Name + " [" + room.Id + "] - " + room.PlayerList.Count + "/" + Constants.MaxAuctionPlayers);
+                }
             }
         }
         
@@ -800,41 +822,6 @@ namespace Unlimited_NetworkingServer_MiningGame.Auction
         private void AddDefaultAuctions(object sender, CommandEventArgs e)
         {
             GenerateAuctionRooms(6);
-        }
-        
-        private void StartAuctionTest(object sender, CommandEventArgs e)
-        {
-            var roomId = GenerateAuctionRoomId();
-            var room = new AuctionRoom(roomId, "test");
-            
-            room.StartAuction(0);
-
-            room.OnAuctionFinished += AuctionFinished;
-        }
-        
-        private void AddAuctionTest(object sender, CommandEventArgs e)
-        {
-            ushort id = 21;
-            var room = new AuctionRoom(id, "test");
-            room.EndTime = DateTime.Now.ToBinary();
-
-            _database.DataLayer.AddAuction(room, () => {});
-            
-            Logger.Info("Added auction to the database");
-        }
-        
-        private void AddMineTest(object sender, CommandEventArgs e)
-        {
-            Mine mine = new Mine(2, "test", "gigel123");
-
-            _database.DataLayer.AddMine(mine, () => {});
-            
-            Logger.Info("Added mine to the database");
-        }
-
-        private void RestoreAuctionsTest(object sender, CommandEventArgs e)
-        {
-            RestoreAuctionRooms();
         }
 
         #endregion

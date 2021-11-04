@@ -112,8 +112,8 @@ namespace Unlimited_NetworkingServer_MiningGame.Chat
         /// <summary>
         ///     Sends the private message to the receiver
         /// </summary>
-        /// <param name="client"></param>
-        /// <param name="message"></param>
+        /// <param name="client">The client connected</param>
+        /// <param name="message">The message received</param>
         private void PrivateMessage(IClient client, Message message)
         {
             var senderName = _loginPlugin.GetPlayerUsername(client);
@@ -177,12 +177,12 @@ namespace Unlimited_NetworkingServer_MiningGame.Chat
         /// <summary>
         ///     Sends a message to the room players
         /// </summary>
-        /// <param name="client"></param>
-        /// <param name="message"></param>
+        /// <param name="client">The client connected</param>
+        /// <param name="message">The message received</param>
         private void RoomMessage(IClient client, Message message)
         {
             var senderName = _loginPlugin.GetPlayerUsername(client);
-            ushort roomId = 0;
+            uint roomId = 0;
             string content = "";
             
             try
@@ -239,8 +239,8 @@ namespace Unlimited_NetworkingServer_MiningGame.Chat
         /// <summary>
         ///     Send a message to the group players
         /// </summary>
-        /// <param name="client"></param>
-        /// <param name="message"></param>
+        /// <param name="client">The client connected</param>
+        /// <param name="message">The message received</param>
         private void GroupMessage(IClient client, Message message)
         {
             var senderName = _loginPlugin.GetPlayerUsername(client);
@@ -302,8 +302,8 @@ namespace Unlimited_NetworkingServer_MiningGame.Chat
         /// <summary>
         ///     Joins a group of players
         /// </summary>
-        /// <param name="client"></param>
-        /// <param name="message"></param>
+        /// <param name="client">The client connected</param>
+        /// <param name="message">The message received</param>
         private void JoinGroup(IClient client, Message message)
         {
             var playerName = _loginPlugin.GetPlayerUsername(client);
@@ -371,8 +371,8 @@ namespace Unlimited_NetworkingServer_MiningGame.Chat
         /// <summary>
         ///     Leave a group of players
         /// </summary>
-        /// <param name="client"></param>
-        /// <param name="message"></param>
+        /// <param name="client">The client connected</param>
+        /// <param name="message">The message received</param>
         private void LeaveGroup(IClient client, Message message)
         {
             var playerName = _loginPlugin.GetPlayerUsername(client);
@@ -461,11 +461,12 @@ namespace Unlimited_NetworkingServer_MiningGame.Chat
                 }
             }
         }
-        
+
         /// <summary>
         ///     Removes a player from a chat group
         /// </summary>
-        /// <param name="username"></param>
+        /// <param name="client">The client connected</param>
+        /// <param name="username">The player username</param>
         private void RemovePlayerFromChatGroup(IClient client, string username)
         {
             if(!ChatGroupsOfPlayer.ContainsKey(username)) return;
@@ -489,11 +490,14 @@ namespace Unlimited_NetworkingServer_MiningGame.Chat
         /// <summary>
         ///     Command for showing the chat groups
         /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
+        /// <param name="sender">The sender object</param>
+        /// <param name="e">The command args</param>
         private void GetChatGroupsCommand(object sender, CommandEventArgs e)
         {
-            Logger.Info("Active Chat Groups:");
+            if (_debug)
+            {
+                Logger.Info("Active Chat Groups:");
+            }
 
             var chatGroups = ChatGroups.Values.ToList();
             
@@ -501,7 +505,10 @@ namespace Unlimited_NetworkingServer_MiningGame.Chat
             {
                 foreach (var chatGroup in chatGroups)
                 {
-                    Logger.Info(chatGroup.Name + " (" + chatGroup.Users.Count + ")");
+                    if (_debug)
+                    {
+                        Logger.Info(chatGroup.Name + " (" + chatGroup.Users.Count + ")");
+                    }
                 }
             }
             else
@@ -510,13 +517,19 @@ namespace Unlimited_NetworkingServer_MiningGame.Chat
 
                 if (!ChatGroupsOfPlayer.ContainsKey(username))
                 {
-                    Logger.Info(username + " doesn't exist in any chat groups");
+                    if (_debug)
+                    {
+                        Logger.Info(username + " doesn't exist in any chat groups");
+                    }
                     return;
                 }
 
                 foreach (var chatGroup in ChatGroupsOfPlayer[username])
                 {
-                    Logger.Info(chatGroup.Name);
+                    if (_debug)
+                    {
+                        Logger.Info(chatGroup.Name);
+                    }
                 }
             }
         }

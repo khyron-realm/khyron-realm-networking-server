@@ -1,4 +1,3 @@
-using System;
 using DarkRift;
 
 namespace Unlimited_NetworkingServer_MiningGame.Auction

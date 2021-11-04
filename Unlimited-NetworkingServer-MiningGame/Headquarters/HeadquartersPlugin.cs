@@ -436,7 +436,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Headquarters
                 }
             }
             
-            Logger.Info("Upgrading robot " + robotId + " for player: " + username);
+            if (_debug) Logger.Info("Upgrading robot " + robotId + " for player: " + username);
             
             try
             {
@@ -497,7 +497,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Headquarters
                 }
             }
             
-            Logger.Info("Finish upgrade robot " + robotId + " for player: " + username);
+            if (_debug) Logger.Info("Finish upgrade robot " + robotId + " for player: " + username);
             
             try
             {
@@ -561,7 +561,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Headquarters
                 }
             }
             
-            Logger.Info("Building robot " + robotId + " with task " + queueNumber + " for player: " + username);
+            if (_debug) Logger.Info("Building robot " + robotId + " with task " + queueNumber + " for player: " + username);
             
             try
             {
@@ -638,8 +638,8 @@ namespace Unlimited_NetworkingServer_MiningGame.Headquarters
                 }
             }
 
-            Logger.Info((isFinished ? "Finished" : "Cancelled") + " build " + (multipleRobots ? "robots " : "robot ") +
-                        robotId + " with task " + queueNumber + " for player: " + username);
+            if (_debug) Logger.Info((isFinished ? "Finished" : "Cancelled") + " build " + (multipleRobots ? "robots " : "robot ") +
+                                    robotId + " with task " + queueNumber + " for player: " + username);
 
             try
             {

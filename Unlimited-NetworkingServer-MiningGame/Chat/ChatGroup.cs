@@ -27,6 +27,12 @@ namespace Unlimited_NetworkingServer_MiningGame.Chat
             e.Writer.Write(Users.Keys.ToArray());
         }
 
+        /// <summary>
+        ///     Adds a player to the users dictionary
+        /// </summary>
+        /// <param name="username">The player username</param>
+        /// <param name="client">The client connected</param>
+        /// <returns>True if the user is added, or false otherwise</returns>
         internal bool AddPlayer(string username, IClient client)
         {
             if (Users.ContainsKey(username)) return false;
@@ -35,6 +41,10 @@ namespace Unlimited_NetworkingServer_MiningGame.Chat
             return true;
         }
 
+        /// <summary>
+        ///     Removes a player from the users dictionary
+        /// </summary>
+        /// <param name="username">The player username</param>
         internal void RemovePlayer(string username)
         {
             Users.Remove(username);

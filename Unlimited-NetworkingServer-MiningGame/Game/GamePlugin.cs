@@ -9,7 +9,6 @@ namespace Unlimited_NetworkingServer_MiningGame.Game
     /// </summary>
     public class GamePlugin : Plugin
     {
-        private static readonly object InitializeLock = new object();
         private DatabaseProxy _database;
         private GameData _data;
 
@@ -70,7 +69,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Game
             }
             else 
             {
-                Logger.Error("Game data data are not initialized");
+                Logger.Error("Game data is not initialized");
             }
             
         }

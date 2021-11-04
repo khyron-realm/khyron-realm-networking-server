@@ -2,10 +2,10 @@
 <br />
 <p align="center">
   <a href="https://github.com/target-software/Unlimited-NetworkingServer-MiningGame">
-    <img src="Images/logo.png" alt="Logo" width="80" height="80">
+    <img src="Images/logo.png" alt="Logo" width="81" height="80">
   </a>
 
-  <h3 align="center">Networking Server (w/ Darkrift Networking)</h3>
+  <h3 align="center">Networking Server (w/ DarkRift Networking)</h3>
 
   <p align="center">
     I - Mining game [Unlimited]
@@ -51,11 +51,11 @@
 <!-- ABOUT THE PROJECT -->
 ## About The Project
 
-Test repository contains the Networking Server for the Unlimited Mining Game made with Darkrift 2 Server.
+Test repository contains the Networking Server for the Unlimited Mining Game made with DarkRift 2 Server.
 
 ### Built Using
 
-* [Darkrift networking](https://www.darkriftnetworking.com/darkrift2)
+* [Darkrift networking PRO v2.9.1](https://www.darkriftnetworking.com/darkrift2)
 
 
 <!-- GETTING STARTED -->
@@ -97,18 +97,56 @@ See the [open issues](https://github.com/target-software/Unlimited-NetworkingSer
 ```bash
 < PROJECT ROOT >
     |
+    |-- Auction
+    |    | -- AuctionRoom.cs                    # Auction room structure
+    |    | -- AuctionPlugin.cs                  # Auction Plugin for handling the auction
+    |    | -- Bid.cs                            # Bid structure
+    |    | -- Player.cs                         # Player structure
+    |-- Chat
+    |    | -- ChatGroup.cs                      # Chat group structure
+    |    | -- ChatPlugin.cs                     # Chat Plugin for handling the chat
     |-- Database
-    |    | -- DatabaseConnector.cs              # Database connection for reading/writing data
+    |    | -- DatabaseProxy.cs                  # Database connection for reading/writing data
+    |    | -- IDataLayer.cs                     # Interface for the database layer
+    |    | -- IFriendList.cs                    # Interface for the friend list
+    |    | -- IUser.cs                          # Interface for the user
+    |-- Friends
+    |    | -- FriendsList.cs                    # Friend list structure
+    |    | -- FriendsListDto.cs                 # Friend list DTO
+    |    | -- FriendsPlugin.cs                  # Friends Plugin for handling the friends
     |-- Game
-    |    |-- Player.cs                          # Player data class
-    |    |-- UnlimitedPlayerPlugin.cs           # Manager for connecting players
+    |    | -- Constants.cs                      # Constants for the game
+    |    | -- GameData.cs                       # Game data structure
+    |    | -- GamePlugin.cs                     # Game Plugin for handling the game
+    |    | -- NameGenerator.cs                  # Name generator for auction/mine names
+    |-- Headquarters
+    |    | -- BuildTask.cs                      # Build task structure
+    |    | -- HeadquartersPlugin.cs             # Headquarters Plugin for handling the headquarters
+    |    | -- PlayerData.cs                     # Player data structure
+    |    | -- Resource.cs                       # Resource structure
+    |    | -- Robot.cs                          # Robot structure
+    |    | -- TaskType.cs                       # Task type
     |-- Login
-    |    |-- Encryption.cs                      # Decryption method
-    |    |-- Login.cs                           # User authentication methods
+    |    | -- Encryption.cs                     # Decryption method
+    |    | -- LoginPlugin.cs                    # Login Plugin for handling the login
+    |    | -- User.cs                           # User structure
+    |-- Mines
+    |    | -- Mine.cs                           # Mine structure
+    |    | -- MineGenerator.cs                  # Mine generator
+    |    | -- MinePlugin.cs                     # Mine Plugin for handling the mines
+    |    | -- MineScan.cs                       # Mine scan structure
+    |    | -- ResourcesData.cs                  # Resources data structure
+    |-- MongoDBConnector
+    |    | -- DataLayer.cs                      # Data layer for MongoDB database
+    |    | -- MongoDBPlugin.cs                  # MongoDB Plugin for handling the MongoDB database
     |-- Tags
-    |    |-- Tags.cs                            # Tags structure
-    |    |-- GameTags.cs                        # Tags for game messages
-    |    |-- LoginTags.cs                       # Tags for login messages
+    |    | -- AuctionTags.cs                    # Tags for auction rooms
+    |    | -- ChatTags.cs                       # Tags for game messages
+    |    | -- FriendsTags.cs                    # Tags for login messages
+    |    | -- HeadquartersTags.cs               # Tags for headquarters messages
+    |    | -- LoginTags.cs                      # Tags for login messages
+    |    | -- MineTags.cs                       # Tags for mines
+    |    | -- Tags.cs                           # Tags structure
     |
     |-- packages.config                         # Configuration for needed packages
     |

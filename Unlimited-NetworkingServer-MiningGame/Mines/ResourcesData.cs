@@ -19,11 +19,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Mines
         }
 
         public void Deserialize(DeserializeEvent e)
-        {
-            Seed = e.Reader.ReadInt32();
-            RarityCoefficient = e.Reader.ReadUInt16();
-            Frequency = e.Reader.ReadUInt16();
-        }
+        { }
 
         public void Serialize(SerializeEvent e)
         {

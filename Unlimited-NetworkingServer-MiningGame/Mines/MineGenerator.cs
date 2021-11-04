@@ -21,12 +21,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Mines
         }
 
         public void Deserialize(DeserializeEvent e)
-        {
-            Global = e.Reader.ReadSerializable<ResourcesData>();
-            Silicon = e.Reader.ReadSerializable<ResourcesData>();
-            Lithium = e.Reader.ReadSerializable<ResourcesData>();
-            Titanium = e.Reader.ReadSerializable<ResourcesData>();
-        }
+        { }
 
         public void Serialize(SerializeEvent e)
         {

@@ -23,7 +23,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Database
         /// <summary>
         ///     Sets the database layer
         /// </summary>
-        /// <param name="dataLayer"></param>
+        /// <param name="dataLayer">The data layer object</param>
         public void SetDatabase(IDataLayer dataLayer)
         {
             lock (InitializeLock)

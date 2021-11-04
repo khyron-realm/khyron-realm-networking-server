@@ -76,14 +76,13 @@ namespace Unlimited_NetworkingServer_MiningGame.Mines
 
         #region ReceivedCalls
 
-        
         /// <summary>
         ///     Get the available mines
         /// </summary>
         /// <param name="client">The connected client</param>
         private void GetMines(IClient client)
         {
-            Logger.Info("Getting mines");
+            if(_debug) Logger.Info("Getting mines");
             
             var username = _loginPlugin.GetPlayerUsername(client);
             
@@ -94,7 +93,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Mines
                     foreach (var mine in mineList)
                     {
                         writer.Write(mine);
-                        Logger.Info("Sending mine " + mine.Id);
+                        if(_debug) Logger.Info("Sending mine " + mine.Id);
                     }
                     using (var msg = Message.Create(MineTags.GetMines, writer))
                     {
@@ -102,11 +101,10 @@ namespace Unlimited_NetworkingServer_MiningGame.Mines
                     }
                 }
             
-                Logger.Info("Finished getting mines"); 
+                if(_debug) Logger.Info("Finished getting mines"); 
             });
         }
 
-        
         /// <summary>
         ///     Save the mine state to the database and update the player data
         /// </summary>
