@@ -9,14 +9,14 @@ namespace Unlimited_NetworkingServer_MiningGame.Mines
     public class MineScan : IDarkRiftSerializable
     {
         [BsonId]
-        public uint Player { get; set; }
+        public string Player { get; set; }
         public ushort X { get; set; }
         public ushort Y { get; set; }
         
         public MineScan()
         { }
 
-        public MineScan(ushort player, ushort x, ushort y)
+        public MineScan(string player, ushort x, ushort y)
         {
             Player = player;
             X = x;
@@ -25,7 +25,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Mines
         
         public void Deserialize(DeserializeEvent e)
         {
-            Player = e.Reader.ReadUInt32();
+            Player = e.Reader.ReadString();
             X = e.Reader.ReadUInt16();
             Y = e.Reader.ReadUInt16();
         }

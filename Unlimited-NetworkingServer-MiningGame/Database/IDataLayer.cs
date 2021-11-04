@@ -263,6 +263,14 @@ namespace Unlimited_NetworkingServer_MiningGame.Database
         /// <param name="scan">The location of the scan</param>
         /// <param name="callback">Action executed</param>
         void AddScan(uint auctionId, MineScan scan, Action callback);
+        
+        /// <summary>
+        ///     Adds a bid to the room in the database
+        /// </summary>
+        /// <param name="auctionId">The auction id</param>
+        /// <param name="newBid">The new bid</param>
+        /// <param name="callback">Action executed</param>
+        void AddBid(uint auctionId, Bid newBid, Action callback);
 
         #endregion
 

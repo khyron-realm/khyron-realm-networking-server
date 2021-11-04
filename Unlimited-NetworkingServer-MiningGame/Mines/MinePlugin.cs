@@ -53,6 +53,12 @@ namespace Unlimited_NetworkingServer_MiningGame.Mines
 
                 switch (message.Tag)
                 {
+                    case MineTags.GetMines:
+                    {
+                        GetMines(client);
+                        break;
+                    }
+                    
                     case MineTags.SaveMine:
                     {
                         SaveMine(client, message);
@@ -69,6 +75,36 @@ namespace Unlimited_NetworkingServer_MiningGame.Mines
         }
 
         #region ReceivedCalls
+
+        
+        /// <summary>
+        ///     Get the available mines
+        /// </summary>
+        /// <param name="client">The connected client</param>
+        private void GetMines(IClient client)
+        {
+            Logger.Info("Getting mines");
+            
+            var username = _loginPlugin.GetPlayerUsername(client);
+            
+            _database.DataLayer.GetMines(username, mineList =>
+            {
+                using (var writer = DarkRiftWriter.Create())
+                {
+                    foreach (var mine in mineList)
+                    {
+                        writer.Write(mine);
+                        Logger.Info("Sending mine " + mine.Id);
+                    }
+                    using (var msg = Message.Create(MineTags.GetMines, writer))
+                    {
+                        client.SendMessage(msg, SendMode.Reliable);
+                    }
+                }
+            
+                Logger.Info("Finished getting mines"); 
+            });
+        }
 
         
         /// <summary>

@@ -28,7 +28,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Login
 
         #region Events
 
-        public delegate void LogoutEventHandler(string username);
+        public delegate void LogoutEventHandler(IClient client, string username);
         public event LogoutEventHandler OnLogout;
 
         #endregion
@@ -101,7 +101,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Login
                 if (username != null)
                 {
                     _clients.TryRemove(username, out _);
-                    OnLogout?.Invoke(username);
+                    OnLogout?.Invoke(e.Client, username);
                 }
             }
         }
@@ -307,7 +307,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Login
                 }
             }
             
-            OnLogout?.Invoke(username);
+            OnLogout?.Invoke(client, username);
         }
 
         /// <summary>
