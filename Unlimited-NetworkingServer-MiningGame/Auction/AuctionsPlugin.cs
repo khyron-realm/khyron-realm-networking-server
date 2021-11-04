@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Linq;
 using DarkRift;
 using DarkRift.Server;
@@ -667,19 +668,16 @@ namespace Unlimited_NetworkingServer_MiningGame.Auction
                 _latestRoomKey = 0;
                 foreach (var auctionRoom in savedAuctions)
                 {
+                    Logger.Info("auction: " + auctionRoom.Id);
+                    AuctionRoomList.TryAdd(auctionRoom.Id, auctionRoom);
                     if (auctionRoom.EndTime != 0 &&
                         DateTime.Compare(DateTime.FromBinary(auctionRoom.EndTime), DateTime.Now) < 0)
                     {
-                        if(auctionRoom.LastBid.PlayerName != "")
-                            AuctionFinished(auctionRoom.Id, auctionRoom.Name, auctionRoom.LastBid.PlayerName);
-                        
-                        Logger.Info("Auction deleted " + auctionRoom.Id);
-                        _database.DataLayer.RemoveAuction(auctionRoom.Id, () => {});
+                        AuctionFinished(auctionRoom.Id, auctionRoom.Name, auctionRoom.LastBid.PlayerName, false);
                     }
                     else
                     {
                         Logger.Info("Auction restored " + auctionRoom.Id + " (ends " + DateTime.FromBinary(auctionRoom.EndTime) + ")");
-                        AuctionRoomList.TryAdd(auctionRoom.Id, auctionRoom);
                         AuctionRoomList[auctionRoom.Id].OnAuctionFinished += AuctionFinished;
                     }
 
@@ -718,49 +716,60 @@ namespace Unlimited_NetworkingServer_MiningGame.Auction
             MineScan mineScan = new MineScan("gigel", 12, 13);
             _database.DataLayer.AddScan(1, mineScan, () => {});
         }
-        
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="auctionId"></param>
-        /// <param name="auctionName"></param>
-        /// <param name="auctionOwner"></param>
-        private void AuctionFinished(uint auctionId, string auctionName, string auctionOwner)
-        {
-            var winner = AuctionRoomList[auctionId].LastBid.PlayerName;
-            
-            using (var writer = DarkRiftWriter.Create())
-            {
-                writer.Write(auctionId);
-                writer.Write(winner);
 
-                using (var msg = Message.Create(AuctionTags.AuctionFinished, writer))
+        /// <summary>
+        ///     Finishes an auction
+        /// </summary>
+        /// <param name="auctionId">The auction id</param>
+        /// <param name="auctionName">The auction name</param>
+        /// <param name="auctionOwner">The auction owner</param>
+        /// <param name="generateNew">True to generate a new auction and false otherwise</param>
+        private void AuctionFinished(uint auctionId, string auctionName, string auctionOwner, bool generateNew = true)
+        {
+            try
+            {
+                var winner = AuctionRoomList[auctionId].LastBid.PlayerName;
+                
+                using (var writer = DarkRiftWriter.Create())
                 {
-                    foreach (var client in AuctionRoomList[auctionId].Clients)
+                    writer.Write(auctionId);
+                    writer.Write(winner);
+
+                    using (var msg = Message.Create(AuctionTags.AuctionFinished, writer))
                     {
-                        var username = _loginPlugin.GetPlayerUsername(client);
-                        AuctionRoomList[auctionId].RemovePlayer(client, username);
-                        client.SendMessage(msg, SendMode.Reliable);
+                        foreach (var client in AuctionRoomList[auctionId].Clients)
+                        {
+                            var username = _loginPlugin.GetPlayerUsername(client);
+                            AuctionRoomList[auctionId].RemovePlayer(client, username);
+                            client.SendMessage(msg, SendMode.Reliable);
+                        }
                     }
                 }
-            }
             
-            if (AuctionRoomList[auctionId].LastBid.Id > 0)
+                if (AuctionRoomList[auctionId].LastBid.Id > 0)
+                {
+                    Mine mine = new Mine(auctionId, auctionName, auctionOwner);
+                    _database.DataLayer.AddMine(mine, () => { });   
+                }
+            
+                AuctionRoomList.TryRemove(AuctionRoomList.FirstOrDefault(r => r.Key == auctionId).Key, out _);
+            }
+            catch (KeyNotFoundException)
             {
-                Mine mine = new Mine(auctionId, auctionName, auctionOwner);
-                _database.DataLayer.AddMine(mine, () => { });   
+                Logger.Error("Trying to remove a non-existent auction from memory");
             }
-            
-            AuctionRoomList.TryRemove(AuctionRoomList.FirstOrDefault(r => r.Key == auctionId).Key, out _);
-            
+
             _database.DataLayer.RemoveAuction(auctionId, () => { });
 
             if (_debug)
             {
                 Logger.Info("Auction " + auctionId + " finished");
             }
-            
-            GenerateAuctionRooms(1);
+
+            if (generateNew)
+            {
+                GenerateAuctionRooms(1);
+            }
         }
 
         #endregion
