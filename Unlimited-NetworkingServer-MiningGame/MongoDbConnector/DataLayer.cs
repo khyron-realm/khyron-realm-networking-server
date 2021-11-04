@@ -501,6 +501,16 @@ namespace Unlimited_NetworkingServer_MiningGame.MongoDbConnector
             await _database.AuctionRoom.UpdateOneAsync(filter, update);
             callback();
         }
+        
+        /// <inheritdoc />
+        public async void AddBid(uint auctionId, Bid bid, Action callback)
+        {
+            var filter = Builders<AuctionRoom>.Filter.Eq(a => a.Id, auctionId);
+            var update = Builders<AuctionRoom>.Update.Set(a => a.LastBid, bid);
+            
+            await _database.AuctionRoom.UpdateOneAsync(filter, update);
+            callback();
+        }
 
         #endregion
 

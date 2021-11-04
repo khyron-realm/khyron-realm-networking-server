@@ -466,7 +466,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Chat
         ///     Removes a player from a chat group
         /// </summary>
         /// <param name="username"></param>
-        private void RemovePlayerFromChatGroup(string username)
+        private void RemovePlayerFromChatGroup(IClient client, string username)
         {
             if(!ChatGroupsOfPlayer.ContainsKey(username)) return;
 

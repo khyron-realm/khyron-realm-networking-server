@@ -22,9 +22,13 @@ namespace Unlimited_NetworkingServer_MiningGame.Auction
         public bool HasStarted { get; set; }
         public long EndTime { get; set; }
         public MineGenerator MineValues { get; set; }
-        public MineScan[] MineScans { get; set; }
+        public List<MineScan> MineScans { get; set; }
         public Bid LastBid { get; set; }
-
+        
+        [BsonIgnore]
+        public IClient LastBidderClient { get; set; }
+        [BsonIgnore]
+        public IClient OverbiddedClient { get; set; }
         [BsonIgnore]
         public List<IClient> Clients = new List<IClient>();
         [BsonIgnore]
@@ -51,11 +55,14 @@ namespace Unlimited_NetworkingServer_MiningGame.Auction
         {
             Id = id;
             Name = name;
+            OverbiddedClient = null;
             HasStarted = false;
             EndTime = 0;
             MineValues = new MineGenerator();
-            MineScans = new MineScan[] { };
-            LastBid = new Bid(0, 0, "", Constants.InitialBid);
+            MineScans = new List<MineScan>();
+            LastBid = new Bid(0, "", Constants.InitialBid);
+            LastBidderClient = null;
+            OverbiddedClient = null;
         }
 
         public void Deserialize(DeserializeEvent e)
@@ -113,7 +120,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Auction
             {
                 AuctionId = Id,
                 Name = Name,
-                Owner = LastBid.Username
+                Owner = LastBid.PlayerName
             };
             OnThresholdReached(args);
         }
@@ -137,47 +144,41 @@ namespace Unlimited_NetworkingServer_MiningGame.Auction
         /// <summary>
         ///     Removes a player from a room
         /// </summary>
+        /// <param name="playerName">The username of the player</param>
         /// <param name="client">The client object</param>
         /// <returns>True if the player is removed and false otherwise</returns>
-        internal bool RemovePlayer(IClient client)
+        internal bool RemovePlayer(IClient client, string playerName)
         {
-            if (PlayerList.All(p => p.Id != client.ID) && !Clients.Contains(client))
+            if (PlayerList.All(p => p.Name != playerName) && !Clients.Contains(client))
                 return false;
 
-            PlayerList.Remove(PlayerList.Find(p => p.Id == client.ID));
+            PlayerList.Remove(PlayerList.Find(p => p.Name == playerName));
             Clients.Remove(client);
             return true;
-        }
-        
-        /// <summary>
-        ///     Gets a player username
-        /// </summary>
-        /// <param name="playerId">The player id</param>
-        /// <returns>The player username</returns>
-        internal string GetPlayerUsername(uint playerId)
-        {
-            var username = PlayerList.Find(p => p.Id == playerId).Name;
-            return username;
         }
 
         /// <summary>
         ///     Adds a bid to the auction
         /// </summary>
-        /// <param name="playerId">The player id of the bidder</param>
         /// <param name="username">The player username</param>
         /// <param name="amount">The amount of the new bid</param>
         /// <param name="client">The client object</param>
         /// <returns>True if the bid is added or false otherwise</returns>
-        internal bool AddBid(uint playerId, string username, uint amount, IClient client)
+        internal bool AddBid(string username, uint amount, IClient client)
         {
-            if (PlayerList.All(p => p.Id != client.ID) && !Clients.Contains(client))
+            if (PlayerList.All(p => p.Name != username) && !Clients.Contains(client))
                 return false;
 
             lock (BidLock)
             {
                 if (LastBid.Amount < amount)
                 {
-                    LastBid.AddBid(playerId, username, amount);
+                    if (LastBidderClient != null)
+                    {
+                        OverbiddedClient = LastBidderClient;
+                    }
+                    LastBid.AddBid(username, amount);
+                    LastBidderClient = client;
                     return true;
                 }
             }
@@ -190,13 +191,14 @@ namespace Unlimited_NetworkingServer_MiningGame.Auction
         /// </summary>
         /// <param name="scan">The scan made by the players</param>
         /// <param name="client">The client object</param>
+        /// <param name="playerName">The username of the player</param>
         /// <returns>True if the bid is added or false otherwise</returns>
-        internal bool AddScan(MineScan scan, IClient client)
+        internal bool AddScan(MineScan scan, IClient client, string playerName)
         {
-            if (PlayerList.All(p => p.Id != client.ID) && !Clients.Contains(client))
+            if (PlayerList.All(p => p.Name != playerName) && !Clients.Contains(client))
                 return false;
 
-            MineScans = MineScans.Append(scan);
+            MineScans.Add(scan);
             return true;
         }
     }

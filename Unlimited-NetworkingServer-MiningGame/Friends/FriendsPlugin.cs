@@ -513,7 +513,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Friends
         ///     
         /// </summary>
         /// <param name="username">The player username</param>
-        public void LogoutFriend(string username)
+        public void LogoutFriend(IClient client, string username)
         {
             try
             {
@@ -529,11 +529,11 @@ namespace Unlimited_NetworkingServer_MiningGame.Friends
                             if (_loginPlugin.ClientExistent(friend))
                             {
                                 // let online friends know he logged out
-                                var client = _loginPlugin.GetClient(friend);
+                                var clientFriend = _loginPlugin.GetClient(friend);
 
                                 using (var msg = Message.Create(FriendsTags.FriendLoggedOut, writer))
                                 {
-                                    client.SendMessage(msg, SendMode.Reliable);
+                                    clientFriend.SendMessage(msg, SendMode.Reliable);
                                 }
                             }
                         }
