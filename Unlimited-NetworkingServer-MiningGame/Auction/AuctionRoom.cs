@@ -96,12 +96,12 @@ namespace Unlimited_NetworkingServer_MiningGame.Auction
         {
             HasStarted = true;
 
-            DateTime scheduledTime = DateTime.Now.AddMinutes(Constants.AuctionDurationMinutes).AddSeconds(delay);
+            DateTime now = DateTime.Now;
+            DateTime scheduledTime = now.AddMinutes(Constants.AuctionDurationMinutes).AddSeconds(delay);
             EndTime = scheduledTime.ToBinary();
-            double tickTime = (double)(scheduledTime - DateTime.Now).TotalMilliseconds;
-            
-            _endTimer = new Timer(tickTime);
-            _endTimer.Elapsed += new ElapsedEventHandler(AuctionFinished);
+            _endTimer = new Timer();
+            _endTimer.Interval = (scheduledTime - now).TotalMilliseconds;
+            _endTimer.Elapsed += AuctionFinished;
             _endTimer.AutoReset = false;
             _endTimer.Start();
         }

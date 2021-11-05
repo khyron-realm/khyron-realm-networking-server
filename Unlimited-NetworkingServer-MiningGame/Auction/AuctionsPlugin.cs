@@ -47,10 +47,9 @@ namespace Unlimited_NetworkingServer_MiningGame.Auction
             var difference = Constants.InitialNrAuctions - nrAuctionRooms;
             if (AuctionRoomList != null && nrAuctionRooms < Constants.InitialNrAuctions)
             {
-
                 if (_debug)
                 {
-                    Logger.Info("Not enough mines, creating another " + difference + " mines");
+                    Logger.Info("Not enough auction rooms, creating another " + difference + " auction rooms");
                 }
                 GenerateAuctionRooms(difference);                
             }
@@ -202,13 +201,13 @@ namespace Unlimited_NetworkingServer_MiningGame.Auction
         /// <param name="message">The message received</param>
         private void JoinAuctionRoom(IClient client, Message message)
         {
-            ushort roomId = 0;
+            uint roomId = 0;
 
             try
             {
                 using (var reader = message.GetReader())
                 {
-                    roomId = reader.ReadUInt16();
+                    roomId = reader.ReadUInt32();
                 }
             }
             catch (Exception ex)
@@ -414,13 +413,13 @@ namespace Unlimited_NetworkingServer_MiningGame.Auction
         /// <param name="message">The message received</param>
         private void StartAuction(IClient client, Message message)
         {
-            ushort roomId = 0;
+            uint roomId = 0;
 
             try
             {
                 using (var reader = message.GetReader())
                 {
-                    roomId = reader.ReadUInt16();
+                    roomId = reader.ReadUInt32();
                 }
             }
             catch (Exception ex)
@@ -728,8 +727,8 @@ namespace Unlimited_NetworkingServer_MiningGame.Auction
 
                 if (_debug)
                 {
-                    Logger.Info("Creating auction room " + roomId + ": " + room.Name);
-                }   
+                    Logger.Info("Creating auction room " + roomId + ": " + room.Name+ " (ends " + DateTime.FromBinary(room.EndTime) + ")");
+                }
             }
         }
 

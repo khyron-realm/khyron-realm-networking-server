@@ -156,9 +156,16 @@ namespace Unlimited_NetworkingServer_MiningGame.Chat
             var receivingClient = _loginPlugin.GetClient(receiver);
             
             // Let the sender know message got transmitted
-            using (var msg = Message.CreateEmpty(ChatTags.SuccessfulPrivateMessage))
+            using (var writer = DarkRiftWriter.Create())
             {
-                client.SendMessage(msg, SendMode.Reliable);
+                writer.Write(senderName);
+                writer.Write(receiver);
+                writer.Write(content);
+
+                using (var msg = Message.Create(ChatTags.SuccessfulPrivateMessage, writer))
+                {
+                    receivingClient.SendMessage(msg, SendMode.Reliable);
+                }
             }
             
             // Let receiver know about the message
@@ -189,7 +196,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Chat
             {
                 using (var reader = message.GetReader())
                 {
-                    roomId = reader.ReadUInt16();
+                    roomId = reader.ReadUInt32();
                     content = reader.ReadString();
                 }
             }
@@ -455,7 +462,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Chat
             {
                 writer.Write(groupNames);
 
-                using (var msg = Message.Create(ChatTags.JoinGroup, writer))
+                using (var msg = Message.Create(ChatTags.GetActiveGroups, writer))
                 {
                     client.SendMessage(msg, SendMode.Reliable);
                 }
