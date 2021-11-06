@@ -5,17 +5,11 @@ namespace Unlimited_NetworkingServer_MiningGame.Mines
 {
     public class ResourcesData : IDarkRiftSerializable
     {
-        public int Seed;
-        public ushort RarityCoefficient;
-        public ushort Frequency;
+        public int GenerationSeed { get; set; }
 
-        public ResourcesData()
+        public ResourcesData(ushort offset)
         {
-            Random random = new Random(Environment.TickCount);
-            
-            Seed = random.Next(-1000000, 1000000);
-            RarityCoefficient = (ushort) random.Next(18000, 24000);
-            Frequency = (ushort) random.Next(18000, 24000);
+            GenerationSeed = Environment.TickCount + offset;
         }
 
         public void Deserialize(DeserializeEvent e)
@@ -23,9 +17,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Mines
 
         public void Serialize(SerializeEvent e)
         {
-            e.Writer.Write(Seed);
-            e.Writer.Write(RarityCoefficient);
-            e.Writer.Write(Frequency);
+            e.Writer.Write(GenerationSeed);
         }
     }
 }

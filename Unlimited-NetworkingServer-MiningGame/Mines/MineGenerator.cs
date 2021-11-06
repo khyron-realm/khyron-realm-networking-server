@@ -14,10 +14,10 @@ namespace Unlimited_NetworkingServer_MiningGame.Mines
         
         public MineGenerator()
         {
-            Global = new ResourcesData();
-            Silicon = new ResourcesData();
-            Lithium = new ResourcesData();
-            Titanium = new ResourcesData();
+            Global = new ResourcesData(16020);
+            Silicon = new ResourcesData(30);
+            Lithium = new ResourcesData(8234);
+            Titanium = new ResourcesData(65007);
         }
 
         public void Deserialize(DeserializeEvent e)
