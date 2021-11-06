@@ -243,20 +243,6 @@ namespace Unlimited_NetworkingServer_MiningGame.Database
         void RemoveAuction(uint auctionId, Action callback);
         
         /// <summary>
-        ///     Retrieves a mine from the database
-        /// </summary>
-        /// <param name="auctionId">The auction id</param>
-        /// <param name="callback">Action executed</param>
-        void GetMine(uint auctionId, Action<Mines.Mine> callback);
-        
-        /// <summary>
-        ///     Retrieves all mines from the database
-        /// </summary>
-        /// <param name="username">The player username</param>
-        /// <param name="callback">Action executed</param>
-        void GetMines(string username, Action<List<Mines.Mine>> callback);
-        
-        /// <summary>
         ///     Adds a scan to the database
         /// </summary>
         /// <param name="auctionId">The auction id</param>
@@ -318,6 +304,20 @@ namespace Unlimited_NetworkingServer_MiningGame.Database
         #endregion
 
         #region Mine
+        
+        /// <summary>
+        ///     Retrieves a mine from the database
+        /// </summary>
+        /// <param name="auctionId">The auction id</param>
+        /// <param name="callback">Action executed</param>
+        void GetMine(uint auctionId, Action<Mines.Mine> callback);
+        
+        /// <summary>
+        ///     Retrieves all mines from the database
+        /// </summary>
+        /// <param name="username">The player username</param>
+        /// <param name="callback">Action executed</param>
+        void GetMines(string username, Action<List<Mines.Mine>> callback);
 
         /// <summary>
         ///     Adds a mine to the database

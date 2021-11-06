@@ -479,20 +479,6 @@ namespace Unlimited_NetworkingServer_MiningGame.MongoDbConnector
         }
 
         /// <inheritdoc />
-        public async void GetMine(uint auctionId, Action<Mine> callback)
-        {
-            var mine = await _database.MineData.Find(m => m.Id == auctionId).FirstOrDefaultAsync();
-            callback(mine);
-        }
-        
-        /// <inheritdoc />
-        public void GetMines(string username, Action<List<Mine>> callback)
-        {
-            var mines = _database.MineData.Find(m => m.Owner == username).ToList();
-            callback(mines);
-        }
-
-        /// <inheritdoc />
         public async void AddScan(uint auctionId, MineScan scan, Action callback)
         {
             var filter = Builders<AuctionRoom>.Filter.Eq(u => u.Id, auctionId);
@@ -515,6 +501,20 @@ namespace Unlimited_NetworkingServer_MiningGame.MongoDbConnector
         #endregion
 
         #region Mine
+        
+        /// <inheritdoc />
+        public async void GetMine(uint auctionId, Action<Mine> callback)
+        {
+            var mine = await _database.MineData.Find(m => m.Id == auctionId).FirstOrDefaultAsync();
+            callback(mine);
+        }
+        
+        /// <inheritdoc />
+        public void GetMines(string username, Action<List<Mine>> callback)
+        {
+            var mines = _database.MineData.Find(m => m.Owner == username).ToList();
+            callback(mines);
+        }
 
         /// <inheritdoc />
         public async void AddMine(Mine mine, Action callback)
