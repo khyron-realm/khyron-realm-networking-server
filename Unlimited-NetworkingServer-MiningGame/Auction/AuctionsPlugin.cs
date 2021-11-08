@@ -335,9 +335,8 @@ namespace Unlimited_NetworkingServer_MiningGame.Auction
             if(!_playersInRooms.ContainsKey(username)) return;
 
             var room = AuctionRoomList[_playersInRooms[username]];
-            var leaverName = room.PlayerList.FirstOrDefault(p => p.Name == username)?.Name;
             _playersInRooms.TryRemove(username, out _);
-
+            
             if (room.RemovePlayer(client, username))
             {
                 // Only message user if still connected
@@ -349,15 +348,14 @@ namespace Unlimited_NetworkingServer_MiningGame.Auction
                         client.SendMessage(msg, SendMode.Reliable);
                     }
                 }
-
+                
                 using (var writer = DarkRiftWriter.Create())
                 {
                     writer.Write(username);
-                    writer.Write(leaverName);
 
                     using (var msg = Message.Create(AuctionTags.PlayerLeft, writer))
                     {
-                        foreach (var cl in room.Clients)
+                        foreach (var cl in room.Clients.Where(c => c.ID != client.ID))
                         {
                             cl.SendMessage(msg, SendMode.Reliable);
                         }
@@ -366,7 +364,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Auction
                 
                 if (_debug)
                 {
-                    Logger.Info("User " + client.ID + " left room: " + room.Name);
+                    Logger.Info("User " + username + " left room: " + room.Name);
                 }
             }
             else
