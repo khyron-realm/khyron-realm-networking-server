@@ -19,7 +19,6 @@ namespace Unlimited_NetworkingServer_MiningGame.MongoDbConnector
     public class MongoDbPlugin : Plugin
     {
         private const string ConfigPath = @"Plugins/MongoDbConnector.xml";
-        private static readonly object InitializeLock = new object();
         private readonly IDataLayer _dataLayer;
         private readonly IMongoDatabase _mongoDatabase;
         private DatabaseProxy _database;
@@ -46,12 +45,6 @@ namespace Unlimited_NetworkingServer_MiningGame.MongoDbConnector
 
         public override Version Version => new Version(1, 0, 0);
         public override bool ThreadSafe => true;
-
-        public override Command[] Commands => new[]
-        {
-            new Command("LoadMongo", "Loads MongoDB Database", "", LoadDbCommand)
-        };
-        
         protected override void Loaded(LoadedEventArgs args)
         {
             if (_database == null)
@@ -140,27 +133,5 @@ namespace Unlimited_NetworkingServer_MiningGame.MongoDbConnector
             AuctionRoom = _mongoDatabase.GetCollection<AuctionRoom>("AuctionRoom");
             MineData = _mongoDatabase.GetCollection<Mine>("MineData");
         }
-
-        #region Commands
-
-        /// <summary>
-        ///     Command for loading the MongoDB database
-        /// </summary>
-        /// <param name="sender">The sender object</param>
-        /// <param name="e">The client object</param>
-        public void LoadDbCommand(object sender, CommandEventArgs e)
-        {
-            if (_database == null)
-                lock (InitializeLock)
-                {
-                    if (_database == null)
-                    {
-                        _database = PluginManager.GetPluginByType<DatabaseProxy>();
-                        _database.SetDatabase(_dataLayer);
-                    }
-                }
-        }
-
-        #endregion
     }
 }

@@ -96,7 +96,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Auction
         {
             HasStarted = true;
 
-            DateTime now = DateTime.Now;
+            DateTime now = DateTime.UtcNow;
             DateTime scheduledTime = now.AddMinutes(Constants.AuctionDurationMinutes).AddSeconds(delay);
             EndTime = scheduledTime.ToBinary();
             _endTimer = new Timer();
