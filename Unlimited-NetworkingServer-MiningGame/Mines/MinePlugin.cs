@@ -1,4 +1,6 @@
 ﻿using System;
+using System.IO;
+using System.Xml.Linq;
 using DarkRift;
 using DarkRift.Server;
 using Unlimited_NetworkingServer_MiningGame.Database;
@@ -13,12 +15,14 @@ namespace Unlimited_NetworkingServer_MiningGame.Mines
         public override Version Version => new Version(1, 0, 0);
         public override bool ThreadSafe => true;
         
+        private const string ConfigPath = @"Plugins/MinePlugin.xml";
         private LoginPlugin _loginPlugin;
         private DatabaseProxy _database;
         private bool _debug = true;
 
         protected override void Loaded(LoadedEventArgs args)
         {
+            LoadConfig();
             if (_database == null) _database = PluginManager.GetPluginByType<DatabaseProxy>();
             if (_loginPlugin == null) _loginPlugin = PluginManager.GetPluginByType<LoginPlugin>();
         }
@@ -261,6 +265,47 @@ namespace Unlimited_NetworkingServer_MiningGame.Mines
                     {
                         client.SendMessage(msg, SendMode.Reliable);
                     }
+                }
+            }
+        }
+
+        #endregion
+
+        #region Helpers
+
+        /// <summary>
+        ///     Load the configuration file
+        /// </summary>
+        private void LoadConfig()
+        {
+            XDocument document;
+
+            if (!File.Exists(ConfigPath))
+            {
+                document = new XDocument(new XDeclaration("1.0", "utf-8", "yes"),
+                    new XComment("Settings for the Mine Plugin"),
+                    new XElement("Variables", new XAttribute("Debug", true))
+                );
+                try
+                {
+                    document.Save(ConfigPath);
+                    Logger.Info("Created /Plugins/MinePlugin.xml!");
+                }
+                catch (Exception ex)
+                {
+                    Logger.Error("Failed to create MinePlugin.xml: " + ex.Message + " - " + ex.StackTrace);
+                }
+            }
+            else
+            {
+                try
+                {
+                    document = XDocument.Load(ConfigPath);
+                    _debug = document.Element("Variables").Attribute("Debug").Value == "true";
+                }
+                catch (Exception ex)
+                {
+                    Logger.Error("Failed to load MinePlugin.xml: " + ex.Message + " - " + ex.StackTrace);
                 }
             }
         }

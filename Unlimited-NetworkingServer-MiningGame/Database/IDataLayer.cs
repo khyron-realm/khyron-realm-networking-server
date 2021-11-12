@@ -119,6 +119,14 @@ namespace Unlimited_NetworkingServer_MiningGame.Database
         void SetPlayerEnergy(string username, uint energy, Action callback);
         
         /// <summary>
+        ///     Increase the player energy
+        /// </summary>
+        /// <param name="username">The user name</param>
+        /// <param name="energy">The new player energy</param>
+        /// <param name="callback">Action executed</param>
+        void IncreasePlayerEnergy(string username, uint energy, Action callback);
+        
+        /// <summary>
         ///     Retrieves player resources from the database 
         /// </summary>
         /// <param name="username">The user name</param>

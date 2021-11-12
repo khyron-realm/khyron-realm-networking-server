@@ -2,6 +2,7 @@ using System;
 using System.Collections.Concurrent;
 using System.IO;
 using System.Linq;
+using System.Xml.Linq;
 using DarkRift;
 using DarkRift.Server;
 using Unlimited_NetworkingServer_MiningGame.Database;
@@ -20,6 +21,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Login
 
         private ConcurrentDictionary<IClient, string> _usersLoggedIn = new ConcurrentDictionary<IClient, string>();
 
+        private const string ConfigPath = @"Plugins/LoginPlugin.xml";
         private const string PrivateKeyPath = @"Plugins/PrivateKey.xml";
         private bool _allowAddUser = true;
         private DatabaseProxy _database;
@@ -40,6 +42,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Login
 
         public LoginPlugin(PluginLoadData pluginLoadData) : base(pluginLoadData)
         {
+            LoadConfig();
             LoadRsaKey();
 
             ClientManager.ClientConnected += OnPlayerConnected;
@@ -420,6 +423,44 @@ namespace Unlimited_NetworkingServer_MiningGame.Login
             return _clients[username];
         }
 
+        /// <summary>
+        ///     Load the configuration file
+        /// </summary>
+        private void LoadConfig()
+        {
+            XDocument document;
+
+            if (!File.Exists(ConfigPath))
+            {
+                document = new XDocument(new XDeclaration("1.0", "utf-8", "yes"),
+                    new XComment("Settings for the Login Plugin"),
+                    new XElement("Variables", new XAttribute("Debug", true), new XAttribute("AllowAddUser", true))
+                );
+                try
+                {
+                    document.Save(ConfigPath);
+                    Logger.Info("Created /Plugins/LoginPlugin.xml!");
+                }
+                catch (Exception ex)
+                {
+                    Logger.Error("Failed to create LoginPlugin.xml: " + ex.Message + " - " + ex.StackTrace);
+                }
+            }
+            else
+            {
+                try
+                {
+                    document = XDocument.Load(ConfigPath);
+                    _debug = document.Element("Variables").Attribute("Debug").Value == "true";
+                    _allowAddUser = document.Element("Variables").Attribute("AllowAddUser").Value == "true";
+                }
+                catch (Exception ex)
+                {
+                    Logger.Error("Failed to load LoginPlugin.xml: " + ex.Message + " - " + ex.StackTrace);
+                }
+            }
+        }
+        
         #endregion
 
         #region Commands

@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Xml.Linq;
 using DarkRift;
 using DarkRift.Server;
 using Unlimited_NetworkingServer_MiningGame.Database;
@@ -22,13 +24,22 @@ namespace Unlimited_NetworkingServer_MiningGame.Friends
             new Command("DelFriend", "Deletes a User from the Database", "DelFriend [friend_name]", DelFriendCommand)
         };
 
-        public static readonly object InitializeLock = new object();
+        private const string ConfigPath = @"Plugins/FriendsPlugin.xml";
         private DatabaseProxy _database;
         private LoginPlugin _loginPlugin;
         private bool _debug = true;
 
+        protected override void Loaded(LoadedEventArgs args)
+        {
+            if (_database == null) _database = PluginManager.GetPluginByType<DatabaseProxy>();
+            if (_loginPlugin == null) _loginPlugin = PluginManager.GetPluginByType<LoginPlugin>();
+            
+            _loginPlugin.OnLogout += LogoutFriend;
+        }
+        
         public FriendsPlugin(PluginLoadData pluginLoadData) : base(pluginLoadData)
         {
+            LoadConfig();
             ClientManager.ClientConnected += OnPlayerConnected;
         }
         
@@ -39,20 +50,6 @@ namespace Unlimited_NetworkingServer_MiningGame.Friends
         /// <param name="e">The client object</param>
         private void OnPlayerConnected(object sender, ClientConnectedEventArgs e)
         {
-            if (_database == null)
-            {
-                lock (InitializeLock)
-                {
-                    if (_database == null)
-                    {
-                        _database = PluginManager.GetPluginByType<DatabaseProxy>();
-                        _loginPlugin = PluginManager.GetPluginByType<LoginPlugin>();
-
-                        _loginPlugin.OnLogout += LogoutFriend;
-                    }
-                }
-            }
-
             e.Client.MessageReceived += OnMessageReceived;
         }
         
@@ -543,6 +540,40 @@ namespace Unlimited_NetworkingServer_MiningGame.Friends
             catch (Exception ex)
             {
                 Logger.Error($"Database Error. Failed to notify friends of Logout! \n\n{ex.Message}\n{ex.StackTrace}");
+            }
+        }
+        
+        private void LoadConfig()
+        {
+            XDocument document;
+
+            if (!File.Exists(ConfigPath))
+            {
+                document = new XDocument(new XDeclaration("1.0", "utf-8", "yes"),
+                    new XComment("Settings for the Friends Plugin"),
+                    new XElement("Variables", new XAttribute("Debug", true))
+                );
+                try
+                {
+                    document.Save(ConfigPath);
+                    Logger.Info("Created /Plugins/FriendsPlugin.xml!");
+                }
+                catch (Exception ex)
+                {
+                    Logger.Error("Failed to create FriendsPlugin.xml: " + ex.Message + " - " + ex.StackTrace);
+                }
+            }
+            else
+            {
+                try
+                {
+                    document = XDocument.Load(ConfigPath);
+                    _debug = document.Element("Variables").Attribute("Debug").Value == "true";
+                }
+                catch (Exception ex)
+                {
+                    Logger.Error("Failed to load FriendsPlugin.xml: " + ex.Message + " - " + ex.StackTrace);
+                }
             }
         }
 

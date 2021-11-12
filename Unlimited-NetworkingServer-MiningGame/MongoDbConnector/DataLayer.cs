@@ -135,6 +135,15 @@ namespace Unlimited_NetworkingServer_MiningGame.MongoDbConnector
         }
         
         /// <inheritdoc />
+        public async void IncreasePlayerEnergy(string username, uint energy, Action callback)
+        {
+            var filter = Builders<PlayerData>.Filter.Eq(u => u.Id, username);
+            var update = Builders<PlayerData>.Update.Inc(u => u.Energy, energy);
+            await _database.PlayerData.UpdateOneAsync(filter, update);
+            callback();
+        }
+        
+        /// <inheritdoc />
         public async void GetPlayerResources(string username, Action<Resource[]> callback)
         {
             var resources = await _database.PlayerData.Find(u => u.Id == username).Project(u => u.Resources).FirstOrDefaultAsync();

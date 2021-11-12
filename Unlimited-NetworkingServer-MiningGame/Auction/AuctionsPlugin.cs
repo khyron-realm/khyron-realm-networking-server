@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Xml.Linq;
@@ -32,7 +33,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Auction
             new ConcurrentDictionary<uint, AuctionRoom>();
         private readonly ConcurrentDictionary<string, uint> _playersInRooms = new ConcurrentDictionary<string, uint>();
 
-        private const string ConfigPath = @"Plugins/AuctionSystem.xml";
+        private const string ConfigPath = @"Plugins/AuctionsPlugin.xml";
         private LoginPlugin _loginPlugin;
         private DatabaseProxy _database;
         private uint _latestRoomKey;
@@ -71,7 +72,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Auction
         {
             e.Client.MessageReceived += OnMessageReceived;
         }
-        
+
         private void OnPlayerDisconnected(object sender, ClientDisconnectedEventArgs e)
         { }
         
@@ -382,16 +383,16 @@ namespace Unlimited_NetworkingServer_MiningGame.Auction
             var username = _loginPlugin.GetPlayerUsername(client);
             if (!_playersInRooms.ContainsKey(username))
             {
+                Logger.Info("Getting first room");
                 room = AuctionRoomList.Values.FirstOrDefault(r => r.HasStarted);
-                if((DateTime.FromBinary(room.EndTime) - DateTime.UtcNow).Seconds < 60)
+                TimeSpan difference = DateTime.FromBinary(room.EndTime) - DateTime.UtcNow;
+                Logger.Warning("Difference: " + difference.TotalSeconds);
+                if(difference.TotalSeconds < 60)
                 {
                     if (AuctionRoomList.ContainsKey(room.Id + 1))
                     {
+                        Logger.Info("Getting second room, the first is less than 60 sec");
                         room = AuctionRoomList[room.Id + 1];
-                    }
-                    else
-                    {
-                        room = AuctionRoomList.Values.FirstOrDefault(r => r.HasStarted);
                     }
                 }
             }
@@ -403,9 +404,11 @@ namespace Unlimited_NetworkingServer_MiningGame.Auction
                 bool isFound = false;
                 while (AuctionRoomList.ContainsKey(newId) && !isFound)
                 {
-                    if ((DateTime.FromBinary(AuctionRoomList[newId].EndTime) - DateTime.UtcNow).Seconds > 60 &&
+                    TimeSpan difference = DateTime.FromBinary(AuctionRoomList[newId].EndTime) - DateTime.UtcNow;
+                    if (difference.TotalSeconds > 60 &&
                         AuctionRoomList[newId].HasStarted)
                     {
+                        Logger.Info("Next room: Getting room: " + newId);
                         isFound = true;
                         room = AuctionRoomList[newId];
                     }
@@ -414,6 +417,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Auction
 
                 if (!isFound)
                 {
+                    Logger.Info("Next room: Getting first room");
                     room = AuctionRoomList.Values.FirstOrDefault(r => r.HasStarted);
                 }
             }
@@ -498,6 +502,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Auction
         {
             uint roomId = 0;
             uint newAmount = 0;
+            uint newEnergy = 0;
             
             try
             {
@@ -505,6 +510,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Auction
                 {
                     roomId = reader.ReadUInt32();
                     newAmount = reader.ReadUInt32();
+                    newEnergy = reader.ReadUInt32();
                 }
             }
             catch (Exception ex)
@@ -515,6 +521,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Auction
             
             var username = _loginPlugin.GetPlayerUsername(client);
             var room = AuctionRoomList[roomId];
+            var lastBidValue = room.LastBid.Amount;
 
             // Add a new bid
             if (AuctionRoomList[roomId].AddBid(username, newAmount, client))
@@ -530,11 +537,15 @@ namespace Unlimited_NetworkingServer_MiningGame.Auction
                 using (var writer = DarkRiftWriter.Create())
                 {
                     writer.Write(AuctionRoomList[roomId].LastBid);
+                    writer.Write(newAmount);
 
                     using (var msg = Message.Create(AuctionTags.AddBidSuccessful, writer))
                     {
                         client.SendMessage(msg, SendMode.Reliable);
                     }
+                    
+                    // Set the new energy in the database
+                    _database.DataLayer.SetPlayerEnergy(username, newEnergy, () => { });
                 }
                 
                 // Let the other clients know
@@ -551,7 +562,9 @@ namespace Unlimited_NetworkingServer_MiningGame.Auction
                                 cl.SendMessage(msg, SendMode.Reliable);
                             }
                         }
-
+                        
+                        writer.Write(Constants.IncrementBid);
+                        
                         using (var msg = Message.Create(AuctionTags.Overbid, writer))
                         {
                             if (room.OverbiddedClient != null && !room.Clients.Contains(room.OverbiddedClient))
@@ -559,6 +572,10 @@ namespace Unlimited_NetworkingServer_MiningGame.Auction
                                 room.OverbiddedClient.SendMessage(msg, SendMode.Reliable);
                             }
                         }
+                        
+                        // Store energy in the database
+                        var overbiddedUsername = _loginPlugin.GetPlayerUsername(room.OverbiddedClient);
+                        _database.DataLayer.IncreasePlayerEnergy(overbiddedUsername, Constants.IncrementBid, () => { });
                     }
                     else
                     {
@@ -693,6 +710,9 @@ namespace Unlimited_NetworkingServer_MiningGame.Auction
             return _latestRoomKey;
         }
 
+        /// <summary>
+        ///     Load the configuration file
+        /// </summary>
         private void LoadConfig()
         {
             XDocument document;
@@ -700,17 +720,17 @@ namespace Unlimited_NetworkingServer_MiningGame.Auction
             if (!File.Exists(ConfigPath))
             {
                 document = new XDocument(new XDeclaration("1.0", "utf-8", "yes"),
-                    new XComment("Settings for the RoomSystem Plugin"),
+                    new XComment("Settings for the Auctions Plugin"),
                     new XElement("Variables", new XAttribute("Debug", true))
                 );
                 try
                 {
                     document.Save(ConfigPath);
-                    Logger.Info("Created /Plugins/AuctionSystem.xml!");
+                    Logger.Info("Created /Plugins/AuctionsPlugin.xml!");
                 }
                 catch (Exception ex)
                 {
-                    Logger.Error("Failed to create AuctionSystem.xml: " + ex.Message + " - " + ex.StackTrace);
+                    Logger.Error("Failed to create AuctionsPlugin.xml: " + ex.Message + " - " + ex.StackTrace);
                 }
             }
             else
@@ -722,7 +742,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Auction
                 }
                 catch (Exception ex)
                 {
-                    Logger.Error("Failed to load AuctionSystem.xml: " + ex.Message + " - " + ex.StackTrace);
+                    Logger.Error("Failed to load AuctionsPlugin.xml: " + ex.Message + " - " + ex.StackTrace);
                 }
             }
         }
@@ -808,7 +828,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Auction
             
             if (generateNew)
             {
-                newAuctionRoom = GenerateAuctionRoom();
+                newAuctionRoom = GenerateAuctionRoom(60);
             }
 
             try
