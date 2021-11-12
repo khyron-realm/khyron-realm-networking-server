@@ -53,7 +53,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Auction
                 }
                 for(int i = 0; i < difference; i++)
                 {
-                    GenerateAuctionRoom(i);
+                    GenerateAuctionRoom(i * 60);
                 }
             }
 
@@ -110,12 +110,6 @@ namespace Unlimited_NetworkingServer_MiningGame.Auction
                         break;
                     }
 
-                    case AuctionTags.GetOpenRooms:
-                    {
-                        GetOpenRooms(client);
-                        break;
-                    }
-                    
                     case AuctionTags.GetRoom:
                     {
                         GetRoom(client);
@@ -377,28 +371,6 @@ namespace Unlimited_NetworkingServer_MiningGame.Auction
                 Logger.Warning("Tried to remove a player who wasn't in the room anymore");
             }
         }
-        
-        /// <summary>
-        ///     Get the available auction rooms
-        /// </summary>
-        /// <param name="client">The connected client</param>
-        private void GetOpenRooms(IClient client)
-        {
-            var availableRooms = AuctionRoomList.Values.Where(r => r.HasStarted).ToList();
-
-            using (var writer = DarkRiftWriter.Create())
-            {
-                foreach (var room in availableRooms)
-                {
-                    writer.Write(room);
-                }
-
-                using (var msg = Message.Create(AuctionTags.GetOpenRooms, writer))
-                {
-                    client.SendMessage(msg, SendMode.Reliable);
-                }
-            }
-        }
 
         /// <summary>
         ///     Get an available auction room
@@ -406,20 +378,41 @@ namespace Unlimited_NetworkingServer_MiningGame.Auction
         /// <param name="client"></param>
         private void GetRoom(IClient client)
         {
-            AuctionRoom room;
+            AuctionRoom room = null;
             var username = _loginPlugin.GetPlayerUsername(client);
             if (!_playersInRooms.ContainsKey(username))
             {
                 room = AuctionRoomList.Values.FirstOrDefault(r => r.HasStarted);
+                if((DateTime.FromBinary(room.EndTime) - DateTime.UtcNow).Seconds < 60)
+                {
+                    if (AuctionRoomList.ContainsKey(room.Id + 1))
+                    {
+                        room = AuctionRoomList[room.Id + 1];
+                    }
+                    else
+                    {
+                        room = AuctionRoomList.Values.FirstOrDefault(r => r.HasStarted);
+                    }
+                }
             }
             else
             {
                 uint latestRoomId = _playersInRooms[username];
-                if (AuctionRoomList.ContainsKey(latestRoomId + 1) && AuctionRoomList[latestRoomId + 1].HasStarted)
+
+                uint newId = latestRoomId + 1;
+                bool isFound = false;
+                while (AuctionRoomList.ContainsKey(newId) && !isFound)
                 {
-                    room = AuctionRoomList[latestRoomId + 1];
+                    if ((DateTime.FromBinary(AuctionRoomList[newId].EndTime) - DateTime.UtcNow).Seconds > 60 &&
+                        AuctionRoomList[newId].HasStarted)
+                    {
+                        isFound = true;
+                        room = AuctionRoomList[newId];
+                    }
+                    newId++;
                 }
-                else
+
+                if (!isFound)
                 {
                     room = AuctionRoomList.Values.FirstOrDefault(r => r.HasStarted);
                 }
@@ -805,7 +798,6 @@ namespace Unlimited_NetworkingServer_MiningGame.Auction
         /// <param name="auctionOwner">The auction owner</param>
         /// <param name="generateNew">True to generate a new auction and false otherwise</param>
         private void AuctionFinished(uint auctionId, string auctionName, string auctionOwner, bool generateNew = true)
-
         {
             if (_debug)
             {
@@ -891,7 +883,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Auction
         {
             for (int i = 0; i < 6; i++)
             {
-                GenerateAuctionRoom(i);
+                GenerateAuctionRoom(i * 60);
             }
         }
 
