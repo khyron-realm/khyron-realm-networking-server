@@ -764,6 +764,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Auction
                         {
                             Logger.Info("Auction restored " + auctionRoom.Id + " (ends " + DateTime.FromBinary(auctionRoom.EndTime) + ")");
                         }
+                        AuctionRoomList[auctionRoom.Id].ContinueAuction();
                         AuctionRoomList[auctionRoom.Id].OnAuctionFinished += AuctionFinished;
                     }
                 }

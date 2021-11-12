@@ -105,6 +105,23 @@ namespace Unlimited_NetworkingServer_MiningGame.Auction
             _endTimer.AutoReset = false;
             _endTimer.Start();
         }
+        
+        /// <summary>
+        ///     Continue the auction and activates the end timer
+        /// </summary>
+        public void ContinueAuction()
+        {
+            DateTime now = DateTime.UtcNow;
+            DateTime scheduledTime = DateTime.FromBinary(EndTime);
+            _endTimer = new Timer();
+            _endTimer.Interval = (scheduledTime - now).TotalMilliseconds;
+            _endTimer.Elapsed += AuctionFinished;
+            _endTimer.AutoReset = false;
+            _endTimer.Start();
+        }
+        
+        // TO-DO
+        // restore auction timer
 
         /// <summary>
         ///     Auction finished event
