@@ -25,7 +25,6 @@ namespace Unlimited_NetworkingServer_MiningGame.Mines
         
         public void Deserialize(DeserializeEvent e)
         {
-            Player = e.Reader.ReadString();
             X = e.Reader.ReadUInt16();
             Y = e.Reader.ReadUInt16();
         }

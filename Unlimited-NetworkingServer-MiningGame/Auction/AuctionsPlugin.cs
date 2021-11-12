@@ -603,7 +603,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Auction
             catch (Exception ex)
             {
                 // Return error 0 for invalid data packages received
-                _loginPlugin.InvalidData(client, AuctionTags.AddBidFailed, ex, "Room join failed");
+                _loginPlugin.InvalidData(client, AuctionTags.AddScanFailed, ex, "Add scan failed");
             }
             
             var username = _loginPlugin.GetPlayerUsername(client);
