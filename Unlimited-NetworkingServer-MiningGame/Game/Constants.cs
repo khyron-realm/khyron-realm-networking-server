@@ -17,7 +17,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Game
         public const uint IncrementBid = 100;
         
         public const byte MaxAuctionPlayers = 20;
-        public const uint AuctionDurationMinutes = 10;
+        public const uint AuctionDurationMinutes = 5;
         public const ushort InitialNrAuctions = 6;
 
         #endregion

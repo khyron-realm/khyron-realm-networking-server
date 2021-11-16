@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Linq;
 using System.Xml.Linq;
 using DarkRift;
 using DarkRift.Server;
@@ -86,8 +87,6 @@ namespace Unlimited_NetworkingServer_MiningGame.Mines
         /// <param name="client">The connected client</param>
         private void GetMines(IClient client)
         {
-            if(_debug) Logger.Info("Getting mines");
-            
             var username = _loginPlugin.GetPlayerUsername(client);
             
             _database.DataLayer.GetMines(username, mineList =>
@@ -97,15 +96,12 @@ namespace Unlimited_NetworkingServer_MiningGame.Mines
                     foreach (var mine in mineList)
                     {
                         writer.Write(mine);
-                        if(_debug) Logger.Info("Sending mine " + mine.Id);
                     }
                     using (var msg = Message.Create(MineTags.GetMines, writer))
                     {
                         client.SendMessage(msg, SendMode.Reliable);
                     }
                 }
-            
-                if(_debug) Logger.Info("Finished getting mines"); 
             });
         }
 
@@ -148,7 +144,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Mines
                 {
                     writer.Write((byte) 0);
 
-                    using (var msg = Message.Create(MineTags.FinishMineFailed, writer))
+                    using (var msg = Message.Create(MineTags.SaveMineFailed, writer))
                     {
                         client.SendMessage(msg, SendMode.Reliable);
                     }
@@ -165,7 +161,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Mines
                 {
                     writer.Write((byte) 1);
 
-                    using (var msg = Message.Create(MineTags.FinishMineFailed, writer))
+                    using (var msg = Message.Create(MineTags.SaveMineFailed, writer))
                     {
                         client.SendMessage(msg, SendMode.Reliable);
                     }
@@ -182,11 +178,16 @@ namespace Unlimited_NetworkingServer_MiningGame.Mines
                 {
                     writer.Write((byte) 2);
 
-                    using (var msg = Message.Create(MineTags.FinishMineFailed, writer))
+                    using (var msg = Message.Create(MineTags.SaveMineFailed, writer))
                     {
                         client.SendMessage(msg, SendMode.Reliable);
                     }
                 }
+            }
+            
+            using (var msg = Message.CreateEmpty(MineTags.SaveMine))
+            {
+                client.SendMessage(msg, SendMode.Reliable);
             }
         }
         
@@ -267,6 +268,11 @@ namespace Unlimited_NetworkingServer_MiningGame.Mines
                     }
                 }
             }
+            
+            using (var msg = Message.CreateEmpty(MineTags.FinishMine))
+            {
+                client.SendMessage(msg, SendMode.Reliable);
+            }
         }
 
         #endregion
@@ -289,11 +295,11 @@ namespace Unlimited_NetworkingServer_MiningGame.Mines
                 try
                 {
                     document.Save(ConfigPath);
-                    Logger.Info("Created /Plugins/MinePlugin.xml!");
+                    if(_debug) Logger.Info("Created /Plugins/MinePlugin.xml!");
                 }
                 catch (Exception ex)
                 {
-                    Logger.Error("Failed to create MinePlugin.xml: " + ex.Message + " - " + ex.StackTrace);
+                    if(_debug) Logger.Error("Failed to create MinePlugin.xml: " + ex.Message + " - " + ex.StackTrace);
                 }
             }
             else
@@ -305,7 +311,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Mines
                 }
                 catch (Exception ex)
                 {
-                    Logger.Error("Failed to load MinePlugin.xml: " + ex.Message + " - " + ex.StackTrace);
+                    if(_debug) Logger.Error("Failed to load MinePlugin.xml: " + ex.Message + " - " + ex.StackTrace);
                 }
             }
         }

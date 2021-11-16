@@ -218,7 +218,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Login
                             }
                         }
 
-                        if (_debug) Logger.Info("Successful login: " + client.ID + ").");
+                        if (_debug) Logger.Info("Successful login: " + username);
                     }
                     else
                     {
@@ -439,11 +439,11 @@ namespace Unlimited_NetworkingServer_MiningGame.Login
                 try
                 {
                     document.Save(ConfigPath);
-                    Logger.Info("Created /Plugins/LoginPlugin.xml!");
+                    if(_debug) Logger.Info("Created /Plugins/LoginPlugin.xml!");
                 }
                 catch (Exception ex)
                 {
-                    Logger.Error("Failed to create LoginPlugin.xml: " + ex.Message + " - " + ex.StackTrace);
+                    if(_debug) Logger.Error("Failed to create LoginPlugin.xml: " + ex.Message + " - " + ex.StackTrace);
                 }
             }
             else
@@ -456,7 +456,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Login
                 }
                 catch (Exception ex)
                 {
-                    Logger.Error("Failed to load LoginPlugin.xml: " + ex.Message + " - " + ex.StackTrace);
+                    if(_debug) Logger.Error("Failed to load LoginPlugin.xml: " + ex.Message + " - " + ex.StackTrace);
                 }
             }
         }

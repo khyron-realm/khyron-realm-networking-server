@@ -168,8 +168,6 @@ namespace Unlimited_NetworkingServer_MiningGame.Headquarters
         {
             string username = GetPlayerUsername(client);
             
-            if (_debug) Logger.Info("Getting data for player: " + username);
-            
             _database.DataLayer.GetPlayerData(username, playerData =>
             {
                 if (playerData != null)
@@ -186,7 +184,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Headquarters
                 }
                 else
                 {
-                    if (_debug) Logger.Info("Player data is not available for user " + username);
+                    if (_debug) Logger.Warning("Player data is not available for user " + username);
                     
                     using (var msg = Message.CreateEmpty(HeadquartersTags.PlayerDataUnavailable))
                     {
@@ -205,8 +203,6 @@ namespace Unlimited_NetworkingServer_MiningGame.Headquarters
         {
             string username = GetPlayerUsername(client);
             
-            if (_debug) Logger.Info("Getting game data for player: " + username);
-
             ushort version = 0;
 
             using (var reader = message.GetReader())
@@ -240,7 +236,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Headquarters
                 }
                 else
                 {
-                    if (_debug) Logger.Info("Game data is not available for user " + GetPlayerUsername(client));
+                    if (_debug) Logger.Warning("Game data is not available for user " + GetPlayerUsername(client));
                     
                     using (var msg = Message.CreateEmpty(HeadquartersTags.GameDataUnavailable))
                     {
@@ -259,8 +255,6 @@ namespace Unlimited_NetworkingServer_MiningGame.Headquarters
         {
             string username = GetPlayerUsername(client);
             
-            if (_debug) Logger.Info("Updating level for player: " + username);
-
             byte level = 0;
             uint experience = 0;
 
@@ -283,7 +277,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Headquarters
             }
             catch
             {
-                if (_debug) Logger.Info("Update level error for user " + GetPlayerUsername(client));
+                if (_debug) Logger.Warning("Update level error for user " + GetPlayerUsername(client));
                     
                 using (var msg = Message.CreateEmpty(HeadquartersTags.UpdateLevelError))
                 {
@@ -300,8 +294,6 @@ namespace Unlimited_NetworkingServer_MiningGame.Headquarters
         private void ConvertResources(IClient client, Message message)
         {
             string username = GetPlayerUsername(client);
-            
-            if (_debug) Logger.Info("Converting resources to energy for player: " + username);
             
             long startTime = 0;
             Resource[] resources = new Resource[] { };
@@ -361,8 +353,6 @@ namespace Unlimited_NetworkingServer_MiningGame.Headquarters
         {
             string username = GetPlayerUsername(client);
             
-            if (_debug) Logger.Info("Finish resource conversion for player " + username);
-
             uint energy = 0;
             uint experience = 0;
 
@@ -439,8 +429,6 @@ namespace Unlimited_NetworkingServer_MiningGame.Headquarters
                 }
             }
             
-            if (_debug) Logger.Info("Upgrading robot " + robotId + " for player: " + username);
-            
             try
             {
                 _database.DataLayer.AddTask(TaskType.Upgrade, username, 0, robotId, startTime, () => { });
@@ -499,8 +487,6 @@ namespace Unlimited_NetworkingServer_MiningGame.Headquarters
                     InvalidData(client, HeadquartersTags.RequestFailed, exception, "Invalid data packages received");
                 }
             }
-            
-            if (_debug) Logger.Info("Finish upgrade robot " + robotId + " for player: " + username);
             
             try
             {
@@ -563,8 +549,6 @@ namespace Unlimited_NetworkingServer_MiningGame.Headquarters
                     InvalidData(client, HeadquartersTags.RequestFailed, exception, "Failed to send required data");
                 }
             }
-            
-            if (_debug) Logger.Info("Building robot " + robotId + " with task " + queueNumber + " for player: " + username);
             
             try
             {
@@ -640,9 +624,6 @@ namespace Unlimited_NetworkingServer_MiningGame.Headquarters
                     InvalidData(client, HeadquartersTags.RequestFailed, exception, "Invalid data packages received");
                 }
             }
-
-            if (_debug) Logger.Info((isFinished ? "Finished" : "Cancelled") + " build " + (multipleRobots ? "robots " : "robot ") +
-                                    robotId + " with task " + queueNumber + " for player: " + username);
 
             try
             {
@@ -755,7 +736,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Headquarters
                 }
             }
 
-            Logger.Warning(error + " Invalid data received: " + e.Message + "-" + e.StackTrace);
+            if(_debug) Logger.Warning(error + " Invalid data received: " + e.Message + "-" + e.StackTrace);
         }
 
         #endregion
@@ -778,11 +759,11 @@ namespace Unlimited_NetworkingServer_MiningGame.Headquarters
                 try
                 {
                     document.Save(ConfigPath);
-                    Logger.Info("Created /Plugins/HeadquartersPlugin.xml!");
+                    if(_debug) Logger.Info("Created /Plugins/HeadquartersPlugin.xml!");
                 }
                 catch (Exception ex)
                 {
-                    Logger.Error("Failed to create HeadquartersPlugin.xml: " + ex.Message + " - " + ex.StackTrace);
+                    if(_debug) Logger.Error("Failed to create HeadquartersPlugin.xml: " + ex.Message + " - " + ex.StackTrace);
                 }
             }
             else
@@ -794,7 +775,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Headquarters
                 }
                 catch (Exception ex)
                 {
-                    Logger.Error("Failed to load HeadquartersPlugin.xml: " + ex.Message + " - " + ex.StackTrace);
+                    if(_debug) Logger.Error("Failed to load HeadquartersPlugin.xml: " + ex.Message + " - " + ex.StackTrace);
                 }
             }
         }
