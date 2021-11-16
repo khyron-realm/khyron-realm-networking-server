@@ -872,6 +872,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Auction
             {
                 Mine mine = new Mine(auctionId, auctionName, auctionOwner);
                 _database.DataLayer.AddMine(mine, () => { });
+                _playerBids[AuctionRoomList[auctionId].LastBid.PlayerName]--;
             }
 
             if (!AuctionRoomList.TryRemove(auctionId, out _))
