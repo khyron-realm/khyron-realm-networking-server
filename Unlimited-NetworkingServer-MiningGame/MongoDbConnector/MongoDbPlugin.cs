@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using System.Xml.Linq;
 using DarkRift.Server;
+using MongoDB.Bson;
 using MongoDB.Driver;
 using Unlimited_NetworkingServer_MiningGame.Auction;
 using Unlimited_NetworkingServer_MiningGame.Database;
@@ -31,6 +32,15 @@ namespace Unlimited_NetworkingServer_MiningGame.MongoDbConnector
             {
                 var client = new MongoClient(connectionString);
                 _mongoDatabase = client.GetDatabase(database);
+                
+                bool isMongoLive = _mongoDatabase.RunCommandAsync((Command<BsonDocument>)"{ping:1}").Wait(3000);
+
+                if(!isMongoLive)
+                {
+                    Logger.Fatal("Failed to connect to MongoDB database");
+                    Environment.Exit(1);
+                }
+                
                 GetCollections();
             }
             catch (Exception ex)
