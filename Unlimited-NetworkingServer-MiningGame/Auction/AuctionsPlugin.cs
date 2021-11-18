@@ -865,15 +865,13 @@ namespace Unlimited_NetworkingServer_MiningGame.Auction
                         if (client.ConnectionState == ConnectionState.Connected) client.SendMessage(msg, SendMode.Reliable);
                         _playersInRooms.TryRemove(username, out _);
                     }
-
-                    if (AuctionRoomList[auctionId].LastBidderClient.ConnectionState == ConnectionState.Connected)
+                    
+                    if (AuctionRoomList[auctionId].LastBidderClient != null &&
+                        AuctionRoomList[auctionId].LastBidderClient.ConnectionState == ConnectionState.Connected)
                     {
                         AuctionRoomList[auctionId].LastBidderClient.SendMessage(msg, SendMode.Reliable);
                     }
-                    else
-                    {
-                        // TODO: Add queued task that is sent to the user when they are online
-                    }
+                    // TODO: Add queued task that is sent to the user when they are online (on else)
                 }
             }
 
