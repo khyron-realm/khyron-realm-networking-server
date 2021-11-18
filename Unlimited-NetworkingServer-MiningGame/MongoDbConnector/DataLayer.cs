@@ -491,7 +491,7 @@ namespace Unlimited_NetworkingServer_MiningGame.MongoDbConnector
         /// <inheritdoc />
         public async void AddScan(uint auctionId, MineScan scan, Action callback)
         {
-            var filter = Builders<AuctionRoom>.Filter.Eq(u => u.Id, auctionId);
+            var filter = Builders<AuctionRoom>.Filter.Eq(a => a.Id, auctionId);
             var update = Builders<AuctionRoom>.Update.AddToSet(a => a.MineScans, scan);
             
             await _database.AuctionRoom.UpdateOneAsync(filter, update);
@@ -533,10 +533,10 @@ namespace Unlimited_NetworkingServer_MiningGame.MongoDbConnector
             callback();
         }
         
-        public void SaveMineBlocks(uint mineId, bool[] blocks, Action callback)
+        public void SaveMineBlocks(uint mineId, byte minePosition, bool[] blocks, Action callback)
         {
-            var filter = Builders<Mine>.Filter.Eq(u => u.Id, mineId);
-            var update = Builders<Mine>.Update.Set(a => a.Blocks, blocks);
+            var filter = Builders<Mine>.Filter.Eq(m => m.Id, mineId);
+            var update = Builders<Mine>.Update.Set(m => m.Blocks, blocks).Set(m => m.MapPosition, minePosition);
             
             _database.MineData.UpdateOne(filter, update);
             callback();
@@ -545,7 +545,7 @@ namespace Unlimited_NetworkingServer_MiningGame.MongoDbConnector
         /// <inheritdoc />
         public void RemoveMine(uint mineId, Action callback)
         {
-            _database.MineData.DeleteOne(a => a.Id == mineId);
+            _database.MineData.DeleteOne(m => m.Id == mineId);
             callback();
         }
 

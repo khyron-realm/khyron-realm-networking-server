@@ -136,7 +136,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Auction
 
                     case AuctionTags.AddFriendToAuction:
                     {
-                        // TO-DO
+                        // TODO
                         break;
                     }
                 }
@@ -856,7 +856,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Auction
             {
                 writer.Write(auctionId);
                 writer.Write(AuctionRoomList[auctionId].LastBid.PlayerName);
-
+                
                 using (var msg = Message.Create(AuctionTags.AuctionFinished, writer))
                 {
                     foreach (var client in AuctionRoomList[auctionId].Clients)
@@ -864,6 +864,15 @@ namespace Unlimited_NetworkingServer_MiningGame.Auction
                         var username = _loginPlugin.GetPlayerUsername(client);
                         if (client.ConnectionState == ConnectionState.Connected) client.SendMessage(msg, SendMode.Reliable);
                         _playersInRooms.TryRemove(username, out _);
+                    }
+
+                    if (AuctionRoomList[auctionId].LastBidderClient.ConnectionState == ConnectionState.Connected)
+                    {
+                        AuctionRoomList[auctionId].LastBidderClient.SendMessage(msg, SendMode.Reliable);
+                    }
+                    else
+                    {
+                        // TODO: Add queued task that is sent to the user when they are online
                     }
                 }
             }

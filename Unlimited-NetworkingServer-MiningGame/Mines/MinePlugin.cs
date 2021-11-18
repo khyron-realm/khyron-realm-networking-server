@@ -113,6 +113,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Mines
         private void SaveMine(IClient client, Message message)
         {
             uint mineId;
+            byte minePosition;
             bool[] blocks;
             Robot[] robots;
             Resource[] resources;
@@ -122,6 +123,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Mines
                 using (var reader = message.GetReader())
                 {
                     mineId = reader.ReadUInt32();
+                    minePosition = reader.ReadByte();
                     blocks = reader.ReadBooleans();
                     robots = reader.ReadSerializables<Robot>();
                     resources = reader.ReadSerializables<Resource>();
@@ -136,7 +138,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Mines
 
             try
             {
-                _database.DataLayer.SaveMineBlocks(mineId, blocks, () => { });
+                _database.DataLayer.SaveMineBlocks(mineId, minePosition, blocks, () => { });
             }
             catch
             {

@@ -1,3 +1,4 @@
+using System;
 using DarkRift;
 using MongoDB.Bson.Serialization.Attributes;
 
@@ -15,6 +16,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Mines
         public MineGenerator Generator { get; set; }
         public bool[] Blocks { get; set; }
         public MineScan[] Scans { get; set; }
+        public byte MapPosition { get; set; }
 
         public Mine()
         { }
@@ -27,6 +29,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Mines
             Generator = new MineGenerator();
             Blocks = new bool[] { };
             Scans = new MineScan[] { };
+            MapPosition = Byte.MaxValue;
         }
 
         public void Deserialize(DeserializeEvent e)
@@ -39,6 +42,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Mines
             e.Writer.Write(Generator);
             e.Writer.Write(Blocks);
             e.Writer.Write(Scans);
+            e.Writer.Write(MapPosition);
         }
     }
 }

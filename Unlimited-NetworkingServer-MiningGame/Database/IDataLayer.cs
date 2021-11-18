@@ -337,10 +337,11 @@ namespace Unlimited_NetworkingServer_MiningGame.Database
         /// <summary>
         ///     Saves a mine state to the database
         /// </summary>
-        /// <param name="mineId">The id of the mine</param> 
+        /// <param name="mineId">The id of the mine</param>
+        /// <param name="minePosition">The position of the mine in the player map</param>
         /// <param name="blockValues">The blocks states of the mine</param>
         /// <param name="callback">Action executed</param>
-        void SaveMineBlocks(uint mineId, bool[] blockValues, Action callback);
+        void SaveMineBlocks(uint mineId, byte minePosition, bool[] blockValues, Action callback);
         
         /// <summary>
         ///     Removes an auction from the database
