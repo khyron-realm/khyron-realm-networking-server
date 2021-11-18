@@ -1,9 +1,11 @@
 using System;
+using System.ComponentModel.Design.Serialization;
 using System.IO;
 using System.Xml.Linq;
 using DarkRift.Server;
 using MongoDB.Bson;
 using MongoDB.Driver;
+using MongoDB.Driver.Core.Clusters;
 using Unlimited_NetworkingServer_MiningGame.Auction;
 using Unlimited_NetworkingServer_MiningGame.Database;
 using Unlimited_NetworkingServer_MiningGame.Friends;
@@ -23,6 +25,9 @@ namespace Unlimited_NetworkingServer_MiningGame.MongoDbConnector
         private readonly IDataLayer _dataLayer;
         private readonly IMongoDatabase _mongoDatabase;
         private DatabaseProxy _database;
+        private static byte _initialCheck = 0;
+        
+        public static bool IsConnected;
 
         public MongoDbPlugin(PluginLoadData pluginLoadData) : base(pluginLoadData)
         {
@@ -31,16 +36,9 @@ namespace Unlimited_NetworkingServer_MiningGame.MongoDbConnector
             try
             {
                 var client = new MongoClient(connectionString);
+                client.Cluster.DescriptionChanged += Cluster_DescriptionChanged;
                 _mongoDatabase = client.GetDatabase(database);
-                
-                bool isMongoLive = _mongoDatabase.RunCommandAsync((Command<BsonDocument>)"{ping:1}").Wait(3000);
 
-                if(!isMongoLive)
-                {
-                    Logger.Fatal("Failed to connect to MongoDB database");
-                    Environment.Exit(1);
-                }
-                
                 GetCollections();
             }
             catch (Exception ex)
@@ -62,7 +60,28 @@ namespace Unlimited_NetworkingServer_MiningGame.MongoDbConnector
                 _database = PluginManager.GetPluginByType<DatabaseProxy>();
                 _database.SetDatabase(_dataLayer);
             }
+
             Logger.Info("Loaded Database: MongoDB");
+        }
+        
+        public void Cluster_DescriptionChanged(object sender, ClusterDescriptionChangedEventArgs e)
+        {
+            switch (e.NewClusterDescription.State)
+            {
+                case ClusterState.Disconnected:
+                    if(_initialCheck > 0)
+                    {
+                        Logger.Fatal("Failed to connect to MongoDB database");
+                        Logger.Fatal("Shutting down the server");
+                        Environment.Exit(1);
+                    }
+                    _initialCheck++;
+                    IsConnected = false;
+                    break;
+                case ClusterState.Connected:
+                    IsConnected = true;
+                    break;
+            }
         }
 
         public IMongoCollection<User> Users { get; private set; }
