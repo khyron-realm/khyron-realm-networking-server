@@ -1,11 +1,14 @@
 ﻿using System;
 using System.IO;
+using System.Threading.Tasks;
 using System.Xml.Linq;
 using DarkRift;
 using DarkRift.Server;
 using Unlimited_NetworkingServer_MiningGame.Database;
+using Unlimited_NetworkingServer_MiningGame.Game;
 using Unlimited_NetworkingServer_MiningGame.Login;
 using Unlimited_NetworkingServer_MiningGame.Tags;
+using TaskScheduler = Unlimited_NetworkingServer_MiningGame.Game.TaskScheduler;
 
 namespace Unlimited_NetworkingServer_MiningGame.Headquarters
 {
@@ -29,6 +32,14 @@ namespace Unlimited_NetworkingServer_MiningGame.Headquarters
         {
             ClientManager.ClientConnected += OnPlayerConnected;
             ClientManager.ClientDisconnected += OnPlayerDisconnected;
+            
+            TaskScheduler.Instance.ScheduleTask(12, 00, 6, () => 
+            {
+                Logger.Info("Energy top-up for all players at: " + DateTime.UtcNow);
+                
+                var task = new BackgroundTask(BackgroundTaskType.EnergyTopUp, Constants.TopUpEnergyValue, "");
+                _database.DataLayer.AddBackgroundTask(task, () => {});
+            });
         }
 
         public override Version Version => new Version(1, 0, 0);
@@ -154,6 +165,12 @@ namespace Unlimited_NetworkingServer_MiningGame.Headquarters
                         FinishBuildRobot(client, message, false, false, false);
                         break;
                     }
+                    
+                    case HeadquartersTags.RemoveBackgroundTask:
+                    {
+                        RemoveBackgroundTask(client, message);
+                        break;
+                    }
                 }
             }
         }
@@ -213,7 +230,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Headquarters
                 }
                 catch (Exception exception)
                 {
-                    InvalidData(client, HeadquartersTags.RequestFailed, exception, "Invalid data packages received");
+                    InvalidData(client, HeadquartersTags.RequestFailed, exception, "Invalid Send Game data packages received");
                 }
             }
             
@@ -267,7 +284,8 @@ namespace Unlimited_NetworkingServer_MiningGame.Headquarters
                 }
                 catch (Exception exception)
                 {
-                    InvalidData(client, HeadquartersTags.RequestFailed, exception, "Invalid data packages received");
+                    InvalidData(client, HeadquartersTags.RequestFailed, exception, "Invalid Update level packages received");
+                    return;
                 }
             }
 
@@ -307,13 +325,14 @@ namespace Unlimited_NetworkingServer_MiningGame.Headquarters
                 }
                 catch (Exception exception)
                 {
-                    InvalidData(client, HeadquartersTags.RequestFailed, exception, "Invalid data packages received");
+                    InvalidData(client, HeadquartersTags.RequestFailed, exception, "Invalid Convert resources packages received");
+                    return;
                 }
             }
 
             try
             {
-                _database.DataLayer.AddTask(TaskType.Conversion, username, 0, 0, startTime, () => {});
+                _database.DataLayer.AddTask(BuildTaskType.Conversion, username, 0, 0, startTime, () => {});
             }
             catch
             {
@@ -365,13 +384,14 @@ namespace Unlimited_NetworkingServer_MiningGame.Headquarters
                 }
                 catch (Exception exception)
                 {
-                    InvalidData(client, HeadquartersTags.RequestFailed, exception, "Invalid data packages received");
+                    InvalidData(client, HeadquartersTags.RequestFailed, exception, "Invalid Finish convert resources packages received");
+                    return;
                 }
             }
             
             try
             {
-                _database.DataLayer.FinishTask(TaskType.Conversion, username, 0, () => {});
+                _database.DataLayer.FinishTask(BuildTaskType.Conversion, username, 0, () => {});
             }
             catch
             {
@@ -425,13 +445,14 @@ namespace Unlimited_NetworkingServer_MiningGame.Headquarters
                 }
                 catch (Exception exception)
                 {
-                    InvalidData(client, HeadquartersTags.RequestFailed, exception, "Invalid data packages received");
+                    InvalidData(client, HeadquartersTags.RequestFailed, exception, "Invalid Upgrade robot packages received");
+                    return;
                 }
             }
             
             try
             {
-                _database.DataLayer.AddTask(TaskType.Upgrade, username, 0, robotId, startTime, () => { });
+                _database.DataLayer.AddTask(BuildTaskType.Upgrade, username, 0, robotId, startTime, () => { });
             }
             catch
             {
@@ -484,13 +505,14 @@ namespace Unlimited_NetworkingServer_MiningGame.Headquarters
                 }
                 catch (Exception exception)
                 {
-                    InvalidData(client, HeadquartersTags.RequestFailed, exception, "Invalid data packages received");
+                    InvalidData(client, HeadquartersTags.RequestFailed, exception, "Invalid Finish upgrade robot packages received");
+                    return;
                 }
             }
             
             try
             {
-                _database.DataLayer.FinishTask(TaskType.Upgrade, username, 0, () => {});
+                _database.DataLayer.FinishTask(BuildTaskType.Upgrade, username, 0, () => {});
             }
             catch
             {
@@ -546,13 +568,14 @@ namespace Unlimited_NetworkingServer_MiningGame.Headquarters
                 }
                 catch (Exception exception)
                 {
-                    InvalidData(client, HeadquartersTags.RequestFailed, exception, "Failed to send required data");
+                    InvalidData(client, HeadquartersTags.RequestFailed, exception, "Invalid Build robot robot packages received");
+                    return;
                 }
             }
             
             try
             {
-                _database.DataLayer.AddTask(TaskType.Build, username, queueNumber, robotId, startTime, () => { });
+                _database.DataLayer.AddTask(BuildTaskType.Build, username, queueNumber, robotId, startTime, () => { });
             }
             catch
             {
@@ -621,13 +644,14 @@ namespace Unlimited_NetworkingServer_MiningGame.Headquarters
                 }
                 catch (Exception exception)
                 {
-                    InvalidData(client, HeadquartersTags.RequestFailed, exception, "Invalid data packages received");
+                    InvalidData(client, HeadquartersTags.RequestFailed, exception, "Invalid finish build robot packages received");
+                    return;
                 }
             }
 
             try
             {
-                _database.DataLayer.FinishTask(TaskType.Build, username, queueNumber, () => { });
+                _database.DataLayer.FinishTask(BuildTaskType.Build, username, queueNumber, () => { });
             }
             catch
             {
@@ -645,7 +669,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Headquarters
             {
                 try
                 {
-                    _database.DataLayer.UpdateNextTask(TaskType.Build, username, queueNumber, startTime, () => {});
+                    _database.DataLayer.UpdateNextTask(BuildTaskType.Build, username, queueNumber, startTime, () => {});
                 }
                 catch
                 {
@@ -681,7 +705,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Headquarters
                 {
                     try
                     {
-                        _database.DataLayer.UpdateNextTask(TaskType.Build, username, queueNumber, startTime, () => {});
+                        _database.DataLayer.UpdateNextTask(BuildTaskType.Build, username, queueNumber, startTime, () => {});
                     }
                     catch
                     {
@@ -709,6 +733,43 @@ namespace Unlimited_NetworkingServer_MiningGame.Headquarters
                             client.SendMessage(msg, SendMode.Reliable);
                         }
                     }
+                }
+            }
+        }
+        
+        /// <summary>
+        ///     Removes a background task from the database
+        /// </summary>
+        /// <param name="client">The client connected</param>
+        /// <param name="message">The message received</param>
+        private void RemoveBackgroundTask(IClient client, Message message)
+        {
+            string username = GetPlayerUsername(client);
+            
+            BackgroundTask task;
+
+            using (var reader = message.GetReader())
+            {
+                try
+                {
+                    task = reader.ReadSerializable<BackgroundTask>();
+                }
+                catch (Exception exception)
+                {
+                    InvalidData(client, HeadquartersTags.RequestFailed, exception, "Invalid remove background task packages received");
+                    return;
+                }
+            }
+
+            try
+            {
+                _database.DataLayer.RemoveBackgroundTask(username, task, () => { });
+            }
+            catch
+            {
+                using (var msg = Message.CreateEmpty(HeadquartersTags.RemoveBackgroundTaskFailed))
+                {
+                    client.SendMessage(msg, SendMode.Reliable);
                 }
             }
         }

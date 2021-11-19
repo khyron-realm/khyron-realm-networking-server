@@ -133,7 +133,7 @@ namespace Unlimited_NetworkingServer_MiningGame.MongoDbConnector
             await _database.PlayerData.UpdateOneAsync(filter, update);
             callback();
         }
-        
+
         /// <inheritdoc />
         public async void IncreasePlayerEnergy(string username, uint energy, Action callback)
         {
@@ -187,24 +187,24 @@ namespace Unlimited_NetworkingServer_MiningGame.MongoDbConnector
         }
 
         /// <inheritdoc />
-        public async void AddTask(TaskType taskType, string username, ushort id, byte element, long time, Action callback)
+        public async void AddTask(BuildTaskType buildTaskType, string username, ushort id, byte element, long time, Action callback)
         {
             var upgrade = new BuildTask(id, element, time);
             var filter = Builders<PlayerData>.Filter.Eq(u => u.Id, username);
             UpdateDefinition<PlayerData> update = null;
-            switch (taskType)
+            switch (buildTaskType)
             {
-                case TaskType.Conversion:
+                case BuildTaskType.Conversion:
                 {
                     update = Builders<PlayerData>.Update.AddToSet(u => u.ConversionQueue, upgrade);
                     break;
                 }
-                case TaskType.Upgrade:
+                case BuildTaskType.Upgrade:
                 {
                     update = Builders<PlayerData>.Update.AddToSet(u => u.UpgradeQueue, upgrade);
                     break;
                 }
-                case TaskType.Build:
+                case BuildTaskType.Build:
                 {
                     update = Builders<PlayerData>.Update.AddToSet(u => u.BuildQueue, upgrade);
                     break;
@@ -215,25 +215,25 @@ namespace Unlimited_NetworkingServer_MiningGame.MongoDbConnector
         }
 
         /// <inheritdoc />
-        public async void FinishTask(TaskType taskType, string username, ushort id, Action callback)
+        public async void FinishTask(BuildTaskType buildTaskType, string username, ushort id, Action callback)
         {
             var filter = Builders<PlayerData>.Filter.Eq(u => u.Id, username);
             UpdateDefinition<PlayerData> update = null;
-            switch (taskType)
+            switch (buildTaskType)
             {
-                case TaskType.Conversion:
+                case BuildTaskType.Conversion:
                 {
                     update = Builders<PlayerData>.Update.PullFilter(u => u.ConversionQueue,
                             Builders<BuildTask>.Filter.Eq(b => b.Id, id));
                     break;
                 }
-                case TaskType.Upgrade:
+                case BuildTaskType.Upgrade:
                 {
                     update = Builders<PlayerData>.Update.PullFilter(u => u.UpgradeQueue,
                             Builders<BuildTask>.Filter.Eq(b => b.Id, id));
                     break;
                 }
-                case TaskType.Build:
+                case BuildTaskType.Build:
                 {
                     update = Builders<PlayerData>.Update.PullFilter(u => u.BuildQueue,
                             Builders<BuildTask>.Filter.Lte(b => b.Id, id));
@@ -245,27 +245,27 @@ namespace Unlimited_NetworkingServer_MiningGame.MongoDbConnector
         }
         
         /// <inheritdoc />
-        public async void UpdateNextTask(TaskType taskType, string username, ushort id, long time, Action callback)
+        public async void UpdateNextTask(BuildTaskType buildTaskType, string username, ushort id, long time, Action callback)
         {
             FilterDefinition<PlayerData> filter = null;
             UpdateDefinition<PlayerData> update = null;
-            switch (taskType)
+            switch (buildTaskType)
             {
-                case TaskType.Conversion:
+                case BuildTaskType.Conversion:
                 {
                     filter = Builders<PlayerData>.Filter.Eq(u => u.Id, username) &
                              Builders<PlayerData>.Filter.ElemMatch(u => u.ConversionQueue, b => b.Id == id);
                     update = Builders<PlayerData>.Update.Set(b => b.ConversionQueue[-1].StartTime, time);
                     break;
                 }
-                case TaskType.Upgrade:
+                case BuildTaskType.Upgrade:
                 {
                     filter = Builders<PlayerData>.Filter.Eq(u => u.Id, username) &
                              Builders<PlayerData>.Filter.ElemMatch(u => u.UpgradeQueue, b => b.Id == id);
                     update = Builders<PlayerData>.Update.Set(b => b.UpgradeQueue[-1].StartTime, time);
                     break;
                 }
-                case TaskType.Build:
+                case BuildTaskType.Build:
                 {
                     filter = Builders<PlayerData>.Filter.Eq(u => u.Id, username) &
                              Builders<PlayerData>.Filter.ElemMatch(u => u.BuildQueue, b => b.Id > id);
@@ -277,6 +277,34 @@ namespace Unlimited_NetworkingServer_MiningGame.MongoDbConnector
             callback();
         }
 
+        /// <inheritdoc />
+        public async void AddBackgroundTask(string username, BackgroundTask backgroundTask, Action callback)
+        {
+            var filter = Builders<PlayerData>.Filter.Eq(u => u.Id, username);
+            var update = Builders<PlayerData>.Update.AddToSet(u => u.BackgroundTasks, backgroundTask);
+            await _database.PlayerData.UpdateOneAsync(filter, update);
+            callback();
+        }
+
+        /// <inheritdoc />
+        public async void AddBackgroundTask(BackgroundTask backgroundTask, Action callback)
+        {
+            var filter = Builders<PlayerData>.Filter.Empty;
+            var update = Builders<PlayerData>.Update.AddToSet(u => u.BackgroundTasks, backgroundTask);
+            await _database.PlayerData.UpdateManyAsync(filter, update);
+            callback();
+        }
+
+        /// <inheritdoc />
+        public async void RemoveBackgroundTask(string username, BackgroundTask task, Action callback)
+        {
+            var filter = Builders<PlayerData>.Filter.Eq(u => u.Id, username);
+            var update = Builders<PlayerData>.Update.PullFilter(u => u.BackgroundTasks,
+                Builders<BackgroundTask>.Filter.Eq(b => b, task));
+            await _database.PlayerData.UpdateOneAsync(filter, update);
+            callback();
+        }
+        
         #endregion
 
         #region Parameters

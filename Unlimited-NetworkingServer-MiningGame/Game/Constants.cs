@@ -20,6 +20,8 @@ namespace Unlimited_NetworkingServer_MiningGame.Game
         public const uint AuctionDurationMinutes = 5;
         public const ushort InitialNrAuctions = 6;
 
+        public const ushort TopUpEnergyValue = 5000;
+
         #endregion
 
         #region Mine

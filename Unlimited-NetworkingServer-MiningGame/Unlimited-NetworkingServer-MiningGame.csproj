@@ -196,12 +196,15 @@
         <Compile Include="Game\GamePlugin.cs" />
         <Compile Include="Game\GameData.cs" />
         <Compile Include="Game\NameGenerator.cs" />
+        <Compile Include="Game\TaskScheduler.cs" />
+        <Compile Include="Headquarters\BackgroundTaskType.cs" />
+        <Compile Include="Headquarters\BackgroundTask.cs" />
         <Compile Include="Headquarters\BuildTask.cs" />
         <Compile Include="Headquarters\PlayerData.cs" />
         <Compile Include="Headquarters\Resource.cs" />
         <Compile Include="Headquarters\Robot.cs" />
         <Compile Include="Headquarters\HeadquartersPlugin.cs" />
-        <Compile Include="Headquarters\TaskType.cs" />
+        <Compile Include="Headquarters\BuildTaskType.cs" />
         <Compile Include="Login\Encryption.cs" />
         <Compile Include="Login\LoginPlugin.cs" />
         <Compile Include="Login\User.cs" />

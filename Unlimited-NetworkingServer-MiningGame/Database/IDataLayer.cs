@@ -116,7 +116,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Database
         /// <param name="energy">The new player energy</param>
         /// <param name="callback">Action executed</param>
         void SetPlayerEnergy(string username, uint energy, Action callback);
-        
+
         /// <summary>
         ///     Increase the player energy
         /// </summary>
@@ -167,32 +167,55 @@ namespace Unlimited_NetworkingServer_MiningGame.Database
         /// <summary>
         ///     Adds a task
         /// </summary>
-        /// <param name="taskType">The type of the task</param>
+        /// <param name="buildTaskType">The type of the task</param>
         /// <param name="username">The user name</param>
         /// <param name="id">The number in the queue</param>
         /// <param name="element">The selected element</param>
         /// <param name="time">The start time</param>
         /// <param name="callback">Action executed</param>
-        void AddTask(TaskType taskType, string username, ushort id, byte element, long time, Action callback);
+        void AddTask(BuildTaskType buildTaskType, string username, ushort id, byte element, long time, Action callback);
 
         /// <summary>
         ///     Finish a task
         /// </summary>
-        /// <param name="taskType">The type of the task</param>
+        /// <param name="buildTaskType">The type of the task</param>
         /// <param name="username">The user name</param>
         /// <param name="id">The task id</param>
         /// <param name="callback">Action executed</param>
-        void FinishTask(TaskType taskType, string username, ushort id, Action callback);
+        void FinishTask(BuildTaskType buildTaskType, string username, ushort id, Action callback);
 
         /// <summary>
         ///     Updated following tasks
         /// </summary>
-        /// <param name="taskType">The type of the task</param>
+        /// <param name="buildTaskType">The type of the task</param>
         /// <param name="username">The user name</param>
         /// <param name="id">The number in the queue</param>
         /// <param name="time">The start time</param>
         /// <param name="callback">Action executed</param>
-        void UpdateNextTask(TaskType taskType, string username, ushort id, long time, Action callback);
+        void UpdateNextTask(BuildTaskType buildTaskType, string username, ushort id, long time, Action callback);
+
+        /// <summary>
+        ///     Adds a new background task for the user
+        /// </summary>
+        /// <param name="username">The user name</param>
+        /// <param name="backgroundTask">The background task</param>
+        /// <param name="callback">Action executed</param>
+        void AddBackgroundTask(string username, BackgroundTask backgroundTask, Action callback);
+        
+        /// <summary>
+        ///     Adds a new background task for all the users
+        /// </summary>
+        /// <param name="backgroundTask">The background task</param>
+        /// <param name="callback">Action executed</param>
+        void AddBackgroundTask(BackgroundTask backgroundTask, Action callback);
+        
+        /// <summary>
+        ///     Removes a background task for the user
+        /// </summary>
+        /// <param name="username">The user name</param>
+        /// <param name="taskId">The task to be removed</param>
+        /// <param name="callback">Action executed</param>
+        void RemoveBackgroundTask(string username, BackgroundTask taskId, Action callback);
 
         #endregion
 
@@ -317,21 +340,21 @@ namespace Unlimited_NetworkingServer_MiningGame.Database
         /// </summary>
         /// <param name="auctionId">The auction id</param>
         /// <param name="callback">Action executed</param>
-        void GetMine(uint auctionId, Action<Mines.Mine> callback);
+        void GetMine(uint auctionId, Action<Mine> callback);
         
         /// <summary>
         ///     Retrieves all mines from the database
         /// </summary>
         /// <param name="username">The player username</param>
         /// <param name="callback">Action executed</param>
-        void GetMines(string username, Action<List<Mines.Mine>> callback);
+        void GetMines(string username, Action<List<Mine>> callback);
 
         /// <summary>
         ///     Adds a mine to the database
         /// </summary>
         /// <param name="mine">The mine object</param>
         /// <param name="callback">Action executed</param>
-        void AddMine(Mines.Mine mine, Action callback);
+        void AddMine(Mine mine, Action callback);
 
         /// <summary>
         ///     Saves a mine state to the database

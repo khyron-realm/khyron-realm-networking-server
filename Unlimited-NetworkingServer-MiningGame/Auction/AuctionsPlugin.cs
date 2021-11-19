@@ -7,6 +7,7 @@ using DarkRift;
 using DarkRift.Server;
 using Unlimited_NetworkingServer_MiningGame.Database;
 using Unlimited_NetworkingServer_MiningGame.Game;
+using Unlimited_NetworkingServer_MiningGame.Headquarters;
 using Unlimited_NetworkingServer_MiningGame.Login;
 using Unlimited_NetworkingServer_MiningGame.Mines;
 using Unlimited_NetworkingServer_MiningGame.Tags;
@@ -869,7 +870,9 @@ namespace Unlimited_NetworkingServer_MiningGame.Auction
                     {
                         AuctionRoomList[auctionId].LastBidderClient.SendMessage(msg, SendMode.Reliable);
                     }
-                    // TODO: Add queued task that is sent to the user when they are online (on else)
+                    
+                    var task = new BackgroundTask(BackgroundTaskType.AuctionWon, auctionId, "");
+                    _database.DataLayer.AddBackgroundTask(AuctionRoomList[auctionId].LastBid.PlayerName, task, () => {});
                 }
             }
 

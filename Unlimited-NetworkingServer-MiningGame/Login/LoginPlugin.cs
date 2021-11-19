@@ -398,9 +398,11 @@ namespace Unlimited_NetworkingServer_MiningGame.Login
             BuildTask[] conversionQueue = {};
             BuildTask[] upgradeQueue = {};
             BuildTask[] buildQueue = {};
+            BackgroundTask[] backgroundTasks = {};
 
             // Create player object
-            return new PlayerData(id, level, experience, energy, resources, robots, conversionQueue, upgradeQueue, buildQueue);
+            return new PlayerData(id, level, experience, energy, resources, robots, conversionQueue, upgradeQueue,
+                buildQueue, backgroundTasks);
         }
 
         /// <summary>
