@@ -521,6 +521,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Auction
             
             var username = _loginPlugin.GetPlayerUsername(client);
             var room = AuctionRoomList[roomId];
+            var lastBid = room.LastBid.Amount;
             var overbiddedPlayer = room.LastBid.PlayerName;
 
             // Add a new bid
@@ -567,11 +568,11 @@ namespace Unlimited_NetworkingServer_MiningGame.Auction
                             }
                         }
                         
-                        writer.Write(Constants.IncrementBid);
+                        writer.Write(lastBid);
                         
                         using (var msg = Message.Create(AuctionTags.Overbid, writer))
                         {
-                            if (room.OverbiddedClient != null && !room.Clients.Contains(room.OverbiddedClient))
+                            if (room.OverbiddedClient != null && room.Clients.Contains(room.OverbiddedClient))
                             {
                                 room.OverbiddedClient.SendMessage(msg, SendMode.Reliable);
                             }
