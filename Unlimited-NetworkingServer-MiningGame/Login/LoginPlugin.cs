@@ -2,11 +2,15 @@ using System;
 using System.Collections.Concurrent;
 using System.IO;
 using System.Linq;
+using System.Xml.Linq;
 using DarkRift;
 using DarkRift.Server;
 using Unlimited_NetworkingServer_MiningGame.Database;
+using Unlimited_NetworkingServer_MiningGame.Game;
 using Unlimited_NetworkingServer_MiningGame.Headquarters;
 using Unlimited_NetworkingServer_MiningGame.Tags;
+//using Microsoft.Extensions.Logging;
+
 
 namespace Unlimited_NetworkingServer_MiningGame.Login
 {
@@ -15,21 +19,34 @@ namespace Unlimited_NetworkingServer_MiningGame.Login
     /// </summary>
     public class LoginPlugin : Plugin
     {
-        private const string PrivateKeyPath = @"Plugins/PrivateKey.xml";
-        private static readonly object InitializeLock = new object();
-
         private ConcurrentDictionary<string, IClient> _clients = new ConcurrentDictionary<string, IClient>();
 
         private ConcurrentDictionary<IClient, string> _usersLoggedIn = new ConcurrentDictionary<IClient, string>();
+        
+        //private readonly ILogger<LoginPlugin> _logger;
 
+        private const string ConfigPath = @"Plugins/LoginPlugin.xml";
+        private const string PrivateKeyPath = @"Plugins/PrivateKey.xml";
         private bool _allowAddUser = true;
         private DatabaseProxy _database;
         private bool _debug = true;
         private string _privateKey;
-        private const ushort INITIAL_ENERGY = 10000;
+
+        #region Events
+
+        public delegate void LogoutEventHandler(IClient client, string username);
+        public event LogoutEventHandler OnLogout;
+
+        #endregion
+
+        protected override void Loaded(LoadedEventArgs args)
+        {
+            if (_database == null) _database = PluginManager.GetPluginByType<DatabaseProxy>();
+        }
 
         public LoginPlugin(PluginLoadData pluginLoadData) : base(pluginLoadData)
         {
+            LoadConfig();
             LoadRsaKey();
 
             ClientManager.ClientConnected += OnPlayerConnected;
@@ -72,12 +89,6 @@ namespace Unlimited_NetworkingServer_MiningGame.Login
         /// <param name="e">The client object</param>
         private void OnPlayerConnected(object sender, ClientConnectedEventArgs e)
         {
-            if (_database == null)
-                lock (InitializeLock)
-                {
-                    if (_database == null) _database = PluginManager.GetPluginByType<DatabaseProxy>();
-                }
-
             _usersLoggedIn[e.Client] = null;
 
             e.Client.MessageReceived += OnMessageReceived;
@@ -94,7 +105,11 @@ namespace Unlimited_NetworkingServer_MiningGame.Login
             {
                 _usersLoggedIn.TryRemove(e.Client, out var username);
 
-                if (username != null) _clients.TryRemove(username, out _);
+                if (username != null)
+                {
+                    _clients.TryRemove(username, out _);
+                    OnLogout?.Invoke(e.Client, username);
+                }
             }
         }
 
@@ -135,48 +150,6 @@ namespace Unlimited_NetworkingServer_MiningGame.Login
             }
         }
         
-        
-        private PlayerData InitializePlayerData(string username)
-        {
-            // Extract game elements
-            //
-            byte nrResources = 3;
-            string[] resourceNames = {"Silicon", "Lithium", "Titanium"};
-            uint[] resourceInitialCount = { 1000, 450, 250 };
-            
-            byte nrRobots = 3;
-            string[] robotNames = {"Worker", "Probe", "Crusher"};
-            byte[] robotsInitialCount = {0, 0, 0};
-            
-            // Create player data
-            string id = username;
-            byte level = 1;
-            ushort experience = 1;
-            uint energy = INITIAL_ENERGY;
-
-            // Create resources
-            Resource[] resources = new Resource[nrResources];
-            foreach (int iterator in Enumerable.Range(0, nrResources))
-            {
-                resources[iterator] = new Resource((byte)iterator, resourceNames[iterator], resourceInitialCount[iterator]);
-            }
-
-            // Create robots
-            Robot[] robots = new Robot[nrRobots];
-            foreach (int iterator in Enumerable.Range(0, nrRobots))
-            {
-                robots[iterator] = new Robot((byte)iterator, robotNames[iterator], level, robotsInitialCount[iterator]);
-            }
-            
-            // Create tasks queue
-            BuildTask[] conversionQueue = {};
-            BuildTask[] upgradeQueue = {};
-            BuildTask[] buildQueue = {};
-
-            // Create player object
-            return new PlayerData(id, level, experience, energy, resources, robots, conversionQueue, upgradeQueue, buildQueue);
-        }
-
         #region ReceivedCalls
 
         /// <summary>
@@ -186,19 +159,9 @@ namespace Unlimited_NetworkingServer_MiningGame.Login
         /// <param name="message">The received message</param>
         private void LoginUser(IClient client, Message message)
         {
-            // If users is already logged in
-            if (_usersLoggedIn[client] != null)
-            {
-                using (var msg = Message.CreateEmpty(LoginTags.LoginSuccess))
-                {
-                    client.SendMessage(msg, SendMode.Reliable);
-                }
-
-                return;
-            }
-
             var username = "";
             var password = "";
+            var loginType = (byte) 0;
 
             using (var reader = message.GetReader())
             {
@@ -206,6 +169,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Login
                 {
                     username = reader.ReadString();
                     password = Encryption.Decrypt(reader.ReadBytes(), _privateKey);
+                    loginType = reader.ReadByte();
                 }
                 catch (Exception exception)
                 {
@@ -213,28 +177,30 @@ namespace Unlimited_NetworkingServer_MiningGame.Login
                     InvalidData(client, LoginTags.LoginFailed, exception, "Failed to log in!");
                 }
             }
-
-            if (_clients.ContainsKey(username))
+            
+            // If users is already logged in
+            if (_usersLoggedIn[client] != null)
             {
-                Logger.Info("Removing old client");
-                // Removing old client
-                var oldClient = _clients[username];
-                LogoutUser(oldClient, 1);
-                
-                /*
-                // Username is already in use, return Error 3
                 using (var writer = DarkRiftWriter.Create())
                 {
-                    writer.Write((byte) 3);
+                    writer.Write(loginType);
 
-                    using (var msg = Message.Create(LoginTags.LoginFailed, writer))
+                    using (var msg = Message.Create(LoginTags.LoginSuccess, writer))
                     {
                         client.SendMessage(msg, SendMode.Reliable);
                     }
                 }
-                
+
                 return;
-                */
+            }
+
+            if (_clients.ContainsKey(username))
+            {
+                if(_debug) Logger.Info("New connection, removing old client");
+                
+                // Removing old client
+                var oldClient = _clients[username];
+                LogoutUser(oldClient, 1);
             }
 
             try
@@ -245,13 +211,24 @@ namespace Unlimited_NetworkingServer_MiningGame.Login
                     {
                         _usersLoggedIn[client] = username;
                         _clients[username] = client;
-
-                        using (var msg = Message.CreateEmpty(LoginTags.LoginSuccess))
+                        
+                        using (var writer = DarkRiftWriter.Create())
                         {
-                            client.SendMessage(msg, SendMode.Reliable);
+                            writer.Write(loginType);
+
+                            using (var msg = Message.Create(LoginTags.LoginSuccess, writer))
+                            {
+                                client.SendMessage(msg, SendMode.Reliable);
+                            }
                         }
 
-                        if (_debug) Logger.Info("Successful login: " + client.ID + ").");
+                        if (_debug) Logger.Info("Successful login: " + username);
+                        /*
+                        _logger.LogInformation("INFO - Successful login: " + username);
+                        _logger.LogWarning("WARNING - Successful login: " + username);
+                        _logger.LogError("ERROR - Successful login: " + username);
+                        _logger.LogCritical("CRITICAL - Successful login: " + username);
+                        */
                     }
                     else
                     {
@@ -300,6 +277,8 @@ namespace Unlimited_NetworkingServer_MiningGame.Login
                     client.SendMessage(msg, SendMode.Reliable);
                 }
             }
+            
+            OnLogout?.Invoke(client, username);
         }
 
         /// <summary>
@@ -379,17 +358,119 @@ namespace Unlimited_NetworkingServer_MiningGame.Login
         #endregion
         
         #region Helpers
+        
+        /// <summary>
+        ///     Initializes the player data for a new user
+        /// </summary>
+        /// <param name="username">The player username</param>
+        /// <returns>The PlayerData object</returns>
+        private PlayerData InitializePlayerData(string username)
+        {
+            byte nrResources = 3;
+            string[] resourceNames = {"Silicon", "Lithium", "Titanium"};
+            uint[] resourceInitialCount = { Constants.InitialSilicon, Constants.InitialLithium, Constants.InitialTitanium };
+            
+            byte nrRobots = 3;
+            string[] robotNames = {"Worker", "Probe", "Crusher"};
+            byte[] robotsInitialCount = {0, 0, 0};
+            
+            // Create player data
+            string id = username;
+            byte level = 1;
+            ushort experience = 1;
+            uint energy = Constants.InitialEnergy;
+
+            // Create resources
+            Resource[] resources = new Resource[nrResources];
+            foreach (int iterator in Enumerable.Range(0, nrResources))
+            {
+                resources[iterator] = new Resource((byte)iterator, resourceNames[iterator], resourceInitialCount[iterator]);
+            }
+
+            // Create robots
+            Robot[] robots = new Robot[nrRobots];
+            foreach (int iterator in Enumerable.Range(0, nrRobots))
+            {
+                robots[iterator] = new Robot((byte)iterator, robotNames[iterator], level, robotsInitialCount[iterator]);
+            }
+            
+            // Create tasks queue
+            BuildTask[] conversionQueue = {};
+            BuildTask[] upgradeQueue = {};
+            BuildTask[] buildQueue = {};
+
+            // Create player object
+            return new PlayerData(id, level, experience, energy, resources, robots, conversionQueue, upgradeQueue, buildQueue);
+        }
 
         /// <summary>
-        /// Returns the player username
+        ///     Get the player username
         /// </summary>
-        /// <param name="client"></param>
-        /// <returns></returns>
+        /// <param name="client">The client object</param>
+        /// <returns>Player username</returns>
         public string GetPlayerUsername(IClient client)
         {
             return _usersLoggedIn[client];
         }
+        
+        /// <summary>
+        ///     Check if the client exists 
+        /// </summary>
+        /// <param name="username">The player username</param>
+        /// <returns>True if the client exists or false otherwise</returns>
+        public bool ClientExistent(string username)
+        {
+            return _clients.ContainsKey(username);
+        }
+        
+        /// <summary>
+        ///     Get the client object
+        /// </summary>
+        /// <param name="username">The player username</param>
+        /// <returns>The client object</returns>
+        public IClient GetClient(string username)
+        {
+            return _clients[username];
+        }
 
+        /// <summary>
+        ///     Load the configuration file
+        /// </summary>
+        private void LoadConfig()
+        {
+            XDocument document;
+
+            if (!File.Exists(ConfigPath))
+            {
+                document = new XDocument(new XDeclaration("1.0", "utf-8", "yes"),
+                    new XComment("Settings for the Login Plugin"),
+                    new XElement("Variables", new XAttribute("Debug", true), new XAttribute("AllowAddUser", true))
+                );
+                try
+                {
+                    document.Save(ConfigPath);
+                    if(_debug) Logger.Info("Created /Plugins/LoginPlugin.xml!");
+                }
+                catch (Exception ex)
+                {
+                    if(_debug) Logger.Error("Failed to create LoginPlugin.xml: " + ex.Message + " - " + ex.StackTrace);
+                }
+            }
+            else
+            {
+                try
+                {
+                    document = XDocument.Load(ConfigPath);
+                    _debug = document.Element("Variables").Attribute("Debug").Value == "true";
+                    _allowAddUser = document.Element("Variables").Attribute("AllowAddUser").Value == "true";
+                }
+                catch (Exception ex)
+                {
+                    if(_debug) Logger.Error("Failed to load LoginPlugin.xml: " + ex.Message + " - " + ex.StackTrace);
+                }
+            }
+        }
+        
         #endregion
 
         #region Commands
@@ -430,9 +511,6 @@ namespace Unlimited_NetworkingServer_MiningGame.Login
         /// <param name="e">The client object</param>
         private void AddUserCommand(object sender, CommandEventArgs e)
         {
-            Logger.Info("Loading db");
-            if (_database == null) _database = PluginManager.GetPluginByType<DatabaseProxy>();
-
             if (e.Arguments.Length != 2)
             {
                 Logger.Warning("Invalid arguments. Enter [AddUser -username -password].");
@@ -441,8 +519,6 @@ namespace Unlimited_NetworkingServer_MiningGame.Login
 
             var username = e.Arguments[0];
             var password = BCrypt.Net.BCrypt.HashPassword(e.Arguments[1], 10);
-
-            Logger.Info("Loaded database");
 
             try
             {
@@ -475,8 +551,6 @@ namespace Unlimited_NetworkingServer_MiningGame.Login
         /// <param name="e">The client object</param>
         private void DellUserCommand(object sender, CommandEventArgs e)
         {
-            if (_database == null) _database = PluginManager.GetPluginByType<DatabaseProxy>();
-
             if (e.Arguments.Length != 2)
             {
                 Logger.Warning("Invalid arguments. Enter [AddUser -username -password].");
@@ -489,7 +563,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Login
             {
                 _database.DataLayer.DeleteUser(username, () =>
                 {
-                    if (_debug) Logger.Info("Removed user: " + username);
+                    Logger.Info("Removed user: " + username);
                 });
             }
             catch (Exception ex)

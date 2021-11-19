@@ -1,4 +1,5 @@
 using DarkRift;
+using MongoDB.Bson.Serialization.Attributes;
 
 namespace Unlimited_NetworkingServer_MiningGame.Headquarters
 {
@@ -7,9 +8,10 @@ namespace Unlimited_NetworkingServer_MiningGame.Headquarters
     /// </summary>
     public class PlayerData : IDarkRiftSerializable
     {
+        [BsonId]
         public string Id { get; set; }
         public byte Level { get; set; }
-        public ushort Experience { get; set; }
+        public uint Experience { get; set; }
         public uint Energy { get; set; }
         public Resource[] Resources { get; set; }
         public Robot[] Robots { get; set; }
@@ -19,7 +21,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Headquarters
 
         public PlayerData() { }
 
-        public PlayerData(string id, byte level, ushort experience, uint energy, Resource[] resources, Robot[] robots,
+        public PlayerData(string id, byte level, uint experience, uint energy, Resource[] resources, Robot[] robots,
             BuildTask[] conversionQueue, BuildTask[] upgradeQueue, BuildTask[] buildQueue)
         {
             Id = id;
@@ -41,7 +43,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Headquarters
         {
             Id = e.Reader.ReadString();
             Level = e.Reader.ReadByte();
-            Experience = e.Reader.ReadUInt16();
+            Experience = e.Reader.ReadUInt32();
             Energy = e.Reader.ReadUInt32();
             Resources = e.Reader.ReadSerializables<Resource>();
             Robots = e.Reader.ReadSerializables<Robot>();

@@ -9,10 +9,14 @@ namespace Unlimited_NetworkingServer_MiningGame.Game
     /// </summary>
     public class GamePlugin : Plugin
     {
-        private static readonly object InitializeLock = new object();
         private DatabaseProxy _database;
         private GameData _data;
 
+        protected override void Loaded(LoadedEventArgs args)
+        {
+            if (_database == null) _database = PluginManager.GetPluginByType<DatabaseProxy>();
+        }
+        
         public GamePlugin(PluginLoadData pluginLoadData) : base(pluginLoadData)
         {
         }
@@ -29,19 +33,6 @@ namespace Unlimited_NetworkingServer_MiningGame.Game
             new Command("GetGameData", "Get the game data parameters from the database for the specified version", "GetGameData [version]",
                 ExtractGameData)
         };
-
-        /// <summary>
-        ///     Initialize the database object with the DB plugin
-        /// </summary>
-        private void InitializeDb()
-        {
-            if (_database == null)
-                lock (InitializeLock)
-                {
-                    if (_database == null)
-                        _database = PluginManager.GetPluginByType<DatabaseProxy>();
-                }
-        }
 
         #region Commands
         
@@ -60,27 +51,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Game
 
             var version = Convert.ToUInt16(e.Arguments[0]);
             
-            ResourceDetails[] resources =
-            {
-                new ResourceDetails(0, "Silicon", 400, 10000),
-                new ResourceDetails(1, "Lithium", 200, 10000),
-                new ResourceDetails(2, "Titanium", 100, 10000)
-            };
-
-            RobotDetails[] robots =
-            {
-                new RobotDetails(0, "Worker", 1000, 10, 20, 5, 5, 100, 1000, 1),
-                new RobotDetails(1, "Probe", 1000, 0, 20, 10, 8, 150, 1500, 2),
-                new RobotDetails(2, "Crusher", 2000, 5, 40, 30, 15, 300, 3000, 4)
-            };
-
-            LevelDetails[] formulas =
-            {
-                new LevelDetails(0, 1, 1, 1)
-            };
-
-            _data = new Game.GameData(version, 100, 10, 100000, 60000, 
-                30, 5, resources, robots, formulas);
+            _data = new Game.GameData(version);
             
             Logger.Info("Initialized the game data to default values for the version " + version);
         }
@@ -92,15 +63,13 @@ namespace Unlimited_NetworkingServer_MiningGame.Game
         /// <param name="e">The command event object</param>
         private void StoreGameData(object sender, CommandEventArgs e)
         {
-            InitializeDb();
-
             if(_data != null)
             {
                 _database.DataLayer.AddGameData(_data, () => { Logger.Info("Adding game data"); });
             }
             else 
             {
-                Logger.Error("Game data data are not initialized");
+                Logger.Error("Game data is not initialized");
             }
             
         }
@@ -112,8 +81,6 @@ namespace Unlimited_NetworkingServer_MiningGame.Game
         /// <param name="e">The command event object</param>
         private void ExtractGameData(object sender, CommandEventArgs e)
         {
-            InitializeDb();
-
             if (e.Arguments.Length > 1)
             {
                 Logger.Warning("Invalid arguments. Enter GetGameData [version]");

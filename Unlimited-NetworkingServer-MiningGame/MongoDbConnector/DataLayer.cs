@@ -1,7 +1,15 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 using MongoDB.Driver;
+using Unlimited_NetworkingServer_MiningGame.Auction;
 using Unlimited_NetworkingServer_MiningGame.Database;
+using Unlimited_NetworkingServer_MiningGame.Friends;
+using Unlimited_NetworkingServer_MiningGame.Game;
 using Unlimited_NetworkingServer_MiningGame.Headquarters;
+using Unlimited_NetworkingServer_MiningGame.Login;
+using Unlimited_NetworkingServer_MiningGame.Mines;
 
 namespace Unlimited_NetworkingServer_MiningGame.MongoDbConnector
 {
@@ -19,11 +27,11 @@ namespace Unlimited_NetworkingServer_MiningGame.MongoDbConnector
         }
 
         public string Name { get; }
-
+        
         #region Login
-
+        
         /// <inheritdoc />
-        public async void GetUser(string username, Action<User> callback)
+        public async void GetUser(string username, Action<IUser> callback)
         {
             var user = await _database.Users.Find(u => u.Username == username).FirstOrDefaultAsync();
             callback(user);
@@ -51,8 +59,8 @@ namespace Unlimited_NetworkingServer_MiningGame.MongoDbConnector
 
         #endregion
 
-        #region Game
-        
+        #region Headquarters
+
         /// <inheritdoc />
         public async void AddPlayerData(PlayerData player, Action callback)
         {
@@ -67,6 +75,7 @@ namespace Unlimited_NetworkingServer_MiningGame.MongoDbConnector
             callback(playerData);
         }
 
+        /// <inheritdoc />
         public async void GetPlayerLevel(string username, Action<uint> callback)
         {
             var level = await _database.PlayerData.Find(u => u.Id == username).Project(u => u.Level)
@@ -82,6 +91,15 @@ namespace Unlimited_NetworkingServer_MiningGame.MongoDbConnector
             await _database.PlayerData.UpdateOneAsync(filter, update);
             callback();
         }
+        
+        /// <inheritdoc />
+        public async void SetPlayerLevelExperience(string username, byte level, uint experience, Action callback)
+        {
+            var filter = Builders<PlayerData>.Filter.Eq(u => u.Id, username);
+            var update = Builders<PlayerData>.Update.Set(u => u.Level, level).Set(u => u.Experience, experience);
+            await _database.PlayerData.UpdateOneAsync(filter, update);
+            callback();
+        }
 
         /// <inheritdoc />
         public async void GetPlayerExperience(string username, Action<uint> callback)
@@ -92,7 +110,7 @@ namespace Unlimited_NetworkingServer_MiningGame.MongoDbConnector
         }
 
         /// <inheritdoc />
-        public async void SetPlayerExperience(string username, ushort experience, Action callback)
+        public async void SetPlayerExperience(string username, uint experience, Action callback)
         {
             var filter = Builders<PlayerData>.Filter.Eq(u => u.Id, username);
             var update = Builders<PlayerData>.Update.Set(u => u.Experience, experience);
@@ -112,6 +130,15 @@ namespace Unlimited_NetworkingServer_MiningGame.MongoDbConnector
         {
             var filter = Builders<PlayerData>.Filter.Eq(u => u.Id, username);
             var update = Builders<PlayerData>.Update.Set(u => u.Energy, energy);
+            await _database.PlayerData.UpdateOneAsync(filter, update);
+            callback();
+        }
+        
+        /// <inheritdoc />
+        public async void IncreasePlayerEnergy(string username, uint energy, Action callback)
+        {
+            var filter = Builders<PlayerData>.Filter.Eq(u => u.Id, username);
+            var update = Builders<PlayerData>.Update.Inc(u => u.Energy, energy);
             await _database.PlayerData.UpdateOneAsync(filter, update);
             callback();
         }
@@ -255,26 +282,281 @@ namespace Unlimited_NetworkingServer_MiningGame.MongoDbConnector
         #region Parameters
 
         /// <inheritdoc />
-        public async void AddGameData(Game.GameData data, Action callback)
+        public async void AddGameData(GameData data, Action callback)
         {
             await _database.GameData.InsertOneAsync(data);
             callback();
         }
         
         /// <inheritdoc />
-        public async void GetGameData(Action<Game.GameData> callback)
+        public async void GetGameData(Action<GameData> callback)
         {
-            var filter = Builders<Game.GameData>.Filter.Empty;
-            var sort = Builders<Game.GameData>.Sort.Descending(p => p.Version);
+            var filter = Builders<GameData>.Filter.Empty;
+            var sort = Builders<GameData>.Sort.Descending(p => p.Version);
             var gameData = await _database.GameData.Find(filter).Sort(sort).FirstOrDefaultAsync();
             callback(gameData);
         }
 
         /// <inheritdoc />
-        public async void GetGameData(ushort version, Action<Game.GameData> callback)
+        public async void GetGameData(ushort version, Action<GameData> callback)
         {
             var gameData = await _database.GameData.Find(p => p.Version == version).FirstOrDefaultAsync();
             callback(gameData);
+        }
+        
+        #endregion
+
+        #region Friends
+        
+        /// <inheritdoc />
+        public async void AddRequest(string sender, string receiver, Action callback)
+        {
+            //Add OpenFriendRequest of sender to receiver
+            var updateReceiving = Builders<FriendList>.Update.AddToSet(u => u.OpenFriendRequests, sender);
+            var task1 = _database.FriendList.UpdateOneAsync(u => u.Username == receiver, updateReceiving);
+
+            //Add OpenFriendRequest of receiver to sender
+            var updateSender = Builders<FriendList>.Update.AddToSet(u => u.UnansweredFriendRequests, receiver);
+            var task2 = _database.FriendList.UpdateOneAsync(u => u.Username == sender, updateSender);
+
+            await Task.WhenAll(task1, task2);
+            callback();
+        }
+
+        /// <inheritdoc />
+        public async void RemoveRequest(string sender, string receiver, Action callback)
+        {
+            //Remove OpenFriendRequest of receiver from sender
+            var updateSender = Builders<FriendList>.Update.Pull(u => u.OpenFriendRequests, receiver);
+            var task1 = _database.FriendList.UpdateOneAsync(u => u.Username == sender, updateSender);
+
+            //Remove OpenFriendRequest of sender from receiver
+            var updateReceiving = Builders<FriendList>.Update.Pull(u => u.UnansweredFriendRequests, sender);
+            var task2 = _database.FriendList.UpdateOneAsync(u => u.Username == receiver, updateReceiving);
+
+            await Task.WhenAll(task1, task2);
+            callback();
+        }
+
+        /// <inheritdoc />
+        public async void AddFriend(string sender, string receiver, Action callback)
+        {
+            var tasks = new List<Task>();
+            //Add sender to receivers friend list
+            var updateReceiving = Builders<FriendList>.Update.AddToSet(u => u.Friends, sender);
+            tasks.Add(_database.FriendList.UpdateOneAsync(u => u.Username == receiver, updateReceiving));
+
+            //Add receiver to senders friend list
+            var updateSending = Builders<FriendList>.Update.AddToSet(u => u.Friends, receiver);
+            tasks.Add(_database.FriendList.UpdateOneAsync(u => u.Username == sender, updateSending));
+
+            //Remove OpenFriendRequest of receiver from sender
+            var updateSender = Builders<FriendList>.Update.Pull(u => u.OpenFriendRequests, receiver);
+            tasks.Add(_database.FriendList.UpdateOneAsync(u => u.Username == sender, updateSender));
+
+            //Remove OpenFriendRequest of sender from receiver
+            var updateReceiver = Builders<FriendList>.Update.Pull(u => u.UnansweredFriendRequests, sender);
+            tasks.Add(_database.FriendList.UpdateOneAsync(u => u.Username == receiver, updateReceiver));
+
+            await Task.WhenAll(tasks);
+            callback();
+        }
+
+        /// <inheritdoc />
+        public void RemoveFriend(string sender, string receiver, Action callback)
+        {
+            GetFriendLists(new[] {sender, receiver}, async friendLists =>
+            {
+                var senderUser = friendLists.Single(u => u.Username == sender);
+                var receiverUser = friendLists.Single(u => u.Username == receiver);
+
+                var tasks = new List<Task>();
+
+                //Update sender
+                if (senderUser.Friends.Contains(receiver))
+                {
+                    //remove receiver from senders friend list
+                    var updateSender = Builders<FriendList>.Update.Pull(u => u.Friends, receiver);
+                    tasks.Add(_database.FriendList.UpdateOneAsync(u => u.Username == sender, updateSender));
+                }
+                if (senderUser.OpenFriendRequests.Contains(receiver))
+                {
+                    //remove receiver from senders open friend requests
+                    var updateSender = Builders<FriendList>.Update.Pull(u => u.OpenFriendRequests, receiver);
+                    tasks.Add(_database.FriendList.UpdateOneAsync(u => u.Username == sender, updateSender));
+                }
+                if (senderUser.UnansweredFriendRequests.Contains(receiver))
+                {
+                    // remove receiver from senders unanswered friend requests
+                    var updateSender = Builders<FriendList>.Update.Pull(u => u.UnansweredFriendRequests, receiver);
+                    tasks.Add(_database.FriendList.UpdateOneAsync(u => u.Username == sender, updateSender));
+                }
+
+                //Update receiver
+                if (receiverUser.Friends.Contains(sender))
+                {
+                    //remove sender from receivers friend list
+                    var updateReceiver = Builders<FriendList>.Update.Pull(u => u.Friends, sender);
+                    tasks.Add(_database.FriendList.UpdateOneAsync(u => u.Username == receiver, updateReceiver));
+                }
+                if (receiverUser.OpenFriendRequests.Contains(sender))
+                {
+                    //remove sender from receivers open friend requests
+                    var updateReceiver = Builders<FriendList>.Update.Pull(u => u.OpenFriendRequests, sender);
+                    tasks.Add(_database.FriendList.UpdateOneAsync(u => u.Username == receiver, updateReceiver));
+                }
+                if (receiverUser.UnansweredFriendRequests.Contains(sender))
+                {
+                    //remove sender from receivers unanswered friend requests
+                    var updateReceiver = Builders<FriendList>.Update.Pull(u => u.UnansweredFriendRequests, sender);
+                    tasks.Add(_database.FriendList.UpdateOneAsync(u => u.Username == receiver, updateReceiver));
+                }
+
+                await Task.WhenAll(tasks);
+                callback();
+            });
+        }
+
+        /// <inheritdoc />
+        public async void GetFriends(string username, Action<IFriendList> callback)
+        {
+            //Gets friend list data from the database and builds a User object to send back
+            var friendList = await _database.FriendList.Find(u => u.Username == username).FirstOrDefaultAsync();
+            if (friendList == null)
+            {
+                await _database.FriendList.InsertOneAsync(new FriendList(username));
+                friendList = new FriendList(username);
+            }
+            callback(new FriendListDto(friendList));
+        }
+
+        #region Helpers
+
+        /// <summary>
+        ///     Return the friends list of the player
+        /// </summary>
+        /// <param name="usernames">The username of the player</param>
+        /// <param name="callback">The action executed</param>
+        private async void GetFriendLists(IEnumerable<string> usernames, Action<FriendList[]> callback)
+        {
+            var friendLists = new List<FriendList>();
+            var tasks = usernames.Select(username => _database.FriendList.Find(u => u.Username == username).FirstOrDefaultAsync()).ToList();
+
+            await Task.WhenAll(tasks);
+
+            foreach (var task in tasks)
+            {
+                var friendList = await task;
+                friendLists.Add(friendList);
+            }
+
+            callback(friendLists.ToArray());
+        }
+
+        #endregion
+
+        #endregion
+
+        #region Auctions
+
+        /// <inheritdoc />
+        public async void AddAuction(AuctionRoom auction, Action callback)
+        {
+            await _database.AuctionRoom.InsertOneAsync(auction);
+            callback();
+        }
+
+        /// <inheritdoc />
+        public async void GetAuction(uint auctionId, Action<AuctionRoom> callback)
+        {
+            var auctionRoom = await _database.AuctionRoom.Find(a => a.Id == auctionId).FirstOrDefaultAsync();
+            callback(auctionRoom);
+        }
+        
+        /// <inheritdoc />
+        public void GetAuctions(Action<List<AuctionRoom>> callback)
+        {
+            var auctionRoom = _database.AuctionRoom.Find(_ => true).ToList();
+            callback(auctionRoom);
+        }
+
+        /// <inheritdoc />
+        public void RemoveAuction(uint auctionId, Action callback)
+        {
+            _database.AuctionRoom.DeleteOne(a => a.Id == auctionId);
+            callback();
+        }
+
+        /// <inheritdoc />
+        public async void AddScan(uint auctionId, MineScan scan, Action callback)
+        {
+            var filter = Builders<AuctionRoom>.Filter.Eq(a => a.Id, auctionId);
+            var update = Builders<AuctionRoom>.Update.AddToSet(a => a.MineScans, scan);
+            
+            await _database.AuctionRoom.UpdateOneAsync(filter, update);
+            callback();
+        }
+        
+        /// <inheritdoc />
+        public async void AddBid(uint auctionId, Bid bid, Action callback)
+        {
+            var filter = Builders<AuctionRoom>.Filter.Eq(a => a.Id, auctionId);
+            var update = Builders<AuctionRoom>.Update.Set(a => a.LastBid, bid);
+            
+            await _database.AuctionRoom.UpdateOneAsync(filter, update);
+            callback();
+        }
+
+        #endregion
+
+        #region Mine
+        
+        /// <inheritdoc />
+        public async void GetMine(uint auctionId, Action<Mine> callback)
+        {
+            var mine = await _database.MineData.Find(m => m.Id == auctionId).FirstOrDefaultAsync();
+            callback(mine);
+        }
+        
+        /// <inheritdoc />
+        public void GetMines(string username, Action<List<Mine>> callback)
+        {
+            var mines = _database.MineData.Find(m => m.Owner == username).ToList();
+            callback(mines);
+        }
+
+        /// <inheritdoc />
+        public async void AddMine(Mine mine, Action callback)
+        {
+            await _database.MineData.InsertOneAsync(mine);
+            callback();
+        }
+        
+        /// <inheritdoc />
+        public void SaveMineBlocks(uint mineId, bool[] blocks, Action callback)
+        {
+            var filter = Builders<Mine>.Filter.Eq(m => m.Id, mineId);
+            var update = Builders<Mine>.Update.Set(m => m.Blocks, blocks);
+            
+            _database.MineData.UpdateOne(filter, update);
+            callback();
+        }
+        
+        /// <inheritdoc />
+        public void SaveMapPosition(uint mineId, byte mapPosition, Action callback)
+        {
+            var filter = Builders<Mine>.Filter.Eq(m => m.Id, mineId);
+            var update = Builders<Mine>.Update.Set(m => m.MapPosition, mapPosition);
+            
+            _database.MineData.UpdateOne(filter, update);
+            callback();
+        }
+        
+        /// <inheritdoc />
+        public void RemoveMine(uint mineId, Action callback)
+        {
+            _database.MineData.DeleteOne(m => m.Id == mineId);
+            callback();
         }
 
         #endregion

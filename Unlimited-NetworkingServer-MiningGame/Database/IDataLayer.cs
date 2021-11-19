@@ -1,6 +1,9 @@
 using System;
+using System.Collections.Generic;
+using Unlimited_NetworkingServer_MiningGame.Auction;
 using Unlimited_NetworkingServer_MiningGame.Game;
 using Unlimited_NetworkingServer_MiningGame.Headquarters;
+using Unlimited_NetworkingServer_MiningGame.Mines;
 
 namespace Unlimited_NetworkingServer_MiningGame.Database
 {
@@ -18,7 +21,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Database
         /// </summary>
         /// <param name="username">The user name</param>
         /// <param name="callback">Action executed</param>
-        void GetUser(string username, Action<User> callback);
+        void GetUser(string username, Action<IUser> callback);
 
         /// <summary>
         ///     Checks if a username is available on the database
@@ -88,7 +91,16 @@ namespace Unlimited_NetworkingServer_MiningGame.Database
         /// <param name="username">The user name</param>
         /// <param name="experience">The new player experience</param>
         /// <param name="callback">Action executed</param>
-        void SetPlayerExperience(string username, ushort experience, Action callback);
+        void SetPlayerExperience(string username, uint experience, Action callback);
+
+        /// <summary>
+        ///     Updates the player experience
+        /// </summary>
+        /// <param name="username">The user name</param>
+        /// <param name="level">The new player experience</param>
+        /// <param name="experience">The new player experience</param>
+        /// <param name="callback">Action executed</param>
+        void SetPlayerLevelExperience(string username, byte level, uint experience, Action callback);
 
         /// <summary>
         ///     Retrieves player energy from the database 
@@ -104,6 +116,14 @@ namespace Unlimited_NetworkingServer_MiningGame.Database
         /// <param name="energy">The new player energy</param>
         /// <param name="callback">Action executed</param>
         void SetPlayerEnergy(string username, uint energy, Action callback);
+        
+        /// <summary>
+        ///     Increase the player energy
+        /// </summary>
+        /// <param name="username">The user name</param>
+        /// <param name="energy">The new player energy</param>
+        /// <param name="callback">Action executed</param>
+        void IncreasePlayerEnergy(string username, uint energy, Action callback);
         
         /// <summary>
         ///     Retrieves player resources from the database 
@@ -197,6 +217,144 @@ namespace Unlimited_NetworkingServer_MiningGame.Database
         /// <param name="version">The game data version</param>
         /// <param name="callback">Action executed</param>
         void GetGameData(ushort version, Action<GameData> callback);
+
+        #endregion
+
+        #region Auctions
+
+        /// <summary>
+        ///     Adds a new auction to the database
+        /// </summary>
+        /// <param name="auction">The auction object</param>
+        /// <param name="callback">Action executed</param>
+        void AddAuction(AuctionRoom auction, Action callback);
+
+        /// <summary>
+        ///     Retrieves an auction from the database
+        /// </summary>
+        /// <param name="auctionId">The auction id</param>
+        /// <param name="callback">Action executed</param>
+        void GetAuction(uint auctionId, Action<AuctionRoom> callback);
+
+        /// <summary>
+        ///     Retrieves all auctions from the database
+        /// </summary>
+        /// <param name="callback">Action executed</param>
+        void GetAuctions(Action<List<AuctionRoom>> callback);
+        
+        /// <summary>
+        ///     Removes an auction from the database
+        /// </summary>
+        /// <param name="auctionId">The auction id</param>
+        /// <param name="callback">Action executed</param>
+        void RemoveAuction(uint auctionId, Action callback);
+        
+        /// <summary>
+        ///     Adds a scan to the database
+        /// </summary>
+        /// <param name="auctionId">The auction id</param>
+        /// <param name="scan">The location of the scan</param>
+        /// <param name="callback">Action executed</param>
+        void AddScan(uint auctionId, MineScan scan, Action callback);
+        
+        /// <summary>
+        ///     Adds a bid to the room in the database
+        /// </summary>
+        /// <param name="auctionId">The auction id</param>
+        /// <param name="newBid">The new bid</param>
+        /// <param name="callback">Action executed</param>
+        void AddBid(uint auctionId, Bid newBid, Action callback);
+
+        #endregion
+
+        #region Friends
+        
+        /// <summary>
+        ///     Adds a friend request to the database
+        /// </summary>
+        /// <param name="sender">The sender of the request</param>
+        /// <param name="receiver">The receiver of the request</param>
+        /// <param name="callback">Action executed</param>
+        void AddRequest(string sender, string receiver, Action callback);
+        
+        /// <summary>
+        ///     Removes a friend request from the database
+        /// </summary>
+        /// <param name="sender">The sender of the request</param>
+        /// <param name="receiver">The receiver of the request</param>
+        /// <param name="callback">Action executed</param>
+        void RemoveRequest(string sender, string receiver, Action callback);
+        
+        /// <summary>
+        ///     Adds a player friend to the database
+        /// </summary>
+        /// <param name="sender">The sender of the request</param>
+        /// <param name="receiver">The receiver of the request</param>
+        /// <param name="callback">Action executed</param>
+        void AddFriend(string sender, string receiver, Action callback);
+        
+        /// <summary>
+        ///     Removes a player friend from the database
+        /// </summary>
+        /// <param name="sender">The sender of the request</param>
+        /// <param name="receiver">The receiver of the request</param>
+        /// <param name="callback">Action executed</param>
+        void RemoveFriend(string sender, string receiver, Action callback);
+        
+        /// <summary>
+        ///     Get the friends of the player from the database
+        /// </summary>
+        /// <param name="username">The player username</param>
+        /// <param name="callback">Action executed</param>
+        void GetFriends(string username, Action<IFriendList> callback);
+
+        #endregion
+
+        #region Mine
+        
+        /// <summary>
+        ///     Retrieves a mine from the database
+        /// </summary>
+        /// <param name="auctionId">The auction id</param>
+        /// <param name="callback">Action executed</param>
+        void GetMine(uint auctionId, Action<Mines.Mine> callback);
+        
+        /// <summary>
+        ///     Retrieves all mines from the database
+        /// </summary>
+        /// <param name="username">The player username</param>
+        /// <param name="callback">Action executed</param>
+        void GetMines(string username, Action<List<Mines.Mine>> callback);
+
+        /// <summary>
+        ///     Adds a mine to the database
+        /// </summary>
+        /// <param name="mine">The mine object</param>
+        /// <param name="callback">Action executed</param>
+        void AddMine(Mines.Mine mine, Action callback);
+
+        /// <summary>
+        ///     Saves a mine state to the database
+        /// </summary>
+        /// <param name="mineId">The id of the mine</param>
+        /// <param name="blockValues">The blocks states of the mine</param>
+        /// <param name="callback">Action executed</param>
+        void SaveMineBlocks(uint mineId, bool[] blockValues, Action callback);
+        
+        /// <summary>
+        ///     Saves a mine state to the database
+        /// </summary>
+        /// <param name="mineId">The id of the mine</param>
+        /// <param name="mapPosition">The position of the mine in the map</param>
+        /// <param name="callback">Action executed</param>
+        void SaveMapPosition(uint mineId, byte mapPosition, Action callback);
+        
+        /// <summary>
+        ///     Removes an auction from the database
+        /// </summary>
+        /// <param name="mineId">The mine id</param>
+        /// <param name="callback">Action executed</param>
+        void RemoveMine(uint mineId, Action callback);
 
         #endregion
     }

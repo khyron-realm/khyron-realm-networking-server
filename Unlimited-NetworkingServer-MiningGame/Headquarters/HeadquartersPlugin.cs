@@ -1,25 +1,30 @@
 ﻿using System;
-using System.Linq;
+using System.IO;
+using System.Xml.Linq;
 using DarkRift;
 using DarkRift.Server;
 using Unlimited_NetworkingServer_MiningGame.Database;
-using Unlimited_NetworkingServer_MiningGame.Game;
 using Unlimited_NetworkingServer_MiningGame.Login;
 using Unlimited_NetworkingServer_MiningGame.Tags;
 
 namespace Unlimited_NetworkingServer_MiningGame.Headquarters
 {
     /// <summary>
-    ///     Player manager that handles the game messages
+    ///     Player manager that handles the headquarter messages
     /// </summary>
     public class HeadquartersPlugin : Plugin
     {
-        private static readonly object InitializeLock = new object();
-
+        private const string ConfigPath = @"Plugins/HeadquartersPlugin.xml";
         private LoginPlugin _loginPlugin;
         private DatabaseProxy _database;
         private bool _debug = true;
 
+        protected override void Loaded(LoadedEventArgs args)
+        {
+            if (_database == null) _database = PluginManager.GetPluginByType<DatabaseProxy>();
+            if (_loginPlugin == null) _loginPlugin = PluginManager.GetPluginByType<LoginPlugin>();
+        }
+        
         public HeadquartersPlugin(PluginLoadData pluginLoadData) : base(pluginLoadData)
         {
             ClientManager.ClientConnected += OnPlayerConnected;
@@ -41,19 +46,6 @@ namespace Unlimited_NetworkingServer_MiningGame.Headquarters
         /// <param name="e">The client object</param>
         private void OnPlayerConnected(object sender, ClientConnectedEventArgs e)
         {
-            if (_loginPlugin == null)
-                lock (InitializeLock)
-                {
-                    if (_loginPlugin == null)
-                        _loginPlugin = PluginManager.GetPluginByType<LoginPlugin>();
-                }
-            if (_database == null)
-                lock (InitializeLock)
-                {
-                    if (_database == null)
-                        _database = PluginManager.GetPluginByType<DatabaseProxy>();
-                }
-
             using (var msg = Message.CreateEmpty(HeadquartersTags.PlayerConnected))
             {
                 e.Client.SendMessage(msg, SendMode.Reliable);
@@ -100,6 +92,12 @@ namespace Unlimited_NetworkingServer_MiningGame.Headquarters
                     case HeadquartersTags.GameData:
                     {
                         SendGameData(client, message);
+                        break;
+                    }
+                    
+                    case HeadquartersTags.UpdateLevel:
+                    {
+                        UpdateLevel(client, message);
                         break;
                     }
                     
@@ -170,8 +168,6 @@ namespace Unlimited_NetworkingServer_MiningGame.Headquarters
         {
             string username = GetPlayerUsername(client);
             
-            if (_debug) Logger.Info("Getting data for player: " + username);
-            
             _database.DataLayer.GetPlayerData(username, playerData =>
             {
                 if (playerData != null)
@@ -188,7 +184,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Headquarters
                 }
                 else
                 {
-                    if (_debug) Logger.Info("Player data is not available for user " + username);
+                    if (_debug) Logger.Warning("Player data is not available for user " + username);
                     
                     using (var msg = Message.CreateEmpty(HeadquartersTags.PlayerDataUnavailable))
                     {
@@ -207,8 +203,6 @@ namespace Unlimited_NetworkingServer_MiningGame.Headquarters
         {
             string username = GetPlayerUsername(client);
             
-            if (_debug) Logger.Info("Getting game data for player: " + username);
-
             ushort version = 0;
 
             using (var reader = message.GetReader())
@@ -242,7 +236,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Headquarters
                 }
                 else
                 {
-                    if (_debug) Logger.Info("Game data is not available for user " + GetPlayerUsername(client));
+                    if (_debug) Logger.Warning("Game data is not available for user " + GetPlayerUsername(client));
                     
                     using (var msg = Message.CreateEmpty(HeadquartersTags.GameDataUnavailable))
                     {
@@ -250,6 +244,46 @@ namespace Unlimited_NetworkingServer_MiningGame.Headquarters
                     }
                 }
             });
+        }
+        
+        /// <summary>
+        ///     Updates the player level and remaining experience
+        /// </summary>
+        /// <param name="client">The connected client</param>
+        /// <param name="message">The message received</param>
+        private void UpdateLevel(IClient client, Message message)
+        {
+            string username = GetPlayerUsername(client);
+            
+            byte level = 0;
+            uint experience = 0;
+
+            using (var reader = message.GetReader())
+            {
+                try
+                {
+                    level = reader.ReadByte();
+                    experience = reader.ReadUInt32();
+                }
+                catch (Exception exception)
+                {
+                    InvalidData(client, HeadquartersTags.RequestFailed, exception, "Invalid data packages received");
+                }
+            }
+
+            try
+            {
+                _database.DataLayer.SetPlayerLevelExperience(username, level, experience, () => { });
+            }
+            catch
+            {
+                if (_debug) Logger.Warning("Update level error for user " + GetPlayerUsername(client));
+                    
+                using (var msg = Message.CreateEmpty(HeadquartersTags.UpdateLevelError))
+                {
+                    client.SendMessage(msg, SendMode.Reliable);
+                }
+            }
         }
 
         /// <summary>
@@ -260,8 +294,6 @@ namespace Unlimited_NetworkingServer_MiningGame.Headquarters
         private void ConvertResources(IClient client, Message message)
         {
             string username = GetPlayerUsername(client);
-            
-            if (_debug) Logger.Info("Converting resources to energy for player: " + username);
             
             long startTime = 0;
             Resource[] resources = new Resource[] { };
@@ -321,15 +353,15 @@ namespace Unlimited_NetworkingServer_MiningGame.Headquarters
         {
             string username = GetPlayerUsername(client);
             
-            if (_debug) Logger.Info("Finish resource conversion for player " + username);
-
             uint energy = 0;
-            
+            uint experience = 0;
+
             using (var reader = message.GetReader())
             {
                 try
                 {
                     energy = reader.ReadUInt32();
+                    experience = reader.ReadUInt32();
                 }
                 catch (Exception exception)
                 {
@@ -356,6 +388,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Headquarters
             try
             {
                 _database.DataLayer.SetPlayerEnergy(username, energy, () => {});
+                _database.DataLayer.SetPlayerExperience(username, experience, () => {});
             }
             catch
             {
@@ -395,8 +428,6 @@ namespace Unlimited_NetworkingServer_MiningGame.Headquarters
                     InvalidData(client, HeadquartersTags.RequestFailed, exception, "Invalid data packages received");
                 }
             }
-            
-            Logger.Info("Upgrading robot " + robotId + " for player: " + username);
             
             try
             {
@@ -441,6 +472,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Headquarters
             string username = GetPlayerUsername(client);
             byte robotId = 0;
             Robot robot = new Robot();
+            uint experience = 0;
             
             using (var reader = message.GetReader())
             {
@@ -448,14 +480,13 @@ namespace Unlimited_NetworkingServer_MiningGame.Headquarters
                 {
                     robotId = reader.ReadByte();
                     robot = reader.ReadSerializable<Robot>();
+                    experience = reader.ReadUInt32();
                 }
                 catch (Exception exception)
                 {
                     InvalidData(client, HeadquartersTags.RequestFailed, exception, "Invalid data packages received");
                 }
             }
-            
-            Logger.Info("Finish upgrade robot " + robotId + " for player: " + username);
             
             try
             {
@@ -476,6 +507,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Headquarters
             try
             {
                 _database.DataLayer.SetPlayerRobot(username, robotId, robot, () => {});
+                _database.DataLayer.SetPlayerExperience(username, experience, () => {});
             }
             catch
             {
@@ -517,8 +549,6 @@ namespace Unlimited_NetworkingServer_MiningGame.Headquarters
                     InvalidData(client, HeadquartersTags.RequestFailed, exception, "Failed to send required data");
                 }
             }
-            
-            Logger.Info("Building robot " + robotId + " with task " + queueNumber + " for player: " + username);
             
             try
             {
@@ -594,9 +624,6 @@ namespace Unlimited_NetworkingServer_MiningGame.Headquarters
                     InvalidData(client, HeadquartersTags.RequestFailed, exception, "Invalid data packages received");
                 }
             }
-
-            Logger.Info((isFinished ? "Finished" : "Cancelled") + " build " + (multipleRobots ? "robots " : "robot ") +
-                        robotId + " with task " + queueNumber + " for player: " + username);
 
             try
             {
@@ -709,7 +736,48 @@ namespace Unlimited_NetworkingServer_MiningGame.Headquarters
                 }
             }
 
-            Logger.Warning(error + " Invalid data received: " + e.Message + "-" + e.StackTrace);
+            if(_debug) Logger.Warning(error + " Invalid data received: " + e.Message + "-" + e.StackTrace);
+        }
+
+        #endregion
+
+        #region Helpers
+
+        /// <summary>
+        ///     Load the configuration file
+        /// </summary>
+        private void LoadConfig()
+        {
+            XDocument document;
+
+            if (!File.Exists(ConfigPath))
+            {
+                document = new XDocument(new XDeclaration("1.0", "utf-8", "yes"),
+                    new XComment("Settings for the Headquarters Plugin"),
+                    new XElement("Variables", new XAttribute("Debug", true))
+                );
+                try
+                {
+                    document.Save(ConfigPath);
+                    if(_debug) Logger.Info("Created /Plugins/HeadquartersPlugin.xml!");
+                }
+                catch (Exception ex)
+                {
+                    if(_debug) Logger.Error("Failed to create HeadquartersPlugin.xml: " + ex.Message + " - " + ex.StackTrace);
+                }
+            }
+            else
+            {
+                try
+                {
+                    document = XDocument.Load(ConfigPath);
+                    _debug = document.Element("Variables").Attribute("Debug").Value == "true";
+                }
+                catch (Exception ex)
+                {
+                    if(_debug) Logger.Error("Failed to load HeadquartersPlugin.xml: " + ex.Message + " - " + ex.StackTrace);
+                }
+            }
         }
 
         #endregion

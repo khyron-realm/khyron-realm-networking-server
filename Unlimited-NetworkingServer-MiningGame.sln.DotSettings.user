@@ -2,4 +2,8 @@
 	<s:Boolean x:Key="/Default/AddReferences/RecentPaths/=_002FUsers_002Falex_005Fgrigoras_002FDocuments_002FGitHub_002FUnlimited_002DNetworkingServer_002DMiningGame_002FUnlimited_002DNetworkingServer_002DMiningGame_002Fbin_002FDebug_002FDarkRift_002Edll/@EntryIndexedValue">True</s:Boolean>
 	<s:Boolean x:Key="/Default/AddReferences/RecentPaths/=_002FUsers_002Falex_005Fgrigoras_002FDocuments_002FGitHub_002FUnlimited_002DNetworkingServer_002DMiningGame_002FUnlimited_002DNetworkingServer_002DMiningGame_002Fbin_002FDebug_002FDarkRift_002EServer_002Edll/@EntryIndexedValue">True</s:Boolean>
 	<s:Boolean x:Key="/Default/AddReferences/RecentPaths/=_002FUsers_002Falex_005Fgrigoras_002FDocuments_002FUnlimited_002DNetworkingServer_002DMiningGame_002FUnlimited_002DNetworkingServer_002DMiningGame_002Fbin_002FDebug_002FDarkRift_002Edll/@EntryIndexedValue">True</s:Boolean>
-	<s:Boolean x:Key="/Default/AddReferences/RecentPaths/=_002FUsers_002Falex_005Fgrigoras_002FDocuments_002FUnlimited_002DNetworkingServer_002DMiningGame_002FUnlimited_002DNetworkingServer_002DMiningGame_002Fbin_002FDebug_002FDarkRift_002EServer_002Edll/@EntryIndexedValue">True</s:Boolean></wpf:ResourceDictionary>
+	<s:Boolean x:Key="/Default/AddReferences/RecentPaths/=_002FUsers_002Falex_005Fgrigoras_002FDocuments_002FUnlimited_002DNetworkingServer_002DMiningGame_002FUnlimited_002DNetworkingServer_002DMiningGame_002Fbin_002FDebug_002FDarkRift_002EServer_002Edll/@EntryIndexedValue">True</s:Boolean>
+	<s:String x:Key="/Default/Environment/AssemblyExplorer/XmlDocument/@EntryValue">&lt;AssemblyExplorer&gt;
+  &lt;Assembly Path="/Users/alex_grigoras/Documents/GitHub/Unlimited-NetworkingServer-MiningGame/Unlimited-NetworkingServer-MiningGame/bin/Debug/DarkRift.dll" /&gt;
+&lt;/AssemblyExplorer&gt;</s:String>
+	<s:Boolean x:Key="/Default/UserDictionary/Words/=overbidded/@EntryIndexedValue">True</s:Boolean></wpf:ResourceDictionary>

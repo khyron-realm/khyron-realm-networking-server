@@ -3,8 +3,14 @@ using System.IO;
 using System.Xml.Linq;
 using DarkRift.Server;
 using MongoDB.Driver;
+using MongoDB.Driver.Core.Clusters;
+using Unlimited_NetworkingServer_MiningGame.Auction;
 using Unlimited_NetworkingServer_MiningGame.Database;
+using Unlimited_NetworkingServer_MiningGame.Friends;
+using Unlimited_NetworkingServer_MiningGame.Game;
 using Unlimited_NetworkingServer_MiningGame.Headquarters;
+using Unlimited_NetworkingServer_MiningGame.Login;
+using Unlimited_NetworkingServer_MiningGame.Mines;
 
 namespace Unlimited_NetworkingServer_MiningGame.MongoDbConnector
 {
@@ -14,10 +20,12 @@ namespace Unlimited_NetworkingServer_MiningGame.MongoDbConnector
     public class MongoDbPlugin : Plugin
     {
         private const string ConfigPath = @"Plugins/MongoDbConnector.xml";
-        private static readonly object InitializeLock = new object();
         private readonly IDataLayer _dataLayer;
         private readonly IMongoDatabase _mongoDatabase;
         private DatabaseProxy _database;
+        private static byte _initialCheck = 0;
+        
+        public static bool IsConnected;
 
         public MongoDbPlugin(PluginLoadData pluginLoadData) : base(pluginLoadData)
         {
@@ -26,7 +34,9 @@ namespace Unlimited_NetworkingServer_MiningGame.MongoDbConnector
             try
             {
                 var client = new MongoClient(connectionString);
+                client.Cluster.DescriptionChanged += Cluster_DescriptionChanged;
                 _mongoDatabase = client.GetDatabase(database);
+
                 GetCollections();
             }
             catch (Exception ex)
@@ -41,15 +51,43 @@ namespace Unlimited_NetworkingServer_MiningGame.MongoDbConnector
 
         public override Version Version => new Version(1, 0, 0);
         public override bool ThreadSafe => true;
-
-        public override Command[] Commands => new[]
+        protected override void Loaded(LoadedEventArgs args)
         {
-            new Command("LoadMongo", "Loads MongoDB Database", "", LoadDbCommand)
-        };
+            if (_database == null)
+            {
+                _database = PluginManager.GetPluginByType<DatabaseProxy>();
+                _database.SetDatabase(_dataLayer);
+            }
+
+            Logger.Info("Loaded Database: MongoDB");
+        }
+        
+        public void Cluster_DescriptionChanged(object sender, ClusterDescriptionChangedEventArgs e)
+        {
+            switch (e.NewClusterDescription.State)
+            {
+                case ClusterState.Disconnected:
+                    if(_initialCheck > 0)
+                    {
+                        Logger.Fatal("Failed to connect to MongoDB database");
+                        Logger.Fatal("Shutting down the server");
+                        Environment.Exit(1);
+                    }
+                    _initialCheck++;
+                    IsConnected = false;
+                    break;
+                case ClusterState.Connected:
+                    IsConnected = true;
+                    break;
+            }
+        }
 
         public IMongoCollection<User> Users { get; private set; }
         public IMongoCollection<PlayerData> PlayerData { get; private set; }
-        public IMongoCollection<Game.GameData> GameData { get; private set; }
+        public IMongoCollection<FriendList> FriendList { get; private set; }
+        public IMongoCollection<GameData> GameData { get; private set; }
+        public IMongoCollection<AuctionRoom> AuctionRoom { get; private set; }
+        public IMongoCollection<Mine> MineData { get; private set; }
 
         /// <summary>
         ///     Create or load the config document for setting the database connection
@@ -108,17 +146,7 @@ namespace Unlimited_NetworkingServer_MiningGame.MongoDbConnector
         /// <param name="sender">The sender object</param>
         /// <param name="e">The client object</param>
         private void OnPlayerConnected(object sender, ClientConnectedEventArgs e)
-        {
-            if (_database == null)
-                lock (InitializeLock)
-                {
-                    if (_database == null)
-                    {
-                        _database = PluginManager.GetPluginByType<DatabaseProxy>();
-                        _database.SetDatabase(_dataLayer);
-                    }
-                }
-        }
+        { }
 
         /// <summary>
         ///     Initializes the database collections
@@ -127,27 +155,10 @@ namespace Unlimited_NetworkingServer_MiningGame.MongoDbConnector
         {
             Users = _mongoDatabase.GetCollection<User>("Users");
             PlayerData = _mongoDatabase.GetCollection<PlayerData>("PlayerData");
-            GameData = _mongoDatabase.GetCollection<Game.GameData>("GameData");
+            FriendList = _mongoDatabase.GetCollection<FriendList>("FriendList");
+            GameData = _mongoDatabase.GetCollection<GameData>("GameData");
+            AuctionRoom = _mongoDatabase.GetCollection<AuctionRoom>("AuctionRoom");
+            MineData = _mongoDatabase.GetCollection<Mine>("MineData");
         }
-
-        #region Commands
-
-        /// <summary>
-        ///     Command for loading the MongoDB database
-        /// </summary>
-        /// <param name="sender">The sender object</param>
-        /// <param name="e">The client object</param>
-        public void LoadDbCommand(object sender, CommandEventArgs e)
-        {
-            if (_database == null)
-                lock (InitializeLock)
-                {
-                    if (_database == null) _database = PluginManager.GetPluginByType<DatabaseProxy>();
-                }
-
-            _database.SetDatabase(_dataLayer);
-        }
-
-        #endregion
     }
 }

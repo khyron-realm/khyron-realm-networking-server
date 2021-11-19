@@ -2,10 +2,12 @@ using System.Collections.Generic;
 using System.Linq;
 using DarkRift;
 using DarkRift.Server;
-using Unlimited_NetworkingServer_MiningGame.Headquarters;
 
 namespace Unlimited_NetworkingServer_MiningGame.Chat
 {
+    /// <summary>
+    ///     A chat group of players
+    /// </summary>
     public class ChatGroup : IDarkRiftSerializable
     {
         public string Name;
@@ -17,9 +19,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Chat
         }
 
         public void Deserialize(DeserializeEvent e)
-        {
-            
-        }
+        { }
 
         public void Serialize(SerializeEvent e)
         {
@@ -27,6 +27,12 @@ namespace Unlimited_NetworkingServer_MiningGame.Chat
             e.Writer.Write(Users.Keys.ToArray());
         }
 
+        /// <summary>
+        ///     Adds a player to the users dictionary
+        /// </summary>
+        /// <param name="username">The player username</param>
+        /// <param name="client">The client connected</param>
+        /// <returns>True if the user is added, or false otherwise</returns>
         internal bool AddPlayer(string username, IClient client)
         {
             if (Users.ContainsKey(username)) return false;
@@ -35,6 +41,10 @@ namespace Unlimited_NetworkingServer_MiningGame.Chat
             return true;
         }
 
+        /// <summary>
+        ///     Removes a player from the users dictionary
+        /// </summary>
+        /// <param name="username">The player username</param>
         internal void RemovePlayer(string username)
         {
             Users.Remove(username);
