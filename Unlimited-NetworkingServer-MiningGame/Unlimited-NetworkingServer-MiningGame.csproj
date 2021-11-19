@@ -36,10 +36,10 @@
           <HintPath>..\packages\BCrypt-Official.0.1.109\lib\BCrypt.Net.dll</HintPath>
           <Private>True</Private>
         </Reference>
-        <Reference Include="DarkRift, Version=2.9.1.0, Culture=neutral, PublicKeyToken=null">
+        <Reference Include="DarkRift, Version=2.10.1.0, Culture=neutral, PublicKeyToken=null">
           <HintPath>bin\Debug\DarkRift.dll</HintPath>
         </Reference>
-        <Reference Include="DarkRift.Server, Version=2.9.1.0, Culture=neutral, PublicKeyToken=null">
+        <Reference Include="DarkRift.Server, Version=2.10.1.0, Culture=neutral, PublicKeyToken=null">
           <HintPath>bin\Debug\DarkRift.Server.dll</HintPath>
         </Reference>
         <Reference Include="DnsClient, Version=1.4.0.0, Culture=neutral, PublicKeyToken=4574bb5573c51424">
@@ -70,6 +70,10 @@
           <HintPath>..\packages\Microsoft.Extensions.DependencyInjection.Abstractions.6.0.0\lib\net461\Microsoft.Extensions.DependencyInjection.Abstractions.dll</HintPath>
           <Private>True</Private>
         </Reference>
+        <Reference Include="Microsoft.Extensions.Logging, Version=5.0.0.0, Culture=neutral, PublicKeyToken=adb9793829ddae60">
+          <HintPath>..\packages\Microsoft.Extensions.Logging.5.0.0\lib\net461\Microsoft.Extensions.Logging.dll</HintPath>
+          <Private>True</Private>
+        </Reference>
         <Reference Include="Microsoft.Extensions.Logging.Abstractions, Version=6.0.0.0, Culture=neutral, PublicKeyToken=adb9793829ddae60">
           <HintPath>..\packages\Microsoft.Extensions.Logging.Abstractions.6.0.0\lib\net461\Microsoft.Extensions.Logging.Abstractions.dll</HintPath>
           <Private>True</Private>
@@ -82,16 +86,16 @@
           <HintPath>..\packages\Microsoft.Extensions.Primitives.6.0.0\lib\net461\Microsoft.Extensions.Primitives.dll</HintPath>
           <Private>True</Private>
         </Reference>
-        <Reference Include="MongoDB.Bson, Version=2.13.1.0, Culture=neutral, PublicKeyToken=null">
-          <HintPath>..\packages\MongoDB.Bson.2.13.1\lib\net452\MongoDB.Bson.dll</HintPath>
+        <Reference Include="MongoDB.Bson, Version=2.13.2.0, Culture=neutral, PublicKeyToken=null">
+          <HintPath>..\packages\MongoDB.Bson.2.13.2\lib\net452\MongoDB.Bson.dll</HintPath>
           <Private>True</Private>
         </Reference>
         <Reference Include="MongoDB.Driver, Version=2.13.1.0, Culture=neutral, PublicKeyToken=null">
           <HintPath>..\packages\MongoDB.Driver.2.13.1\lib\net452\MongoDB.Driver.dll</HintPath>
           <Private>True</Private>
         </Reference>
-        <Reference Include="MongoDB.Driver.Core, Version=2.13.1.0, Culture=neutral, PublicKeyToken=null">
-          <HintPath>..\packages\MongoDB.Driver.Core.2.13.1\lib\net452\MongoDB.Driver.Core.dll</HintPath>
+        <Reference Include="MongoDB.Driver.Core, Version=2.13.2.0, Culture=neutral, PublicKeyToken=null">
+          <HintPath>..\packages\MongoDB.Driver.Core.2.13.2\lib\net452\MongoDB.Driver.Core.dll</HintPath>
           <Private>True</Private>
         </Reference>
         <Reference Include="MongoDB.Libmongocrypt, Version=1.2.2.0, Culture=neutral, PublicKeyToken=null">
@@ -237,12 +241,12 @@
       </PropertyGroup>
       <Error Condition="!Exists('..\packages\Microsoft.NETFramework.ReferenceAssemblies.net451.1.0.0\build\Microsoft.NETFramework.ReferenceAssemblies.net451.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Microsoft.NETFramework.ReferenceAssemblies.net451.1.0.0\build\Microsoft.NETFramework.ReferenceAssemblies.net451.targets'))" />
       <Error Condition="!Exists('..\packages\MongoDB.Libmongocrypt.1.2.2\build\MongoDB.Libmongocrypt.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\MongoDB.Libmongocrypt.1.2.2\build\MongoDB.Libmongocrypt.targets'))" />
-      <Error Condition="!Exists('..\packages\MongoDB.Driver.Core.2.13.1\build\MongoDB.Driver.Core.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\MongoDB.Driver.Core.2.13.1\build\MongoDB.Driver.Core.targets'))" />
       <Error Condition="!Exists('..\packages\Microsoft.Extensions.Logging.Abstractions.6.0.0\build\Microsoft.Extensions.Logging.Abstractions.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Microsoft.Extensions.Logging.Abstractions.6.0.0\build\Microsoft.Extensions.Logging.Abstractions.targets'))" />
+      <Error Condition="!Exists('..\packages\MongoDB.Driver.Core.2.13.2\build\MongoDB.Driver.Core.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\MongoDB.Driver.Core.2.13.2\build\MongoDB.Driver.Core.targets'))" />
     </Target>
     <Import Project="..\packages\MongoDB.Libmongocrypt.1.2.2\build\MongoDB.Libmongocrypt.targets" Condition="Exists('..\packages\MongoDB.Libmongocrypt.1.2.2\build\MongoDB.Libmongocrypt.targets')" />
-    <Import Project="..\packages\MongoDB.Driver.Core.2.13.1\build\MongoDB.Driver.Core.targets" Condition="Exists('..\packages\MongoDB.Driver.Core.2.13.1\build\MongoDB.Driver.Core.targets')" />
     <Import Project="..\packages\Microsoft.Extensions.Logging.Abstractions.6.0.0\build\Microsoft.Extensions.Logging.Abstractions.targets" Condition="Exists('..\packages\Microsoft.Extensions.Logging.Abstractions.6.0.0\build\Microsoft.Extensions.Logging.Abstractions.targets')" />
+    <Import Project="..\packages\MongoDB.Driver.Core.2.13.2\build\MongoDB.Driver.Core.targets" Condition="Exists('..\packages\MongoDB.Driver.Core.2.13.2\build\MongoDB.Driver.Core.targets')" />
     <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
          Other similar extension points exist, see Microsoft.Common.targets.
     <Target Name="BeforeBuild">
