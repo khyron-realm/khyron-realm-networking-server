@@ -825,7 +825,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Auction
                     { });
                     addedSuccess = true;
                 }
-                catch (MongoDuplicateKeyException)
+                catch
                 {
                     roomId++;
                     room.Id = roomId;

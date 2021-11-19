@@ -69,6 +69,12 @@ namespace Unlimited_NetworkingServer_MiningGame.Mines
                         SaveMine(client, message);
                         break;
                     }
+                    
+                    case MineTags.SaveMapPosition:
+                    {
+                        SaveMapPosition(client, message);
+                        break;
+                    }
 
                     case MineTags.FinishMine:
                     {
@@ -88,21 +94,37 @@ namespace Unlimited_NetworkingServer_MiningGame.Mines
         private void GetMines(IClient client)
         {
             var username = _loginPlugin.GetPlayerUsername(client);
-            
-            _database.DataLayer.GetMines(username, mineList =>
+
+            try
+            {
+                _database.DataLayer.GetMines(username, mineList =>
+                {
+                    using (var writer = DarkRiftWriter.Create())
+                    {
+                        foreach (var mine in mineList)
+                        {
+                            writer.Write(mine);
+                        }
+
+                        using (var msg = Message.Create(MineTags.GetMines, writer))
+                        {
+                            client.SendMessage(msg, SendMode.Reliable);
+                        }
+                    }
+                });
+            }
+            catch
             {
                 using (var writer = DarkRiftWriter.Create())
                 {
-                    foreach (var mine in mineList)
-                    {
-                        writer.Write(mine);
-                    }
-                    using (var msg = Message.Create(MineTags.GetMines, writer))
+                    writer.Write((byte) 1);
+
+                    using (var msg = Message.Create(MineTags.GetMinesFailed, writer))
                     {
                         client.SendMessage(msg, SendMode.Reliable);
                     }
                 }
-            });
+            }
         }
 
         /// <summary>
@@ -113,7 +135,6 @@ namespace Unlimited_NetworkingServer_MiningGame.Mines
         private void SaveMine(IClient client, Message message)
         {
             uint mineId;
-            byte minePosition;
             bool[] blocks;
             Robot[] robots;
             Resource[] resources;
@@ -123,7 +144,6 @@ namespace Unlimited_NetworkingServer_MiningGame.Mines
                 using (var reader = message.GetReader())
                 {
                     mineId = reader.ReadUInt32();
-                    minePosition = reader.ReadByte();
                     blocks = reader.ReadBooleans();
                     robots = reader.ReadSerializables<Robot>();
                     resources = reader.ReadSerializables<Resource>();
@@ -138,7 +158,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Mines
 
             try
             {
-                _database.DataLayer.SaveMineBlocks(mineId, minePosition, blocks, () => { });
+                _database.DataLayer.SaveMineBlocks(mineId, blocks, () => { });
             }
             catch
             {
@@ -190,6 +210,49 @@ namespace Unlimited_NetworkingServer_MiningGame.Mines
             using (var msg = Message.CreateEmpty(MineTags.SaveMine))
             {
                 client.SendMessage(msg, SendMode.Reliable);
+            }
+        }
+
+        /// <summary>
+        ///     Save the mine position in the map to the database
+        /// </summary>
+        /// <param name="client">The connected client</param>
+        /// <param name="message">The message received</param>
+        private void SaveMapPosition(IClient client, Message message)
+        {
+            uint mineId;
+            byte mapPosition;
+
+            try
+            {
+                using (var reader = message.GetReader())
+                {
+                    mineId = reader.ReadUInt32();
+                    mapPosition = reader.ReadByte();
+                }
+            }
+            catch (Exception ex)
+            {
+                // Return Error 0 for Invalid Data Packages Received
+                _loginPlugin.InvalidData(client, MineTags.RequestFailed, ex, "Save map position failed");
+                return;
+            }
+
+            try
+            {
+                _database.DataLayer.SaveMapPosition(mineId, mapPosition, () => { });
+            }
+            catch
+            {
+                using (var writer = DarkRiftWriter.Create())
+                {
+                    writer.Write((byte) 0);
+
+                    using (var msg = Message.Create(MineTags.SaveMineFailed, writer))
+                    {
+                        client.SendMessage(msg, SendMode.Reliable);
+                    }
+                }
             }
         }
         

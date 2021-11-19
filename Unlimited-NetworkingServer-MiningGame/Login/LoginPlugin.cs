@@ -9,6 +9,8 @@ using Unlimited_NetworkingServer_MiningGame.Database;
 using Unlimited_NetworkingServer_MiningGame.Game;
 using Unlimited_NetworkingServer_MiningGame.Headquarters;
 using Unlimited_NetworkingServer_MiningGame.Tags;
+//using Microsoft.Extensions.Logging;
+
 
 namespace Unlimited_NetworkingServer_MiningGame.Login
 {
@@ -20,6 +22,8 @@ namespace Unlimited_NetworkingServer_MiningGame.Login
         private ConcurrentDictionary<string, IClient> _clients = new ConcurrentDictionary<string, IClient>();
 
         private ConcurrentDictionary<IClient, string> _usersLoggedIn = new ConcurrentDictionary<IClient, string>();
+        
+        //private readonly ILogger<LoginPlugin> _logger;
 
         private const string ConfigPath = @"Plugins/LoginPlugin.xml";
         private const string PrivateKeyPath = @"Plugins/PrivateKey.xml";
@@ -219,6 +223,12 @@ namespace Unlimited_NetworkingServer_MiningGame.Login
                         }
 
                         if (_debug) Logger.Info("Successful login: " + username);
+                        /*
+                        _logger.LogInformation("INFO - Successful login: " + username);
+                        _logger.LogWarning("WARNING - Successful login: " + username);
+                        _logger.LogError("ERROR - Successful login: " + username);
+                        _logger.LogCritical("CRITICAL - Successful login: " + username);
+                        */
                     }
                     else
                     {

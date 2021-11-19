@@ -36,7 +36,7 @@ namespace Unlimited_NetworkingServer_MiningGame.MongoDbConnector
             try
             {
                 var client = new MongoClient(connectionString);
-                client.Cluster.DescriptionChanged += Cluster_DescriptionChanged;
+                //client.Cluster.DescriptionChanged += Cluster_DescriptionChanged;
                 _mongoDatabase = client.GetDatabase(database);
 
                 GetCollections();

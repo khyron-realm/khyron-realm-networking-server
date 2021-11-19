@@ -533,10 +533,21 @@ namespace Unlimited_NetworkingServer_MiningGame.MongoDbConnector
             callback();
         }
         
-        public void SaveMineBlocks(uint mineId, byte minePosition, bool[] blocks, Action callback)
+        /// <inheritdoc />
+        public void SaveMineBlocks(uint mineId, bool[] blocks, Action callback)
         {
             var filter = Builders<Mine>.Filter.Eq(m => m.Id, mineId);
-            var update = Builders<Mine>.Update.Set(m => m.Blocks, blocks).Set(m => m.MapPosition, minePosition);
+            var update = Builders<Mine>.Update.Set(m => m.Blocks, blocks);
+            
+            _database.MineData.UpdateOne(filter, update);
+            callback();
+        }
+        
+        /// <inheritdoc />
+        public void SaveMapPosition(uint mineId, byte mapPosition, Action callback)
+        {
+            var filter = Builders<Mine>.Filter.Eq(m => m.Id, mineId);
+            var update = Builders<Mine>.Update.Set(m => m.MapPosition, mapPosition);
             
             _database.MineData.UpdateOne(filter, update);
             callback();
