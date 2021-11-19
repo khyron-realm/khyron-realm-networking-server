@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using Unlimited_NetworkingServer_MiningGame.Auction;
-using Unlimited_NetworkingServer_MiningGame.Friends;
 using Unlimited_NetworkingServer_MiningGame.Game;
 using Unlimited_NetworkingServer_MiningGame.Headquarters;
 using Unlimited_NetworkingServer_MiningGame.Mines;

@@ -1,9 +1,7 @@
 using System;
-using System.ComponentModel.Design.Serialization;
 using System.IO;
 using System.Xml.Linq;
 using DarkRift.Server;
-using MongoDB.Bson;
 using MongoDB.Driver;
 using MongoDB.Driver.Core.Clusters;
 using Unlimited_NetworkingServer_MiningGame.Auction;
@@ -36,7 +34,7 @@ namespace Unlimited_NetworkingServer_MiningGame.MongoDbConnector
             try
             {
                 var client = new MongoClient(connectionString);
-                //client.Cluster.DescriptionChanged += Cluster_DescriptionChanged;
+                client.Cluster.DescriptionChanged += Cluster_DescriptionChanged;
                 _mongoDatabase = client.GetDatabase(database);
 
                 GetCollections();
