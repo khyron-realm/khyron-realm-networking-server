@@ -573,17 +573,21 @@ namespace Unlimited_NetworkingServer_MiningGame.Auction
                         
                         using (var msg = Message.Create(AuctionTags.Overbid, writer))
                         {
-                            if (room.OverbiddedClient != null && room.Clients.Contains(room.OverbiddedClient))
+                            if (room.Clients.Contains(room.OverbiddedClient))
                             {
                                 room.OverbiddedClient.SendMessage(msg, SendMode.Reliable);
+                            }
+                            else
+                            {
+                                var task = new BackgroundTask(BackgroundTaskType.AuctionWon, roomId, room.Name);
+                                _database.DataLayer.AddBackgroundTask(overbiddedPlayer, task, () => {});
+                                
+                                // TopUp energy for the user in the database
+                                _database.DataLayer.IncreasePlayerEnergy(overbiddedPlayer, lastBid, () => { });
                             }
                         }
 
                         _playerBids[overbiddedPlayer]--;
-                        
-                        // Store energy in the database
-                        var overbiddedUsername = _loginPlugin.GetPlayerUsername(room.OverbiddedClient);
-                        _database.DataLayer.IncreasePlayerEnergy(overbiddedUsername, Constants.IncrementBid, () => { });
                     }
                     else
                     {
