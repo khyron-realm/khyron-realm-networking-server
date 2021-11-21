@@ -23,7 +23,6 @@ namespace Unlimited_NetworkingServer_MiningGame.Login
 
         private ConcurrentDictionary<IClient, string> _usersLoggedIn = new ConcurrentDictionary<IClient, string>();
         
-        private static readonly string s_projectId = "influential-users-test";
         private const string ConfigPath = @"Plugins/LoginPlugin.xml";
         private const string PrivateKeyPath = @"Plugins/PrivateKey.xml";
         private bool _allowAddUser = true;
@@ -231,6 +230,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Login
                         using (var writer = DarkRiftWriter.Create())
                         {
                             writer.Write((byte) 1);
+                            writer.Write(loginType);
 
                             using (var msg = Message.Create(LoginTags.LoginFailed, writer))
                             {
@@ -243,7 +243,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Login
             catch (Exception ex)
             {
                 // Return error 2 for database error
-                _database.DatabaseError(client, LoginTags.LoginFailed, ex);
+                _database.DatabaseError(client, LoginTags.LoginFailed, ex, loginType);
             }
         }
 
