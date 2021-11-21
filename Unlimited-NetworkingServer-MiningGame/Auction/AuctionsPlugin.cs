@@ -579,7 +579,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Auction
                             }
                             else
                             {
-                                var task = new BackgroundTask(BackgroundTaskType.AuctionWon, roomId, room.Name);
+                                var task = new BackgroundTask(BackgroundTaskType.Overbidded, roomId, room.Name);
                                 _database.DataLayer.AddBackgroundTask(overbiddedPlayer, task, () => {});
                                 
                                 // TopUp energy for the user in the database
