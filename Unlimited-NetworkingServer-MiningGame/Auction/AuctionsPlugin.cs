@@ -875,7 +875,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Auction
                         AuctionRoomList[auctionId].LastBidderClient.SendMessage(msg, SendMode.Reliable);
                     }
                     
-                    var task = new BackgroundTask(BackgroundTaskType.AuctionWon, auctionId, "");
+                    var task = new BackgroundTask(BackgroundTaskType.AuctionWon, auctionId, auctionName);
                     _database.DataLayer.AddBackgroundTask(AuctionRoomList[auctionId].LastBid.PlayerName, task, () => {});
                 }
             }

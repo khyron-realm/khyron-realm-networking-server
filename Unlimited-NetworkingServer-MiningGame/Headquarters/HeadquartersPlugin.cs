@@ -33,12 +33,12 @@ namespace Unlimited_NetworkingServer_MiningGame.Headquarters
             ClientManager.ClientConnected += OnPlayerConnected;
             ClientManager.ClientDisconnected += OnPlayerDisconnected;
             
-            TaskScheduler.Instance.ScheduleTask(12, 00, 6, () => 
+            TaskScheduler.Instance.ScheduleTask(Constants.TopUpHour, Constants.TopUpMinute, Constants.TopUpIntervalInHours, () => 
             {
                 Logger.Info("Energy top-up for all players at: " + DateTime.UtcNow);
                 
                 var task = new BackgroundTask(BackgroundTaskType.EnergyTopUp, Constants.TopUpEnergyValue, "");
-                _database.DataLayer.AddBackgroundTask(task, () => {});
+                if (_database != null) _database.DataLayer.AddBackgroundTask(task, () => { });
             });
         }
 
