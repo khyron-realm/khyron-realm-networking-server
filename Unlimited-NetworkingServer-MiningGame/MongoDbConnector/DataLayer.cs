@@ -300,7 +300,10 @@ namespace Unlimited_NetworkingServer_MiningGame.MongoDbConnector
         {
             var filter = Builders<PlayerData>.Filter.Eq(u => u.Id, username);
             var update = Builders<PlayerData>.Update.PullFilter(u => u.BackgroundTasks,
-                Builders<BackgroundTask>.Filter.Eq(b => b, task));
+                Builders<BackgroundTask>.Filter.And(
+                    Builders<BackgroundTask>.Filter.Eq(b => b.Time, task.Time),
+                    Builders<BackgroundTask>.Filter.Eq(b => b.Type, task.Type))
+            );
             await _database.PlayerData.UpdateOneAsync(filter, update);
             callback();
         }
