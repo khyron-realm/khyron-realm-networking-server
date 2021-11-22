@@ -112,6 +112,12 @@ namespace Unlimited_NetworkingServer_MiningGame.Headquarters
                         break;
                     }
                     
+                    case HeadquartersTags.UpdateEnergy:
+                    {
+                        UpdateEnergy(client, message);
+                        break;
+                    }
+                    
                     case HeadquartersTags.ConvertResources:
                     {
                         ConvertResources(client, message);
@@ -298,6 +304,45 @@ namespace Unlimited_NetworkingServer_MiningGame.Headquarters
                 if (_debug) Logger.Warning("Update level error for user " + GetPlayerUsername(client));
                     
                 using (var msg = Message.CreateEmpty(HeadquartersTags.UpdateLevelError))
+                {
+                    client.SendMessage(msg, SendMode.Reliable);
+                }
+            }
+        }
+        
+        /// <summary>
+        ///     Updates the player energy
+        /// </summary>
+        /// <param name="client">The connected client</param>
+        /// <param name="message">The message received</param>
+        private void UpdateEnergy(IClient client, Message message)
+        {
+            string username = GetPlayerUsername(client);
+            
+            uint energy = 0;
+
+            using (var reader = message.GetReader())
+            {
+                try
+                {
+                    energy = reader.ReadUInt32();
+                }
+                catch (Exception exception)
+                {
+                    InvalidData(client, HeadquartersTags.RequestFailed, exception, "Invalid Update energy packages received");
+                    return;
+                }
+            }
+
+            try
+            {
+                _database.DataLayer.SetPlayerEnergy(username, energy, () => { });
+            }
+            catch
+            {
+                if (_debug) Logger.Warning("Update energy error for user " + GetPlayerUsername(client));
+                    
+                using (var msg = Message.CreateEmpty(HeadquartersTags.UpdateEnergyError))
                 {
                     client.SendMessage(msg, SendMode.Reliable);
                 }
