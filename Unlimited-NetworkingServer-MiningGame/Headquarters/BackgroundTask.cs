@@ -30,7 +30,12 @@ namespace Unlimited_NetworkingServer_MiningGame.Headquarters
         /// </summary>
         /// <param name="e">Deserialize event</param>
         public void Deserialize(DeserializeEvent e)
-        { }
+        {
+            Time = e.Reader.ReadInt64();
+            Type = e.Reader.ReadByte();
+            ValueId = e.Reader.ReadUInt32();
+            ValueDescription = e.Reader.ReadString();
+        }
         
         /// <summary>
         ///     Serialization method for build task
