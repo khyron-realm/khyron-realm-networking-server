@@ -18,11 +18,12 @@ namespace Unlimited_NetworkingServer_MiningGame.Headquarters
         public BuildTask[] ConversionQueue { get; set; }
         public BuildTask[] UpgradeQueue { get; set; }
         public BuildTask[] BuildQueue { get; set; }
+        public BackgroundTask[] BackgroundTasks { get; set; }
 
         public PlayerData() { }
 
         public PlayerData(string id, byte level, uint experience, uint energy, Resource[] resources, Robot[] robots,
-            BuildTask[] conversionQueue, BuildTask[] upgradeQueue, BuildTask[] buildQueue)
+            BuildTask[] conversionQueue, BuildTask[] upgradeQueue, BuildTask[] buildQueue, BackgroundTask[] backgroundTasks)
         {
             Id = id;
             Level = level;
@@ -33,6 +34,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Headquarters
             ConversionQueue = conversionQueue;
             UpgradeQueue = upgradeQueue;
             BuildQueue = buildQueue;
+            BackgroundTasks = backgroundTasks;
         }
         
         /// <summary>
@@ -40,17 +42,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Headquarters
         /// </summary>
         /// <param name="e">Deserialize event</param>
         public void Deserialize(DeserializeEvent e)
-        {
-            Id = e.Reader.ReadString();
-            Level = e.Reader.ReadByte();
-            Experience = e.Reader.ReadUInt32();
-            Energy = e.Reader.ReadUInt32();
-            Resources = e.Reader.ReadSerializables<Resource>();
-            Robots = e.Reader.ReadSerializables<Robot>();
-            ConversionQueue = e.Reader.ReadSerializables<BuildTask>();
-            UpgradeQueue = e.Reader.ReadSerializables<BuildTask>();
-            BuildQueue = e.Reader.ReadSerializables<BuildTask>();
-        }
+        { }
         
         /// <summary>
         ///     Serialization method for player data
@@ -67,6 +59,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Headquarters
             e.Writer.Write(ConversionQueue);
             e.Writer.Write(UpgradeQueue);
             e.Writer.Write(BuildQueue);
+            e.Writer.Write(BackgroundTasks);
         }
     }
 }

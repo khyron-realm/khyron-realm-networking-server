@@ -1,6 +1,7 @@
 using System;
 using DarkRift;
 using DarkRift.Server;
+using Unlimited_NetworkingServer_MiningGame.Tags;
 
 namespace Unlimited_NetworkingServer_MiningGame.Database
 {
@@ -47,13 +48,18 @@ namespace Unlimited_NetworkingServer_MiningGame.Database
         /// <param name="client">The client where the error occured</param>
         /// <param name="tag">The message tag</param>
         /// <param name="e">Returned exception</param>
-        public void DatabaseError(IClient client, ushort tag, Exception e)
+        /// <param name="loginType">The type of the login</param>
+        public void DatabaseError(IClient client, ushort tag, Exception e, byte loginType = 0)
         {
             Logger.Error("Database error: " + e.Message + " - " + e.StackTrace);
 
             using (var writer = DarkRiftWriter.Create())
             {
                 writer.Write((byte) 2);
+                if (tag == LoginTags.LoginFailed)
+                {
+                    writer.Write(loginType);
+                }
 
                 using (var msg = Message.Create(tag, writer))
                 {

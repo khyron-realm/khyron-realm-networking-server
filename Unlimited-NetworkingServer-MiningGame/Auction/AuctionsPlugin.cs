@@ -7,6 +7,7 @@ using DarkRift;
 using DarkRift.Server;
 using Unlimited_NetworkingServer_MiningGame.Database;
 using Unlimited_NetworkingServer_MiningGame.Game;
+using Unlimited_NetworkingServer_MiningGame.Headquarters;
 using Unlimited_NetworkingServer_MiningGame.Login;
 using Unlimited_NetworkingServer_MiningGame.Mines;
 using Unlimited_NetworkingServer_MiningGame.Tags;
@@ -373,7 +374,11 @@ namespace Unlimited_NetworkingServer_MiningGame.Auction
                 {
                     room = AuctionRoomList.Values.FirstOrDefault(r => r.HasStarted);
                     TimeSpan difference = DateTime.FromBinary(room.EndTime) - DateTime.UtcNow;
-                    if (difference.TotalSeconds < 60)
+                    if(difference.TotalSeconds < 0)
+                    {
+                        AuctionFinished(room.Id, room.Name, room.LastBid.PlayerName, true);
+                    }
+                    else if (difference.TotalSeconds < 60)
                     {
                         if (AuctionRoomList.ContainsKey(room.Id + 1))
                         {
@@ -521,6 +526,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Auction
             
             var username = _loginPlugin.GetPlayerUsername(client);
             var room = AuctionRoomList[roomId];
+            var lastBid = room.LastBid.Amount;
             var overbiddedPlayer = room.LastBid.PlayerName;
 
             // Add a new bid
@@ -567,21 +573,25 @@ namespace Unlimited_NetworkingServer_MiningGame.Auction
                             }
                         }
                         
-                        writer.Write(Constants.IncrementBid);
+                        writer.Write(lastBid);
                         
                         using (var msg = Message.Create(AuctionTags.Overbid, writer))
                         {
-                            if (room.OverbiddedClient != null && !room.Clients.Contains(room.OverbiddedClient))
+                            if (room.Clients.Contains(room.OverbiddedClient))
                             {
                                 room.OverbiddedClient.SendMessage(msg, SendMode.Reliable);
+                            }
+                            else
+                            {
+                                var task = new BackgroundTask(BackgroundTaskType.Overbidded, roomId, room.Name);
+                                _database.DataLayer.AddBackgroundTask(overbiddedPlayer, task, () => {});
+                                
+                                // TopUp energy for the user in the database
+                                _database.DataLayer.IncreasePlayerEnergy(overbiddedPlayer, lastBid, () => { });
                             }
                         }
 
                         _playerBids[overbiddedPlayer]--;
-                        
-                        // Store energy in the database
-                        var overbiddedUsername = _loginPlugin.GetPlayerUsername(room.OverbiddedClient);
-                        _database.DataLayer.IncreasePlayerEnergy(overbiddedUsername, Constants.IncrementBid, () => { });
                     }
                     else
                     {
@@ -868,11 +878,20 @@ namespace Unlimited_NetworkingServer_MiningGame.Auction
                     {
                         AuctionRoomList[auctionId].LastBidderClient.SendMessage(msg, SendMode.Reliable);
                     }
-                    // TODO: Add queued task that is sent to the user when they are online (on else)
+
+                    if (AuctionRoomList[auctionId].LastBid.Id > 0)
+                    {
+                        var task = new BackgroundTask(BackgroundTaskType.AuctionWon, auctionId, auctionName);
+                        _database.DataLayer.AddBackgroundTask(AuctionRoomList[auctionId].LastBid.PlayerName, task, () => {});
+                    }
                 }
             }
 
-            if (AuctionRoomList[auctionId].LastBid.Id > 0)
+            if (AuctionRoomList[auctionId].LastBid.Id > 0 && !string.IsNullOrEmpty(auctionOwner))
+            {
+                var task = new BackgroundTask(BackgroundTaskType.AuctionWon, auctionId, auctionName);
+                _database.DataLayer.AddBackgroundTask(auctionOwner, task, () => {});
+            }
             {
                 Mine mine = new Mine(auctionId, auctionName, auctionOwner);
                 _database.DataLayer.AddMine(mine, () => { });

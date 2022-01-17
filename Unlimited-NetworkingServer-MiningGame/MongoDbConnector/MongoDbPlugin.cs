@@ -67,11 +67,12 @@ namespace Unlimited_NetworkingServer_MiningGame.MongoDbConnector
             switch (e.NewClusterDescription.State)
             {
                 case ClusterState.Disconnected:
-                    if(_initialCheck > 0)
+                    if(_initialCheck > 1)
                     {
                         Logger.Fatal("Failed to connect to MongoDB database");
                         Logger.Fatal("Shutting down the server");
-                        Environment.Exit(1);
+                        _initialCheck = 0;
+                        Environment.Exit(0);
                     }
                     _initialCheck++;
                     IsConnected = false;

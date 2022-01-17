@@ -1,23 +1,21 @@
 <!-- PROJECT LOGO -->
 <br />
 <p align="center">
-  <a href="https://github.com/target-software/Unlimited-NetworkingServer-MiningGame">
-    <img src="Images/logo.png" alt="Logo" width="81" height="80">
+  <a href="https://github.com/khyron-realm/khyron-realm-networking-server">
+    <img src="Images/logo.png" alt="Logo" width="80" height="80">
   </a>
 
-  <h3 align="center">Networking Server (w/ DarkRift Networking)</h3>
+  <h3 align="center">Khyron Realm - Networking Server</h3>
 
   <p align="center">
-    I - Mining game [Unlimited]
-    <br />
-    <a href="https://github.com/target-software/Unlimited-NetworkingServer-MiningGame"><strong>Explore the docs »</strong></a>
+    <a href="https://khyron-realm.com/docs/description"><strong>Explore the docs »</strong></a>
     <br />
     <br />
-    <a href="https://github.com/target-software/Unlimited-NetworkingServer-MiningGame">View Demo</a>
+    <a href="https://github.com/khyron-realm/khyron-realm-networking-server">View Demo</a>
     ·
-    <a href="https://github.com/target-software/Unlimited-NetworkingServer-MiningGame/issues">Report Bug</a>
+    <a href="https://github.com/khyron-realm/khyron-realm-networking-server/issues">Report Bug</a>
     ·
-    <a href="https://github.com/target-software/Unlimited-NetworkingServer-MiningGame/issues">Request Feature</a>
+    <a href="https://github.com/khyron-realm/khyron-realm-networking-server/issues">Request Feature</a>
   </p>
 </p>
 
@@ -42,6 +40,7 @@
     <li><a href="#roadmap">Roadmap</a></li>
     <li><a href="#project-structure">Project Structure</a></li>
     <li><a href="#necessary-libraries">Necessary Libraries</a></li>
+    <li><a href="#license">License</a></li>
     <li><a href="#references">References</a></li>
   </ol>
 </details>
@@ -51,11 +50,11 @@
 <!-- ABOUT THE PROJECT -->
 ## About The Project
 
-Test repository contains the Networking Server for the Unlimited Mining Game made with DarkRift 2 Server.
+The repository contains the Networking Server for the Khyron Realm Game made with DarkRift 2 Networking.
 
 ### Built Using
 
-* [Darkrift networking PRO v2.9.1](https://www.darkriftnetworking.com/darkrift2)
+* [Darkrift networking 2 - PRO - v2.10.1](https://assetstore.unity.com/packages/tools/network/darkrift-networking-2-pro-95399)
 
 
 <!-- GETTING STARTED -->
@@ -65,30 +64,30 @@ Test repository contains the Networking Server for the Unlimited Mining Game mad
 
 1. Clone the repo
    ```sh
-   git clone https://github.com/target-software/Unlimited-NetworkingServer-MiningGame.git
+   git clone https://github.com/khyron-realm/khyron-realm-networking-server.git
    ```
 2. Go into folder
     ```sh
    cd Unlimited-NetworkingtServer-MiningGame
    ```
-3. Build the DLL
+3. Build the DLL using Visual Studio / Jetbrains Rider / command line using dotnet
    ```sh
    Unlimited-MiningGame-Plugin.dll
    ```
-4. Copy the DLL into the [Darkrift Server Console](https://github.com/target-software/Unlimited-DarkriftServer-MiningGame)
-5. Run the [Darkrift Server](https://github.com/target-software/Unlimited-DarkriftServer-MiningGame)
+4. Copy the DLL into the [Darkrift Server Console](https://github.com/khyron-realm/khyron-realm-darkrift-server)
+5. Run the [Darkrift Server](https://github.com/khyron-realm/khyron-realm-darkrift-server)
 
 
 <!-- USAGE EXAMPLES -->
 ## Usage
 
-More detailes can be found on [Google Drive](https://docs.google.com/document/d/1CHdDfEm5BDM8vAbeubNgLF-Et8YwMgCbreD4CC6dSfo/edit)
+More details can be found on [Wiki](https://khyron-realm.com/docs/description)
 
 
 <!-- ROADMAP -->
 ## Roadmap
 
-See the [open issues](https://github.com/target-software/Unlimited-NetworkingServer-MiningGame/issues) for a list of proposed features (and known issues).
+See the [open issues](https://github.com/khyron-realm/khyron-realm-networking-server/issues) for a list of proposed features (and known issues).
 
 
 <!-- CONTRIBUTING -->
@@ -162,11 +161,26 @@ See the [open issues](https://github.com/target-software/Unlimited-NetworkingSer
 <!-- LIBRARIES -->
 ## Necessary Libraries
 
-1. [Darkrift DLLs](https://assetstore.unity.com/packages/tools/network/darkrift-networking-2-95309)
+1. [Darkrift Networking 2](https://www.darkriftnetworking.com)
+
+
+<!-- LICENSE -->
+# License
+
+[![CC BY-NC-SA 4.0][cc-by-nc-sa-shield]][cc-by-nc-sa]
+
+This work is licensed under a
+[Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International License][cc-by-nc-sa].
+
+[![CC BY-NC-SA 4.0][cc-by-nc-sa-image]][cc-by-nc-sa]
+
+[cc-by-nc-sa]: http://creativecommons.org/licenses/by-nc-sa/4.0/
+[cc-by-nc-sa-image]: https://licensebuttons.net/l/by-nc-sa/4.0/88x31.png
+[cc-by-nc-sa-shield]: https://img.shields.io/badge/License-CC%20BY--NC--SA%204.0-lightgrey.svg
 
 
 <!-- REFERENCES -->
 ## References
 
 1. Darkrift example [Darkrift2_Boilerplate](https://github.com/mwage/DarkRift2_Boilerplate)
-1. Project Template adapted from [Othneil Drew](https://github.com/othneildrew) / [Best-README-Template](https://github.com/othneildrew/Best-README-Template).
+1. Readme Template adapted from [Othneil Drew](https://github.com/othneildrew) / [Best-README-Template](https://github.com/othneildrew/Best-README-Template).

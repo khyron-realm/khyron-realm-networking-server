@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Xml.Linq;
@@ -9,7 +10,6 @@ using Unlimited_NetworkingServer_MiningGame.Database;
 using Unlimited_NetworkingServer_MiningGame.Game;
 using Unlimited_NetworkingServer_MiningGame.Headquarters;
 using Unlimited_NetworkingServer_MiningGame.Tags;
-//using Microsoft.Extensions.Logging;
 
 
 namespace Unlimited_NetworkingServer_MiningGame.Login
@@ -23,8 +23,6 @@ namespace Unlimited_NetworkingServer_MiningGame.Login
 
         private ConcurrentDictionary<IClient, string> _usersLoggedIn = new ConcurrentDictionary<IClient, string>();
         
-        //private readonly ILogger<LoginPlugin> _logger;
-
         private const string ConfigPath = @"Plugins/LoginPlugin.xml";
         private const string PrivateKeyPath = @"Plugins/PrivateKey.xml";
         private bool _allowAddUser = true;
@@ -66,7 +64,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Login
             new Command("LoggedInUsers", "Logs the number of logged in users", "LoggedInUsers", LoggedInUsersCommand),
             new Command("LPDebug", "Enables the debug logs for the Login Plugin", "LPDebug [on/off]", LpDebugCommand)
         };
-
+        
         /// <summary>
         ///     Loads the RSA private key string
         /// </summary>
@@ -223,12 +221,6 @@ namespace Unlimited_NetworkingServer_MiningGame.Login
                         }
 
                         if (_debug) Logger.Info("Successful login: " + username);
-                        /*
-                        _logger.LogInformation("INFO - Successful login: " + username);
-                        _logger.LogWarning("WARNING - Successful login: " + username);
-                        _logger.LogError("ERROR - Successful login: " + username);
-                        _logger.LogCritical("CRITICAL - Successful login: " + username);
-                        */
                     }
                     else
                     {
@@ -238,6 +230,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Login
                         using (var writer = DarkRiftWriter.Create())
                         {
                             writer.Write((byte) 1);
+                            writer.Write(loginType);
 
                             using (var msg = Message.Create(LoginTags.LoginFailed, writer))
                             {
@@ -250,7 +243,7 @@ namespace Unlimited_NetworkingServer_MiningGame.Login
             catch (Exception ex)
             {
                 // Return error 2 for database error
-                _database.DatabaseError(client, LoginTags.LoginFailed, ex);
+                _database.DatabaseError(client, LoginTags.LoginFailed, ex, loginType);
             }
         }
 
@@ -398,9 +391,11 @@ namespace Unlimited_NetworkingServer_MiningGame.Login
             BuildTask[] conversionQueue = {};
             BuildTask[] upgradeQueue = {};
             BuildTask[] buildQueue = {};
+            BackgroundTask[] backgroundTasks = {};
 
             // Create player object
-            return new PlayerData(id, level, experience, energy, resources, robots, conversionQueue, upgradeQueue, buildQueue);
+            return new PlayerData(id, level, experience, energy, resources, robots, conversionQueue, upgradeQueue,
+                buildQueue, backgroundTasks);
         }
 
         /// <summary>
