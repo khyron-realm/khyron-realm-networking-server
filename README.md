@@ -165,7 +165,7 @@ See the [open issues](https://github.com/khyron-realm/khyron-realm-networking-se
 
 
 <!-- LICENSE -->
-# License
+## License
 
 [![CC BY-NC-SA 4.0][cc-by-nc-sa-shield]][cc-by-nc-sa]
 
